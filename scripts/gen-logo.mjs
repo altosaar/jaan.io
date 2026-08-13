@@ -24,8 +24,16 @@ import sharp from "sharp";
 const SRC =
   process.argv[2] ?? "/Users/me/Library/CloudStorage/Dropbox/design/260813-jaan.io-bear/bear.svg";
 
-/** Estonian blue, for the favicon's bear. */
+/** Estonian blue — the favicon's bear against light browser chrome. */
 const FAVICON_INK = "#0030DE";
+
+/**
+ * The bear against dark browser chrome. #0030DE is a dark blue and measures
+ * about 2.5:1 on a dark tab strip, so it fills in to a smudge at 16px; white is
+ * legible on both but wrong on light chrome. An SVG favicon can carry its own
+ * media query, so it picks per scheme rather than compromising on one colour.
+ */
+const FAVICON_INK_DARK = "#ffffff";
 
 /**
  * Background for the APPLE TOUCH ICON only — the favicon itself is transparent.
@@ -100,23 +108,42 @@ writeFileSync("src/components/Logo.astro", component);
 console.log("wrote src/components/Logo.astro");
 
 // ── The favicon ──────────────────────────────────────────────────────────────
-// Transparent, so the bear sits on whatever the browser's tab strip provides.
+// Transparent, so the bear sits on whatever the browser's tab strip provides,
+// and scheme-aware: an SVG favicon carries its own <style>, and the media query
+// resolves against the browser's theme. Fill comes from CSS rather than a
+// `fill` attribute, because a presentation attribute would win over the rule
+// and the dark case would silently never apply.
 const faviconSvg =
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">` +
+  `<style>` +
+  `path{fill:${FAVICON_INK}}` +
+  `@media(prefers-color-scheme:dark){path{fill:${FAVICON_INK_DARK}}}` +
+  `</style>` +
+  bear.map((d) => `<path d="${d}"/>`).join("") +
+  `</svg>`;
+writeFileSync("public/favicon.svg", faviconSvg + "\n");
+console.log(`wrote public/favicon.svg (transparent, ${FAVICON_INK} / ${FAVICON_INK_DARK} dark)`);
+
+// The PNG fallback cannot carry a media query, so it takes the light-scheme
+// colour: it is only reached by clients too old for an SVG favicon, and those
+// are far likelier to be on light chrome.
+//
+// Rasterised from an explicitly-filled copy rather than the file above —
+// librsvg's handling of prefers-color-scheme is not something to depend on for
+// a build artifact.
+//
+// `background` on resize is explicit rather than relied upon: sharp's SVG
+// rasteriser defaults to a transparent canvas, but resize() fills any
+// letterboxing with the background colour, and that default is black.
+const faviconFlat =
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">` +
   bear.map((d) => `<path fill="${FAVICON_INK}" d="${d}"/>`).join("") +
   `</svg>`;
-writeFileSync("public/favicon.svg", faviconSvg + "\n");
-console.log("wrote public/favicon.svg (transparent)");
-
-// `background: transparent` is explicit rather than relied upon: sharp's SVG
-// rasteriser defaults to a transparent canvas, but resize() will fill any
-// letterboxing with the background colour, and the default there is black.
-const buf = Buffer.from(faviconSvg);
-await sharp(buf, { density: 600 })
+await sharp(Buffer.from(faviconFlat), { density: 600 })
   .resize(512, 512, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
   .png()
   .toFile("public/favicon.png");
-console.log("wrote public/favicon.png (transparent)");
+console.log("wrote public/favicon.png (transparent, light-scheme colour)");
 
 // The touch icon keeps a solid background — see TOUCH_ICON_BG above.
 const touchSvg =
