@@ -30,7 +30,7 @@ export const SITE = {
   /** Appended to every page title as " | {name}" — see src/layouts/Base.astro. */
   name: "Jaan Altosaar",
   /** Fallback <meta name="description"> for pages that don't set their own. */
-  description: "Machine learning for health & science at One Fact & Tartu.",
+  description: "Machine learning for health & science.",
   /** Browser UI tint on mobile. Usually --bg from tokens.css, or a shade of it. */
   themeColor: "#000000",
 

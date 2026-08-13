@@ -26,12 +26,16 @@ const SRC =
 
 /** Estonian blue, for the favicon's bear. */
 const FAVICON_INK = "#0030DE";
+
 /**
- * The favicon needs its own background: #0030DE against #000 measures 2.48:1,
- * unreadable at 16px, where on white it is 8.48:1 and holds up in both light
- * and dark browser chrome.
+ * Background for the APPLE TOUCH ICON only — the favicon itself is transparent.
+ *
+ * iOS does not honour transparency in a home-screen icon: it composites the
+ * icon onto black, which would put #0030DE at roughly 2.5:1 and turn the bear
+ * into a dark smudge on a dark tile. Every other icon here is transparent and
+ * sits on whatever the browser's tab strip provides.
  */
-const FAVICON_BG = "#ffffff";
+const TOUCH_ICON_BG = "#ffffff";
 
 const svg = readFileSync(SRC, "utf8");
 
@@ -96,15 +100,32 @@ writeFileSync("src/components/Logo.astro", component);
 console.log("wrote src/components/Logo.astro");
 
 // ── The favicon ──────────────────────────────────────────────────────────────
+// Transparent, so the bear sits on whatever the browser's tab strip provides.
 const faviconSvg =
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">` +
-  `<rect width="100%" height="100%" fill="${FAVICON_BG}"/>` +
   bear.map((d) => `<path fill="${FAVICON_INK}" d="${d}"/>`).join("") +
   `</svg>`;
 writeFileSync("public/favicon.svg", faviconSvg + "\n");
-console.log("wrote public/favicon.svg");
+console.log("wrote public/favicon.svg (transparent)");
 
+// `background: transparent` is explicit rather than relied upon: sharp's SVG
+// rasteriser defaults to a transparent canvas, but resize() will fill any
+// letterboxing with the background colour, and the default there is black.
 const buf = Buffer.from(faviconSvg);
-await sharp(buf, { density: 600 }).resize(512, 512).png().toFile("public/favicon.png");
-await sharp(buf, { density: 600 }).resize(180, 180).png().toFile("public/apple-touch-icon.png");
-console.log("wrote public/favicon.png and public/apple-touch-icon.png");
+await sharp(buf, { density: 600 })
+  .resize(512, 512, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+  .png()
+  .toFile("public/favicon.png");
+console.log("wrote public/favicon.png (transparent)");
+
+// The touch icon keeps a solid background — see TOUCH_ICON_BG above.
+const touchSvg =
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">` +
+  `<rect width="100%" height="100%" fill="${TOUCH_ICON_BG}"/>` +
+  bear.map((d) => `<path fill="${FAVICON_INK}" d="${d}"/>`).join("") +
+  `</svg>`;
+await sharp(Buffer.from(touchSvg), { density: 600 })
+  .resize(180, 180)
+  .png()
+  .toFile("public/apple-touch-icon.png");
+console.log(`wrote public/apple-touch-icon.png (on ${TOUCH_ICON_BG})`);

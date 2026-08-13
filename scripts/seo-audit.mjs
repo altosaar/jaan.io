@@ -330,12 +330,17 @@ for (const page of htmlFiles) {
       continue;
     }
     // Canonical link shape. Only applies to links that actually address a
-    // PAGE by path, so three things are excluded first:
+    // PAGE by path, so four things are excluded first:
     //   • pure fragments ("#main", "#user-content-fn-1") — same page, no path
     //   • the site root ("/") — already canonical either way
-    //   • static assets (.pdf, .png, …) — a file never takes a trailing slash
+    //   • links that resolve to something other than an HTML file
+    //   • links that NAME a file, extension and all. Checking only the resolved
+    //     target is not enough: /files/figure.html resolves to an .html file, so
+    //     it survived that test and got told to end in a slash, which would be
+    //     wrong for a file. The href's own shape is what settles it.
     const pathPart = h.split(/[?#]/)[0];
     if (pathPart === "" || pathPart === "/" || !target.endsWith(".html")) continue;
+    if (/\.[a-z0-9]{1,8}$/i.test(pathPart)) continue;
     if (pathPart.endsWith("/") !== WANT_TRAILING_SLASH)
       warn(
         page,
