@@ -1,0 +1,241 @@
+---
+// Readable, edge-aligned column for Markdown content pages (about, faq, terms,
+// schedule, partners, and the rest). The rendered Markdown arrives via <slot/>,
+// so its elements are styled with :global() below.
+interface Props {
+  /** Where the closing back-link points. Pass `null` to omit the link. */
+  backHref?: string | null;
+  backLabel?: string;
+}
+
+const { backHref = "/", backLabel = "← Back home" } = Astro.props;
+---
+
+<div class="prose">
+  <slot />
+  {
+    /* set:html rather than a child expression: .prose-back is an underlined
+      inline-block, so a stray whitespace text node either side of the label
+      would render as underlined space. A self-closing tag can't collect any. */
+  }
+  {backHref && <a href={backHref} class="prose-back" set:html={backLabel} />}
+</div>
+
+<style>
+  .prose {
+    width: var(--site-w);
+    margin-left: var(--site-ml);
+    max-width: 68ch;
+    padding-top: var(--space-section);
+    padding-bottom: var(--space-block);
+  }
+
+  .prose :global(h1) {
+    margin-bottom: 1.25rem;
+  }
+
+  .prose :global(h2) {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 2rem 0 0.75rem;
+  }
+
+  .prose :global(p) {
+    font-size: var(--fs-body);
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+  }
+
+  .prose :global(h3) {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 2rem 0 0.625rem;
+  }
+
+  .prose :global(h4),
+  .prose :global(h5),
+  .prose :global(h6) {
+    font-size: var(--fs-md);
+    font-weight: 600;
+    margin: 1.5rem 0 0.5rem;
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin: 0 0 1.25rem 1.25rem;
+    line-height: 1.6;
+  }
+
+  .prose :global(li) {
+    margin-bottom: 0.375rem;
+  }
+
+  /* ── Long-form additions ────────────────────────────────────────────────
+     The upstream template styled ~500-word pages: h1/h2/p/ul/li and nothing
+     else. These posts run to 6,700 words with figures, footnotes, embedded
+     iframes and several hundred equations, so everything below is the part
+     that had no styling at all and would otherwise fall back to UA defaults
+     (serif text, blue links, white code blocks punching a hole in the dark
+     page). */
+
+  .prose :global(blockquote) {
+    margin: 1.5rem 0;
+    padding-left: 1.25rem;
+    border-left: 2px solid var(--line);
+    color: var(--text-muted);
+  }
+
+  .prose :global(figure) {
+    margin: 2rem 0;
+  }
+
+  .prose :global(figure img),
+  .prose :global(p img) {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin-inline: auto;
+  }
+
+  /* Legacy figures drawn for a white page.
+     The diagrams in these posts date from 2016–2021, when jaan.io had a light
+     background. Three of them (encoder-decoder, the VAE graphical model, the
+     reparametrization trick) are black line art on a TRANSPARENT background —
+     on #000 they render as nothing at all, a caption under an empty gap. The
+     Ising SVGs are the same drawing baked onto opaque white, which reads as a
+     glaring slab instead.
+     Rather than recolour the artwork (which would mean re-exporting sources
+     that live in _src/ising_model), give exactly these images the white page
+     they were drawn against. Marked per-image with class="plate" in the
+     Markdown, so photographs and screenshots are unaffected. */
+  .prose :global(img.plate) {
+    background: #fff;
+    padding: 1rem;
+  }
+
+  .prose :global(figcaption) {
+    margin-top: 0.625rem;
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* Embedded interactive figures (YouTube, the D3/Plotly pages under /files/).
+     The originals carry hardcoded width/height attributes from 2016. */
+  .prose :global(iframe) {
+    max-width: 100%;
+    border: 0;
+  }
+
+  .prose :global(code) {
+    font-size: 0.9em;
+    padding: 0.15em 0.35em;
+    background: var(--surface);
+  }
+
+  .prose :global(pre) {
+    background: var(--surface);
+    padding: 1rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    line-height: 1.45;
+  }
+
+  .prose :global(pre code) {
+    padding: 0;
+    background: none;
+  }
+
+  .prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: var(--fs-sm);
+  }
+
+  .prose :global(th),
+  .prose :global(td) {
+    border-bottom: 1px solid var(--line);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+
+  .prose :global(hr) {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 2.5rem 0;
+  }
+
+  /* ── Math ───────────────────────────────────────────────────────────────
+     Display equations are the one element here that genuinely cannot wrap: a
+     long line of LaTeX is one unbreakable box. Without its own scroller it
+     widens the page and the whole article scrolls sideways on a phone. */
+  .prose :global(.katex-display) {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5rem 0;
+    margin: 1.5rem 0;
+  }
+
+  /* KaTeX sizes rules (fraction bars, radicals, \overline) in ems that round
+     to sub-pixel heights; on a near-black background those disappear at body
+     size. Floor them so fractions still read as fractions. */
+  .prose :global(.katex .frac-line),
+  .prose :global(.katex .overline .overline-line),
+  .prose :global(.katex .underline .underline-line) {
+    min-height: 1px;
+    border-bottom-width: max(1px, 0.04em);
+  }
+
+  /* ── Footnotes (16 of them in the physics post) ─────────────────────── */
+  .prose :global(.footnotes) {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .prose :global(.footnotes h2) {
+    font-size: var(--fs-md);
+    font-family: var(--font-body);
+    margin-bottom: 0.75rem;
+  }
+
+  .prose :global(.footnotes p) {
+    font-size: inherit;
+    margin-bottom: 0.5rem;
+  }
+
+  /* The little ↩ backlink after each definition. */
+  .prose :global(.data-footnote-backref) {
+    text-decoration: none;
+    margin-left: 0.25rem;
+  }
+
+  /* Superscript reference markers in the body text. */
+  .prose :global(sup a) {
+    text-decoration: none;
+  }
+
+  .prose-back {
+    display: inline-block;
+    margin-top: 1rem;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in srgb, var(--text) 25%, transparent);
+  }
+  .prose-back:hover {
+    color: var(--text);
+    text-decoration-color: var(--text);
+  }
+  /* Focus ring comes from the global :focus-visible rule in base.css. */
+</style>

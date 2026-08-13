@@ -1,0 +1,53 @@
+---
+// Blog posts, at the exact URLs jaan.io has served since 2013.
+//
+// The Jekyll site used `permalink: /:title/`, where :title is the filename slug
+// with the leading YYYY-MM-DD- stripped. So `src/content/posts/<slug>.md` →
+// `/<slug>/`, and with trailingSlash:"always" + build.format:"directory" in
+// astro.config.mjs the emitted path is `<slug>/index.html` — byte-identical to
+// the live URL. Renaming a file here breaks a URL that carries real search
+// traffic; add a redirect instead.
+//
+// A single [slug] (not [...slug]) is deliberate: every post URL is exactly one
+// path segment, so this route cannot accidentally shadow a nested page later.
+import Base from "../layouts/Base.astro";
+import Prose from "../components/Prose.astro";
+import { getCollection, render } from "astro:content";
+import type { GetStaticPaths } from "astro";
+// KaTeX's stylesheet is imported here, not in Base.astro, so it only ships on
+// routes that can contain math.
+import "katex/dist/katex.min.css";
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection("posts");
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}) satisfies GetStaticPaths;
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const published = post.data.date.toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  timeZone: "UTC",
+});
+---
+
+<Base title={post.data.title} description={post.data.description}>
+  <Prose backHref="/" backLabel="← Home">
+    <h1>{post.data.title}</h1>
+    <p class="post-date">
+      <time datetime={post.data.date.toISOString().slice(0, 10)}>{published}</time>
+    </p>
+    <Content />
+  </Prose>
+</Base>
+
+<style>
+  .post-date {
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+    margin-bottom: 2.5rem;
+  }
+</style>

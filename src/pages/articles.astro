@@ -1,0 +1,113 @@
+---
+// /articles/ — the index of blog posts, newest first.
+//
+// NOTE ON THE URL: the Jekyll site's index lived at /blog/ and is still live
+// today. This page is at /articles/ because that is what the nav calls it (and
+// it matches the posts' own `category: articles` in the old frontmatter), so
+// /blog/ needs a 301 → /articles/ before any DNS cutover. See the plan's
+// Phase 4. The individual POST urls are unchanged and must stay that way.
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import { getCollection } from "astro:content";
+
+const posts = (await getCollection("posts")).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+
+const year = (d: Date) => d.getUTCFullYear();
+---
+
+<Base
+  title="Articles"
+  description="Long-form writing on machine learning, variational inference, physics, and the incentives behind the technology industry."
+>
+  <Section as="header" top="section" bottom="block">
+    <h1>Articles</h1>
+    <p class="articles-intro">
+      Long-form writing, mostly on machine learning and physics. Older pieces are kept at their
+      original URLs.
+    </p>
+  </Section>
+
+  <Section bottom="gap">
+    <ul class="articles" role="list">
+      {
+        posts.map((post) => (
+          <li class="article">
+            <a href={`/${post.id}/`} class="article__link">
+              <h2 class="article__title">{post.data.title}</h2>
+            </a>
+            <p class="article__meta">
+              <time datetime={post.data.date.toISOString().slice(0, 10)}>
+                {year(post.data.date)}
+              </time>
+            </p>
+            <p class="article__desc">{post.data.description}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+</Base>
+
+<style>
+  .articles-intro {
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    max-width: 60ch;
+    margin-top: 1rem;
+    color: var(--text-muted);
+  }
+
+  .articles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 68ch;
+  }
+
+  .article {
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .article:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* The heading is the link, so the whole title is one tap target. The
+     underline treatment comes from the title rather than the anchor so the
+     hover affordance covers the full line. */
+  .article__link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .article__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .article__link:hover .article__title,
+  .article__link:focus-visible .article__title {
+    color: var(--accent);
+  }
+
+  .article__meta {
+    margin-top: 0.5rem;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .article__desc {
+    margin-top: 0.5rem;
+    font-size: var(--fs-body);
+    line-height: 1.6;
+    max-width: 60ch;
+  }
+</style>

@@ -1,0 +1,22 @@
+---
+// /about/ — renders src/content/pages/about.md.
+//
+// A named route rather than a [slug] catch-all: src/pages/[slug].astro already
+// owns the single-segment namespace for blog posts, whose URLs are fixed by
+// what jaan.io has served since 2013. Giving standalone pages their own file
+// keeps the two from competing for the same paths.
+import Base from "../layouts/Base.astro";
+import Prose from "../components/Prose.astro";
+import { getEntry, render } from "astro:content";
+
+const page = await getEntry("pages", "about");
+if (!page) throw new Error("[about] src/content/pages/about.md is missing.");
+const { Content } = await render(page);
+---
+
+<Base title={page.data.title} description={page.data.description}>
+  <Prose backHref="/" backLabel="← Home">
+    <h1>{page.data.title}</h1>
+    <Content />
+  </Prose>
+</Base>

@@ -1,0 +1,114 @@
+---
+import "../styles/tokens.css";
+import "../styles/fonts.css";
+import "../styles/base.css";
+import "../styles/chrome.css";
+import SiteHeader from "../components/SiteHeader.astro";
+import MobileMenu from "../components/MobileMenu.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { getImage } from "astro:assets";
+import { featured, OG_SIZE } from "../lib/og";
+import { SITE } from "../site.config";
+
+// Render this build's randomly-featured testimonial into a high-res square share
+// image (Sharp, build-time), and resolve it to an absolute URL for the meta tags.
+const ogRendered = await getImage({
+  src: featured.image,
+  width: OG_SIZE,
+  height: OG_SIZE,
+  fit: "cover",
+  position: "attention",
+  format: "jpeg",
+  quality: 80,
+});
+const ogImageUrl = new URL(ogRendered.src, Astro.site).href;
+
+interface Props {
+  title?: string;
+  description?: string;
+  navMode?: "ticker" | "static";
+}
+// Browser-tab title template, defined once. Pages pass only their own short
+// title (e.g. "FAQ") and the layout appends " | {SITE.name}", so the separator
+// and site name live in exactly one place. A page that passes no title at all
+// gets just the site name — nothing currently does; every route, home included,
+// sets one. The name itself comes from src/site.config.ts.
+// navMode defaults to "static" here, not "ticker": the ticker was removed with
+// the rest of the Community Cleanup chrome, and "ticker"/compact mode hides the
+// logo and wordmark (.site-chrome.compact .nav-home is display:none) while
+// reserving the left half of the bar for a ticker that no longer exists — an
+// empty header.
+const { title, description = SITE.description, navMode = "static" } = Astro.props;
+const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
+
+// This page's own absolute URL, resolved against `site` (astro.config.mjs).
+// build.format "file" makes Astro.url.pathname the emitted file path
+// (/about.html, /index.html), but the shareable URL — and what @astrojs/sitemap
+// emits — is the clean form (/about, /). Strip the extension so canonical and
+// og:url match the sitemap exactly.
+const cleanPath = Astro.url.pathname.replace(/index\.html$/, "").replace(/\.html$/, "");
+const canonicalURL = new URL(cleanPath, Astro.site);
+
+// Sitewide organization identity for search/AI engines. Emitted once per page as
+// JSON-LD; the homepage URL + logo are absolute so they resolve off any host.
+// Every value is from SITE.schema (src/site.config.ts). `areaServed` is dropped
+// when blank, so a site that isn't geographically scoped emits no empty key.
+const orgSchema = {
+  "@context": "https://schema.org",
+  "@type": SITE.schema.type,
+  name: SITE.name,
+  url: new URL("/", Astro.site).href,
+  logo: new URL(SITE.schema.logo, Astro.site).href,
+  description: SITE.description,
+  ...(SITE.schema.areaServed ? { areaServed: SITE.schema.areaServed } : {}),
+  sameAs: SITE.schema.sameAs,
+};
+---
+
+<!doctype html>
+<html lang={SITE.lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content={SITE.themeColor} />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content={SITE.locale} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content={String(OG_SIZE)} />
+    <meta property="og:image:height" content={String(OG_SIZE)} />
+    <meta property="og:image:alt" content={featured.alt} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    {
+      SITE.fonts.map((href) => (
+        <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
+      ))
+    }
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(orgSchema)} />
+    {/* Page-specific <head> content — e.g. join.astro's Event JSON-LD. */}
+    <slot name="head" />
+  </head>
+
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <SiteHeader navMode={navMode} />
+    <MobileMenu />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>

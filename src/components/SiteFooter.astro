@@ -1,0 +1,44 @@
+---
+// Site footer. Every link comes from SITE.nav.footer, SITE.social, and
+// SITE.footer — edit src/site.config.ts, not this file.
+import { SITE } from "../site.config";
+import NavLink from "./NavLink.astro";
+
+// Build-time year. The daily rebuild (site-checks.yml `redeploy`) is what keeps
+// this from going stale on 1 January without anyone pushing a commit.
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-grid">
+    {
+      SITE.nav.footer.map((column) => (
+        <div class="footer-col">
+          {column.map((link) => (
+            <NavLink link={link} />
+          ))}
+        </div>
+      ))
+    }
+    <div class="footer-col">
+      {SITE.social.map((link) => <NavLink link={link} />)}
+    </div>
+    <div class="footer-right">
+      {SITE.footer.legal.map((link) => <NavLink link={link} />)}
+      <p class="footer-copyright">&copy; {SITE.footer.copyright} {year}</p>
+      {SITE.footer.madeWith && <p class="footer-made">{SITE.footer.madeWith}</p>}
+      {
+        /* Credit for the logo artwork. Rendered on every page because the mark
+           it credits is in the header of every page. */
+        SITE.footer.credit && (
+          <p class="footer-credit">
+            {SITE.footer.credit.prefix}{" "}
+            <a href={SITE.footer.credit.href} rel="noopener noreferrer" target="_blank">
+              {SITE.footer.credit.label}
+            </a>
+          </p>
+        )
+      }
+    </div>
+  </div>
+</footer>

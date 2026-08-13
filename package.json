@@ -1,0 +1,36 @@
+{
+  "name": "jaan-io",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "audit": "node scripts/seo-audit.mjs dist",
+    "a11y": "node scripts/contrast-check.mjs",
+    "gen:logo": "node scripts/gen-logo-assets.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "git config core.hooksPath .githooks || true"
+  },
+  "dependencies": {
+    "astro": "^7.2.2",
+    "embla-carousel": "^8.6.0",
+    "katex": "^0.18.4",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "sharp": "^0.35.3"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@astrojs/markdown-remark": "^7.2.2",
+    "@astrojs/sitemap": "^3.7.3",
+    "prettier": "^3.9.6",
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript": "^5.9.3"
+  }
+}

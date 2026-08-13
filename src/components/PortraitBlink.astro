@@ -1,0 +1,242 @@
+---
+// A two-frame portrait that cuts between an eyes-open and an eyes-closed frame.
+//
+// WHY NOT A GIF: the same two frames were previously shipped as an animated GIF
+// — 2.3 MB at 1600px, 5.9 MB at full size — because a GIF has to carry every
+// frame at one fixed resolution, with no srcset and no modern codec. Here each
+// frame is an ordinary responsive <Image>, so a phone downloads two ~15 KB WebPs
+// instead of one multi-megabyte GIF, and the browser picks the right rung per
+// device. The animation itself is CSS; the only JavaScript is the one-line
+// listener that un-pauses it after the visitor's first scroll.
+//
+// The two source frames are one exposure sequence auto-aligned in Photoshop, so
+// the head registers between them; that alignment is what makes a hard cut read
+// as a blink rather than a jump.
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import { lqip } from "../lib/lqip";
+
+interface Props {
+  /** The resting frame — shown first and held whenever motion is reduced. */
+  open: ImageMetadata;
+  /** The second frame, cut to on alternate beats. Decorative: `open` carries the alt. */
+  closed: ImageMetadata;
+  /** Describes the person, on the resting frame only. */
+  alt: string;
+  /** Seconds the eyes-open frame is held — the long beat. */
+  openSeconds?: number;
+  /** Seconds the eyes-closed frame is held — the blink itself, kept short. */
+  closedSeconds?: number;
+  class?: string;
+  /** Rendered widths for srcset generation. */
+  widths?: number[];
+  sizes?: string;
+}
+
+const {
+  open,
+  closed,
+  alt,
+  openSeconds = 4.5,
+  closedSeconds = 0.4,
+  class: className,
+  widths = [320, 640, 960],
+  sizes = "(max-width: 720px) 60vw, 320px",
+} = Astro.props;
+
+// Same blur-up placeholder the gallery uses (src/lib/lqip.ts): a 16px preview
+// blurred inside an inline SVG, painted as the img's own background under a
+// cover fit, with `color:transparent` hiding the alt text while it loads.
+// Cleared once decoded by src/lib/blur-up.client.ts.
+const blurFor = (placeholder: string) =>
+  placeholder
+    ? `color:transparent;background-image:url("${placeholder}");background-size:cover;` +
+      `background-position:50% 50%;background-repeat:no-repeat`
+    : undefined;
+
+const [openBlur, closedBlur] = await Promise.all([lqip(open), lqip(closed)]);
+
+// Pin the intrinsic size to the SMALLEST srcset rung so the plain `src` is the
+// 1x file (~13 KB), not the full-resolution master (~194 KB). Astro otherwise
+// points `src` at the original, which is what a client with no srcset support
+// downloads — and what any tool that measures page weight by `src` counts.
+// Same trick, same reason, as renderInfo() in Carousel.astro.
+const fallbackW = Math.min(...widths);
+const intrinsic = (img: ImageMetadata) => ({
+  width: fallbackW,
+  height: Math.round(fallbackW * (img.height / img.width)),
+});
+
+// The cadence is asymmetric — a short blink and a long open beat — so the cut
+// cannot sit at a fixed 50% of the cycle the way an even alternation would.
+//
+// THE BLINK LEADS THE CYCLE. Keyframe 0% is the CLOSED frame, and the animation
+// is only declared once the visitor scrolls (see the `.portrait-awake` rule
+// below), so the animation's first instant is the blink itself — immediate
+// feedback on the scroll rather than a wait of `openSeconds` before anything
+// visibly happens. The open beat is the remainder of each cycle.
+//
+// CSS keyframe selectors are percentages and cannot read a custom property, so
+// the switch point has to exist as a literal in the rule. Generating the
+// @keyframes here keeps that literal derived from the same two numbers that set
+// the duration; hardcoding a percentage next to a variable duration is how the
+// ratio silently drifts the first time someone retimes it.
+//
+// The name encodes the cadence, so retiming produces a new rule rather than
+// silently reusing a stale one — and if the rule ever failed to ship, the
+// animation-name would simply match nothing and the portrait would sit still,
+// which is a safe failure rather than a wrong cadence.
+const cycleSeconds = openSeconds + closedSeconds;
+const openAtPercent = Number(((closedSeconds / cycleSeconds) * 100).toFixed(4));
+const animationName = `portrait-blink-${Math.round(openSeconds * 1000)}-${Math.round(
+  closedSeconds * 1000,
+)}`;
+const keyframes = `@keyframes ${animationName}{0%{opacity:1}${openAtPercent}%{opacity:0}}`;
+---
+
+{
+  /* Global because @keyframes are generated from the cadence props and so can't
+    live in the scoped block below. Only the rule is global; every selector that
+    uses it stays scoped. */
+}
+<style is:global set:html={keyframes}></style>
+
+<div
+  class:list={["portrait", className]}
+  style={`--portrait-cycle:${cycleSeconds}s; --portrait-anim:${animationName}; ` +
+    `--portrait-ratio:${open.width} / ${open.height}`}
+>
+  <Image
+    src={open}
+    alt={alt}
+    class="portrait__frame portrait__frame--open"
+    width={intrinsic(open).width}
+    height={intrinsic(open).height}
+    widths={widths}
+    sizes={sizes}
+    format="webp"
+    quality={80}
+    layout="none"
+    loading="eager"
+    fetchpriority="high"
+    decoding="async"
+    data-blur-up
+    style={blurFor(openBlur)}
+  />
+  {
+    /* The second frame is the same person, so it is decorative — announcing it
+      would read the portrait out twice. Loaded eagerly even though the blink is
+      gated on a scroll: the frame has to be decoded BEFORE that first scroll, or
+      the opening blink flashes an empty box. Low priority so it still never
+      competes with the resting frame, which is the LCP candidate. */
+  }
+  <Image
+    src={closed}
+    alt=""
+    aria-hidden="true"
+    class="portrait__frame portrait__frame--closed"
+    width={intrinsic(closed).width}
+    height={intrinsic(closed).height}
+    widths={widths}
+    sizes={sizes}
+    format="webp"
+    quality={80}
+    layout="none"
+    loading="eager"
+    fetchpriority="low"
+    decoding="async"
+    data-blur-up
+    style={blurFor(closedBlur)}
+  />
+</div>
+
+<script>
+  import "../lib/blur-up.client";
+  import "../lib/portrait.client";
+</script>
+
+<style>
+  /* The wrapper owns the box. aspect-ratio comes from the source dimensions via
+     a custom property, so the space is reserved before either frame decodes and
+     the swap can never shift layout. */
+  .portrait {
+    position: relative;
+    aspect-ratio: var(--portrait-ratio);
+    overflow: hidden;
+  }
+
+  .portrait__frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Matches the gallery's highlight crossfade (HL_DURATION.hover and the
+       easing on .card__media img in Carousel.astro) so the portrait losing
+       colour and a photo gaining it read as one movement, not two. */
+    transition: filter 500ms cubic-bezier(0.6, 0, 0.4, 1);
+  }
+
+  /* The gallery currently holds the page's highlight — see lib/portrait.client.ts.
+     Desaturated only, not dimmed: the carousel's resting slides also drop to
+     0.7 opacity, but those sit in a strip of eighteen where the dimming is what
+     separates them. A lone portrait beside body text just needs the colour gone. */
+  .portrait.is-dimmed .portrait__frame {
+    filter: grayscale(1);
+  }
+
+  /* The second frame is stacked on the first. Only it animates: the resting
+     frame just sits underneath, which means a failed load of the second frame
+     degrades to a normal static portrait rather than a hole.
+
+     steps(1, end) is what makes this a cut rather than a fade: the value holds
+     at each keyframe and jumps at the boundary, with no interpolation between.
+     Starting at opacity 0 is why the OPEN frame is the one shown first — and
+     why the paused state below rests on open eyes rather than shut ones. */
+  .portrait__frame--closed {
+    position: absolute;
+    inset: 0;
+    /* At rest: no animation at all, and the closed frame fully transparent, so
+       the portrait sits on open eyes until the visitor engages. */
+    opacity: 0;
+  }
+
+  /* The animation is DECLARED here rather than declared-and-paused above,
+     because keyframe 0% is the closed frame. Attaching the animation is what
+     starts it, so the blink fires on the same frame the class lands — the
+     instant of the first scroll (see lib/portrait.client.ts). Pausing an
+     already-declared animation instead would have parked the element on that
+     0% closed frame, leaving the resting portrait with its eyes shut. */
+  :global(html.portrait-awake) .portrait__frame--closed {
+    animation-name: var(--portrait-anim);
+    animation-duration: var(--portrait-cycle);
+    animation-timing-function: steps(1, end);
+    animation-iteration-count: infinite;
+  }
+
+  /* Retired once the gallery has been touched. Same specificity as the awake
+     rule above (both are one class on <html> plus the scoped class here), so
+     this wins purely by coming later — keep it below that rule. `animation:
+     none` rather than a paused state so the element cannot be left parked on
+     the 0% closed frame. */
+  :global(html.portrait-still) .portrait__frame--closed {
+    animation: none;
+    opacity: 0;
+  }
+
+  /* A portrait that blinks forever is exactly the kind of small looping motion
+     that reduced-motion settings exist to stop (and it runs well past the 5s
+     that WCAG 2.2.2 treats as needing a control). Hold the resting frame. */
+  @media (prefers-reduced-motion: reduce) {
+    /* Must repeat the `.portrait-awake` selector, not just the bare class. The
+       awake rule above is `html.portrait-awake .portrait__frame--closed`, which
+       outranks a lone `.portrait__frame--closed` — a media query adds no
+       specificity of its own, so the short selector alone would lose and the
+       portrait would blink at people who asked for no motion. Matching the
+       selector and coming later in the sheet is what makes this win. */
+    :global(html.portrait-awake) .portrait__frame--closed,
+    .portrait__frame--closed {
+      animation: none;
+      opacity: 0;
+    }
+  }
+</style>
