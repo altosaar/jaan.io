@@ -24,4 +24,4 @@ The best way to reach me is [j@jaan.io](mailto:j@jaan.io). If you need more secu
 - [Twitter](https://twitter.com/thejaan)
 - [LinkedIn](https://www.linkedin.com/in/jaanaltosaar)
 - [Flickr](https://www.flickr.com/photos/thejaan/)
-- [GitHub](https://github.com/jaanaltosaar)
+- [GitHub](https://github.com/altosaar)

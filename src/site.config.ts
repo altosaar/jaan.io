@@ -74,7 +74,7 @@ export const SITE = {
   // this list is what humans click, `sameAs` is what search engines read.
   social: [
     { label: "Email", href: "mailto:j@jaan.io" },
-    { label: "GitHub", href: "https://github.com/jaanaltosaar", external: true },
+    { label: "GitHub", href: "https://github.com/altosaar", external: true },
     { label: "Twitter", href: "https://twitter.com/thejaan", external: true },
     { label: "LinkedIn", href: "https://www.linkedin.com/in/jaanaltosaar", external: true },
     { label: "Flickr", href: "https://www.flickr.com/photos/thejaan/", external: true },
@@ -111,7 +111,7 @@ export const SITE = {
     areaServed: "",
     /** Profile URLs that identify this same entity elsewhere. */
     sameAs: [
-      "https://github.com/jaanaltosaar",
+      "https://github.com/altosaar",
       "https://twitter.com/thejaan",
       "https://www.linkedin.com/in/jaanaltosaar",
       "https://www.flickr.com/photos/thejaan/",
