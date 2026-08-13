@@ -3,3 +3,18 @@
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# Keep the *.pages.dev copy of the site out of search results.
+#
+# This matches on the HOSTNAME, not the path, so it applies to the Pages
+# deployment and NOT to jaan.io once that is served from here. That scoping is
+# the whole point: a blanket `/*` noindex would be correct today and silently
+# catastrophic on the day the real domain is pointed at this project.
+#
+# It matters because every page canonicals to https://jaan.io/ while jaan.io
+# still serves the old site — so an indexable duplicate here is exactly the kind
+# of thing that costs the organic traffic this port exists to preserve.
+# Cloudflare applies this automatically to *preview* deployments; production
+# deployments on pages.dev get no such treatment, hence doing it explicitly.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex
