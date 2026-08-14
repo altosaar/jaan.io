@@ -6,8 +6,8 @@
 // frame at one fixed resolution, with no srcset and no modern codec. Here each
 // frame is an ordinary responsive <Image>, so a phone downloads two ~15 KB WebPs
 // instead of one multi-megabyte GIF, and the browser picks the right rung per
-// device. The animation itself is CSS; the only JavaScript is the one-line
-// listener that un-pauses it after the visitor's first scroll.
+// device. The animation itself is CSS; the only JavaScript attaches it while
+// the visitor is scrolling and detaches it when they stop (lib/portrait.client.ts).
 //
 // The two source frames are one exposure sequence auto-aligned in Photoshop, so
 // the head registers between them; that alignment is what makes a hard cut read
@@ -71,10 +71,11 @@ const intrinsic = (img: ImageMetadata) => ({
 // cannot sit at a fixed 50% of the cycle the way an even alternation would.
 //
 // THE BLINK LEADS THE CYCLE. Keyframe 0% is the CLOSED frame, and the animation
-// is only declared once the visitor scrolls (see the `.portrait-awake` rule
-// below), so the animation's first instant is the blink itself — immediate
+// is only declared while the visitor is scrolling (see the `.portrait-blinking`
+// rule below), so the animation's first instant is the blink itself — immediate
 // feedback on the scroll rather than a wait of `openSeconds` before anything
-// visibly happens. The open beat is the remainder of each cycle.
+// visibly happens. That matters more now than it did: a short flick may only
+// last long enough for that one blink. The open beat is the rest of each cycle.
 //
 // CSS keyframe selectors are percentages and cannot read a custom property, so
 // the switch point has to exist as a literal in the rule. Generating the
@@ -170,18 +171,6 @@ const keyframes = `@keyframes ${animationName}{0%{opacity:1}${openAtPercent}%{op
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* Matches the gallery's highlight crossfade (HL_DURATION.hover and the
-       easing on .card__media img in Carousel.astro) so the portrait losing
-       colour and a photo gaining it read as one movement, not two. */
-    transition: filter 500ms cubic-bezier(0.6, 0, 0.4, 1);
-  }
-
-  /* The gallery currently holds the page's highlight — see lib/portrait.client.ts.
-     Desaturated only, not dimmed: the carousel's resting slides also drop to
-     0.7 opacity, but those sit in a strip of eighteen where the dimming is what
-     separates them. A lone portrait beside body text just needs the colour gone. */
-  .portrait.is-dimmed .portrait__frame {
-    filter: grayscale(1);
   }
 
   /* The second frame is stacked on the first. Only it animates: the resting
@@ -203,37 +192,32 @@ const keyframes = `@keyframes ${animationName}{0%{opacity:1}${openAtPercent}%{op
   /* The animation is DECLARED here rather than declared-and-paused above,
      because keyframe 0% is the closed frame. Attaching the animation is what
      starts it, so the blink fires on the same frame the class lands — the
-     instant of the first scroll (see lib/portrait.client.ts). Pausing an
-     already-declared animation instead would have parked the element on that
-     0% closed frame, leaving the resting portrait with its eyes shut. */
-  :global(html.portrait-awake) .portrait__frame--closed {
+     instant the visitor starts scrolling. Removing the class detaches the
+     animation and the frame drops back to the opacity: 0 above, so letting go
+     rests on open eyes. Pausing an already-declared animation instead would
+     have parked the element on that 0% closed frame, leaving the resting
+     portrait with its eyes shut.
+
+     The class is on <html> for exactly as long as a scroll gesture lasts — see
+     lib/portrait.client.ts. */
+  :global(html.portrait-blinking) .portrait__frame--closed {
     animation-name: var(--portrait-anim);
     animation-duration: var(--portrait-cycle);
     animation-timing-function: steps(1, end);
     animation-iteration-count: infinite;
   }
 
-  /* Retired once the gallery has been touched. Same specificity as the awake
-     rule above (both are one class on <html> plus the scoped class here), so
-     this wins purely by coming later — keep it below that rule. `animation:
-     none` rather than a paused state so the element cannot be left parked on
-     the 0% closed frame. */
-  :global(html.portrait-still) .portrait__frame--closed {
-    animation: none;
-    opacity: 0;
-  }
-
-  /* A portrait that blinks forever is exactly the kind of small looping motion
-     that reduced-motion settings exist to stop (and it runs well past the 5s
-     that WCAG 2.2.2 treats as needing a control). Hold the resting frame. */
+  /* Motion tied to a scroll gesture is still motion, and this one is a face
+     blinking — precisely what a reduced-motion setting is asked to stop. Hold
+     the resting frame. */
   @media (prefers-reduced-motion: reduce) {
-    /* Must repeat the `.portrait-awake` selector, not just the bare class. The
-       awake rule above is `html.portrait-awake .portrait__frame--closed`, which
-       outranks a lone `.portrait__frame--closed` — a media query adds no
+    /* Must repeat the `.portrait-blinking` selector, not just the bare class.
+       The rule above is `html.portrait-blinking .portrait__frame--closed`,
+       which outranks a lone `.portrait__frame--closed` — a media query adds no
        specificity of its own, so the short selector alone would lose and the
        portrait would blink at people who asked for no motion. Matching the
        selector and coming later in the sheet is what makes this win. */
-    :global(html.portrait-awake) .portrait__frame--closed,
+    :global(html.portrait-blinking) .portrait__frame--closed,
     .portrait__frame--closed {
       animation: none;
       opacity: 0;

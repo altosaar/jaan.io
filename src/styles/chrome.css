@@ -265,18 +265,13 @@
   color: var(--accent);
 }
 
+/* The whole of .nav-home — there is no logo mark beside it. Weight matches
+   .nav-link below (and .home__contact on the home page) so the bar reads as one
+   voice; it is not uppercased, because it is a name rather than a label. */
 .nav-wordmark {
   font-size: var(--fs-md);
-  font-weight: 300;
+  font-weight: 350;
   letter-spacing: 0.05rem;
-  margin-left: 0.6rem;
-}
-
-.site-logo {
-  height: 2.75rem;
-  width: auto;
-  display: block;
-  flex-shrink: 0;
 }
 
 .nav-links {
@@ -698,9 +693,10 @@
 }
 
 @media (max-width: 1024px) {
-  .nav-wordmark {
-    display: none;
-  }
+  /* The wordmark stays visible here. It used to be hidden below 1024px because
+     the logo mark carried the home link on its own; with the mark gone, hiding
+     it would leave .nav-home an empty box — an invisible link occupying the top
+     left of every page on every phone. */
   .nav-links {
     display: none;
   }

@@ -41,12 +41,18 @@
 
   /* The sizes this design actually reuses. One-off sizes stay inline at their
      use site; promote one here once a second place wants it. */
-  --fs-hero: clamp(3.25rem, 11vw, 6rem);
+  /* The floor is 2.5rem, not the template's 3.25rem: at 3.25rem the home page's
+     headline broke into four lines on a 375px phone, and that page is locked to
+     one screen (html.is-fullscreen in base.css) so the overflow had no scrollbar
+     to escape through — the closing line was simply cut off. Below ~455px the
+     11vw term is what governs anyway, so this floor only ever engages on the
+     narrowest phones, which are exactly the ones that could not afford it. */
+  --fs-hero: clamp(2.5rem, 11vw, 6rem);
   --fs-h1: clamp(3rem, 5vw, 3rem);
   --fs-cta: clamp(1.75rem, 2vw, 1.25rem);
   --fs-lg: 1.5rem;
-  --fs-md: 1.1rem;
-  --fs-body: 1.0625rem;
+  --fs-md: 1.3rem;
+  --fs-body: 1.3rem;
   --fs-base: 1rem;
   --fs-sm: 0.9375rem;
 
@@ -71,11 +77,24 @@
   --ticker-duration: 12s;
 
   /* ── Layout ────────────────────────────────────────────────────────────── */
+  /* The CHROME column — the nav, and anything that has to line up with it.
+     Deliberately separate from --site-w, which is the same value here but gets
+     narrowed to the reading measure inside main.is-centered (base.css). Reach
+     for this one when something INSIDE a centred page still has to align with
+     the header: the full-bleed carousel's arrows do exactly that. */
+  --chrome-w: 94vw;
+
   /* Content column: width + derived left-offset for the 95→90vw breakout */
-  --site-w: 94vw;
+  --site-w: var(--chrome-w);
   --site-ml: calc(50% - var(--site-w) / 2);
-  /* Reading-width cap on <main>. Widen it for an image-led site. */
+  /* Cap on <main> for full-bleed pages. Widen it for an image-led site. */
   --main-max-w: 900px;
+  /* The measure. 42.5rem is 680px, which is what `max-width: 68ch` in
+     Prose.astro and on the /articles/ list resolves to at the inherited 1rem in
+     Inter — spelled as a length here so it does not silently change with the
+     font. Centred pages size their whole column to this (see main.is-centered
+     in base.css), which is what puts every page's text on one left edge. */
+  --reading-w: 42.5rem;
   --ticker-h: 3.3rem;
   --nav-h: 3.52rem;
   /* Corner radius on nav links, footer links, and CTA buttons. 0 is a

@@ -206,13 +206,36 @@ document.querySelectorAll<HTMLElement>("[data-carousel]").forEach((section) => {
   // ── Keyboard navigation ──────────────────────────
   // The viewport is overflow:hidden and not focusable, so without this the only
   // way to move the carousel from a keyboard is to Tab to the two arrow buttons.
-  // Arrow/Home/End work from anywhere inside the carousel.
   //
-  // Not while focus is inside an open panel: arrow keys have to keep scrolling
-  // that text, which is the whole reason .card__panel-body carries tabindex="0".
-  section.addEventListener("keydown", (e: KeyboardEvent) => {
+  // WHERE this listens is the `keyboard` prop (carousel.types.ts). On "section"
+  // it hears only what bubbles out of the carousel, so the keys work once focus
+  // is inside it — which is why clicking an arrow used to be the thing that
+  // "switched them on": the click left focus on the button. On "page" it listens
+  // at the document, so the keys work from a cold page load with focus still on
+  // <body>. See the prop for why that is not the default.
+  const onKeydown = (e: KeyboardEvent) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
-    if ((e.target as HTMLElement).closest(".card__panel")) return;
+    const target = e.target as HTMLElement | null;
+
+    // Not while focus is inside an open panel: arrow keys have to keep scrolling
+    // that text, which is the whole reason .card__panel-body carries tabindex="0".
+    if (target?.closest(".card__panel")) return;
+
+    // Someone is typing. Only reachable in "page" mode — there is no field
+    // inside a carousel — but the check costs nothing and is what stops a
+    // document-level listener from eating the caret keys in a form.
+    if (
+      target &&
+      (target.isContentEditable || /^(?:INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
+    ) {
+      return;
+    }
+
+    // Something has taken the page over — MobileMenu marks every other
+    // top-level element `inert` while it is open. Matching on the attribute
+    // rather than asking the menu keeps this decoupled from it: anything that
+    // inerts the carousel should also silence its keys.
+    if (section.closest("[inert]")) return;
 
     switch (e.key) {
       case "ArrowLeft":
@@ -232,7 +255,13 @@ document.querySelectorAll<HTMLElement>("[data-carousel]").forEach((section) => {
     }
     // Only reached when the key was handled — stop the page scrolling too.
     e.preventDefault();
-  });
+  };
+
+  if (section.dataset.keyboard === "page") {
+    document.addEventListener("keydown", onKeydown);
+  } else {
+    section.addEventListener("keydown", onKeydown);
+  }
 
   // ── Off-screen slides ────────────────────────────
   // The track loops and is clipped, so most slides are invisible at any moment —

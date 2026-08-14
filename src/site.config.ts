@@ -10,8 +10,8 @@
 //   • the canonical origin — `site:` in astro.config.mjs
 //   • the sitemap line   — public/robots.txt
 //   • colors, fonts, spacing — src/styles/tokens.css
-//   • the logo mark      — src/components/Logo.astro
 //   • the favicons       — public/favicon.svg, favicon.png, apple-touch-icon.png
+//     (the bear mark appears ONLY there; the header is a plain wordmark)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** A navigation or footer link. Set `external` to open in a new tab safely. */
@@ -45,7 +45,10 @@ export const SITE = {
   //
   nav: {
     /** Header links, shown to the right of the logo on desktop. */
-    header: [{ label: "About", href: "/about/" }] as SiteLink[],
+    header: [
+      { label: "Images", href: "/images/" },
+      { label: "About", href: "/about/" },
+    ] as SiteLink[],
     /**
      * The single emphasized header link, rendered as a button (.nav-btn in
      * src/styles/chrome.css, accent-filled by default).
@@ -53,7 +56,10 @@ export const SITE = {
     headerCta: { label: "Articles", href: "/articles/" } as SiteLink | null,
 
     /** Links inside the mobile slide-over menu. */
-    mobile: [{ label: "About", href: "/about/" }] as SiteLink[],
+    mobile: [
+      { label: "Images", href: "/images/" },
+      { label: "About", href: "/about/" },
+    ] as SiteLink[],
     /** The mobile menu's two call-to-action buttons. First is primary. */
     mobileCtas: [
       { label: "Articles", href: "/articles/" },
@@ -64,6 +70,7 @@ export const SITE = {
     footer: [
       [
         { label: "Articles", href: "/articles/" },
+        { label: "Images", href: "/images/" },
         { label: "About", href: "/about/" },
       ],
     ] as SiteLink[][],
@@ -89,8 +96,13 @@ export const SITE = {
     /** Optional sign-off line. Set to "" to omit. */
     madeWith: "Brooklyn, New York",
     /**
-     * Attribution for the logo artwork, shown site-wide because the mark is in
-     * every page's header. Set to null to omit.
+     * Attribution for the bear artwork, which is now the FAVICON and nothing
+     * else — the header carries a plain wordmark. The credit still belongs on
+     * the site: the favicon is served on every page and shown in every tab.
+     *
+     * It renders in the footer, so it appears on every route except the home
+     * page, whose single-screen composition drops the footer entirely (see
+     * `footer` in src/layouts/Base.astro). Set to null to omit.
      */
     credit: {
       prefix: "Logo:",

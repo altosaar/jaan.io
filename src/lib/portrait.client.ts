@@ -1,61 +1,88 @@
-// Interactive state for PortraitBlink.astro. Three flags, all class-based so
-// the styling stays in the component's stylesheet.
+// Interactive state for PortraitBlink.astro. One flag, class-based, so the
+// styling stays in the component's own stylesheet.
 //
-// The portrait and the photo gallery both want to be the thing you are looking
-// at, so they share one attention model: whichever was engaged last is the one
-// in colour. The gallery already enforces a single highlight among its own
-// slides; this extends that idea one level up, to the page.
+//   html.portrait-blinking — the blink runs, for exactly as long as the visitor
+//                            is scrolling
 //
-//   html.portrait-awake  — the blink is allowed to run (set on first scroll)
-//   html.portrait-still  — the blink is retired for good (set on first gallery
-//                          interaction; a visitor who is browsing photos does
-//                          not need a portrait twitching for attention)
-//   .portrait.is-dimmed  — desaturated, because the gallery currently holds the
-//                          highlight. Cleared by pointing at the portrait.
+// The portrait blinks WHILE a scroll gesture is happening and stops the moment
+// it ends. Attaching the class is what starts the animation, and keyframe 0% is
+// the closed frame (see PortraitBlink.astro), so the first instant of a gesture
+// is the blink itself; letting go detaches the animation and the portrait falls
+// back to open eyes. Nothing moves on its own, ever.
 //
-// `portrait-still` is deliberately one-way while `is-dimmed` toggles: colour is
-// a running indication of focus, but the blink is an opening flourish, and
-// re-arming it after someone has started browsing would read as a glitch.
+// This replaces a one-way "wake on first scroll, then blink forever" model, and
+// with it the portrait/gallery attention model that dimmed the portrait when the
+// carousel was touched — the carousel now lives on /images/ and the portrait on
+// /, so those two could no longer be on screen together and none of that code
+// could fire. `carousel:interact` / `carousel:release` are still dispatched by
+// carousel.client.ts; nothing listens for them now.
 
-const AWAKE = "portrait-awake";
-const STILL = "portrait-still";
-const DIMMED = "is-dimmed";
+const BLINKING = "portrait-blinking";
+
+/**
+ * How long after the last wheel/scroll event to call the gesture over.
+ *
+ * A wheel has no release event the way a touch does, and trackpad momentum
+ * arrives as a burst with gaps inside it — so an idle window is the closest
+ * honest equivalent. Long enough not to flicker mid-flick, short enough that
+ * stopping reads as immediate.
+ */
+const IDLE_MS = 180;
 
 const root = document.documentElement;
 
-// ── The blink starts on the visitor's first scroll ───────────────────────────
-// Paused until then so motion never begins on its own while someone is still
-// reading the headline. `once` + `passive`: one listener that removes itself and
-// never blocks scrolling.
-if (!root.classList.contains(AWAKE)) {
-  window.addEventListener("scroll", () => root.classList.add(AWAKE), {
-    once: true,
-    passive: true,
-  });
+let idle: ReturnType<typeof setTimeout> | undefined;
+// Whether a finger is currently down. A touch-scroll fires `scroll` too, and
+// without this the idle window below could expire and stop the blink while the
+// visitor is still mid-gesture, holding the screen still for a moment.
+let touching = false;
+
+function start() {
+  clearTimeout(idle);
+  // A no-op if the class is already set, which is what keeps a long scroll from
+  // restarting the animation on every event and freezing it on frame 0.
+  root.classList.add(BLINKING);
 }
 
-// ── The gallery taking focus dims the portrait and retires the blink ─────────
-// `carousel:interact` is dispatched by carousel.client.ts whenever a slide takes
-// the highlight — hover, keyboard focus, the arrow buttons, a swipe or a tap.
-document.addEventListener("carousel:interact", () => {
-  root.classList.add(STILL);
-  document.querySelectorAll(".portrait").forEach((el) => el.classList.add(DIMMED));
-});
+function stopNow() {
+  clearTimeout(idle);
+  root.classList.remove(BLINKING);
+}
 
-// ── Pointing at the portrait takes the highlight back ────────────────────────
-// The portrait returns to colour AND the gallery stands down to the all-grey
-// strip it loads with, so exactly one thing on the page is ever in colour.
-// `carousel:release` is the mirror of `carousel:interact`; the carousel clears
-// its own highlight through its own state, which keeps its internal index
-// honest (see carousel.client.ts).
-//
-// Not gated to `pointerType === "mouse"` the way the carousel's own hover is: on
-// a touch device there is no hover, so a tap has to be able to restore the
-// portrait or it would stay grey for the rest of the visit once the gallery had
-// been swiped.
-document.querySelectorAll<HTMLElement>(".portrait").forEach((el) => {
-  el.addEventListener("pointerenter", () => {
-    el.classList.remove(DIMMED);
-    document.dispatchEvent(new CustomEvent("carousel:release"));
-  });
-});
+function stopWhenIdle() {
+  if (touching) return;
+  clearTimeout(idle);
+  idle = setTimeout(() => root.classList.remove(BLINKING), IDLE_MS);
+}
+
+// ── Wheel and scroll: no release event, so fall back to the idle window ──────
+// `scroll` covers the pages that actually scroll (and keyboard scrolling, which
+// fires it); `wheel` covers the home page, which is locked to one screen and so
+// never fires `scroll` at all — the gesture still happens, nothing moves.
+for (const type of ["wheel", "scroll"] as const) {
+  window.addEventListener(
+    type,
+    () => {
+      start();
+      stopWhenIdle();
+    },
+    { passive: true },
+  );
+}
+
+// ── Touch: there IS a real release, so use it ────────────────────────────────
+// Keyed to `touchmove`, not `touchstart`: a tap on a link is not a scroll. And
+// like `wheel`, this fires on the locked home page even though nothing moves,
+// which is the whole reason mobile works here at all.
+window.addEventListener("touchstart", () => (touching = true), { passive: true });
+window.addEventListener("touchmove", start, { passive: true });
+for (const type of ["touchend", "touchcancel"] as const) {
+  window.addEventListener(
+    type,
+    () => {
+      touching = false;
+      stopNow();
+    },
+    { passive: true },
+  );
+}

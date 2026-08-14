@@ -27,6 +27,37 @@ interface Props {
   title?: string;
   description?: string;
   navMode?: "ticker" | "static";
+  /**
+   * Render the site footer. OFF EVERYWHERE for now — no route passes true.
+   *
+   * SiteFooter.astro, its styles in chrome.css, and SITE.nav.footer /
+   * SITE.social / SITE.footer are all deliberately left intact so turning it
+   * back on is a one-word change here.
+   *
+   * NOTE while it is off: SITE.footer.credit (the "Logo: Nuna Parr, Dancing
+   * Bear" attribution) renders nowhere, so the favicon artwork is currently
+   * uncredited site-wide. The social links are unaffected — /about/ carries its
+   * own, and SITE.schema.sameAs still emits them as JSON-LD.
+   */
+  footer?: boolean;
+  /**
+   * Fit the page to exactly one viewport and suppress page scrolling.
+   *
+   * The nav is `position: fixed` and hides itself on scroll-down (see
+   * SiteHeader.astro), so a page that cannot scroll also never loses its nav —
+   * that behaviour falls out of this rather than needing its own switch.
+   */
+  fullscreen?: boolean;
+  /**
+   * Keep the content inside <main>'s centred --main-max-w column instead of
+   * letting it break out to the full 94vw site width.
+   *
+   * On by default: every route but the home page is a reading page, and a
+   * measure of text hanging off the left edge of a 1354px span reads as
+   * unaligned rather than full-bleed. The home page opts out — its composition
+   * is built around the wide column.
+   */
+  centered?: boolean;
 }
 // Browser-tab title template, defined once. Pages pass only their own short
 // title (e.g. "FAQ") and the layout appends " | {SITE.name}", so the separator
@@ -38,7 +69,14 @@ interface Props {
 // logo and wordmark (.site-chrome.compact .nav-home is display:none) while
 // reserving the left half of the bar for a ticker that no longer exists — an
 // empty header.
-const { title, description = SITE.description, navMode = "static" } = Astro.props;
+const {
+  title,
+  description = SITE.description,
+  navMode = "static",
+  footer = false,
+  fullscreen = false,
+  centered = true,
+} = Astro.props;
 const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
 
 // This page's own absolute URL, resolved against `site` (astro.config.mjs).
@@ -66,7 +104,7 @@ const orgSchema = {
 ---
 
 <!doctype html>
-<html lang={SITE.lang}>
+<html lang={SITE.lang} class={fullscreen ? "is-fullscreen" : undefined}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -106,9 +144,9 @@ const orgSchema = {
     <a href="#main" class="skip-link">Skip to content</a>
     <SiteHeader navMode={navMode} />
     <MobileMenu />
-    <main id="main" tabindex="-1">
+    <main id="main" tabindex="-1" class={centered ? "is-centered" : undefined}>
       <slot />
     </main>
-    <SiteFooter />
+    {footer && <SiteFooter />}
   </body>
 </html>

@@ -1,183 +1,124 @@
 ---
+// The home page is one screen and nothing more: the headline, the portrait, and
+// a single line of invitation. No footer, no scrolling, so the nav — which
+// hides itself on scroll-down — is permanently visible.
+//
+// Only two type treatments exist on this page, deliberately:
+//   • the display h1 (Fraunces, --fs-hero)
+//   • everything else — the nav links and the one sentence — at --fs-md/350
 import Base from "../layouts/Base.astro";
 import PortraitBlink from "../components/PortraitBlink.astro";
-import Carousel from "../components/Carousel.astro";
-import Hero from "../components/Hero.astro";
-import Section from "../components/Section.astro";
-import SectionHeading from "../components/SectionHeading.astro";
-import FeatureGrid from "../components/FeatureGrid.astro";
-import type { CarouselItem } from "../components/carousel.types";
-import { FEATURED_ARTICLES } from "../data/featured-articles";
-import { getCollection } from "astro:content";
 import portraitOpen from "../assets/portrait-open.webp";
 import portraitClosed from "../assets/portrait-closed.webp";
 import { SITE } from "../site.config";
-
-// Carousel items come from src/content/gallery/*.md (see src/content.config.ts).
-// The image() schema validates every photo at build time, so a missing or
-// misnamed image fails the build loudly — no hand-rolled checks needed.
-//
-// Unlike the template this design came from, these items carry no Markdown body:
-// the carousel runs with enablePopup={false}, so there is no reveal panel for a
-// body to fill. Photographs here stand on their own.
-const gallery = await getCollection("gallery");
-const entries = gallery.sort((a, b) => a.data.order - b.data.order);
-
-const items: CarouselItem[] = entries.map((entry) => ({
-  img: entry.data.image,
-  alt: entry.data.alt,
-  title: entry.data.title,
-  caption: entry.data.caption,
-  focusPosition: entry.data.focusPosition,
-}));
-
-// Resolve the hand-picked home page articles (src/data/featured-articles.ts)
-// against the real collection. Titles and URLs come from the posts themselves so
-// they can never drift from the article; only the blurb is authored separately.
-//
-// An unmatched slug throws rather than rendering a card pointing at nothing —
-// the same "fail the build loudly" stance the gallery's image() schema takes.
-const posts = await getCollection("posts");
-const featured = FEATURED_ARTICLES.map(({ slug, blurb }) => {
-  const post = posts.find((p) => p.id === slug);
-  if (!post) {
-    throw new Error(
-      `[featured-articles] No post matches the slug "${slug}". ` +
-        `Available: ${posts.map((p) => p.id).join(", ")}`,
-    );
-  }
-  return { href: `/${post.id}/`, title: post.data.title, blurb };
-});
 ---
 
-<Base title="Machine learning for health & science" description={SITE.description}>
-  <Hero title="Large language models for health." />
-
+<Base
+  title="Machine learning for health & science"
+  description={SITE.description}
+  fullscreen
+  centered={false}
+>
   {
-    /* The portrait and the opening lines are one unit, so they are laid out here
-       rather than through Hero's body slot: Astro's scoped styles don't cross
-       component boundaries, and this two-column arrangement needs to style both
-       the image and the text. The type sizes below are Hero's body treatment,
-       carried over so the voice of the page is unchanged by the move. */
+    /* Not <Hero>: that component carries a fixed padding-top and margin-bottom
+       sized for a scrolling page, which fights a composition centred in the
+       viewport. The h1 treatment itself is unchanged — base.css styles every
+       h1 in the display face, and the only override here is Hero's own
+       font-size: var(--fs-hero). */
   }
-  <Section bottom="gap">
-    <div class="intro">
-      <div class="intro__portrait">
+  <div class="home">
+    <h1 class="home__title">Large language models for health.</h1>
+
+    <div class="home__intro">
+      <div class="home__portrait">
         <PortraitBlink
           open={portraitOpen}
           closed={portraitClosed}
           alt="Jaan Altosaar, smiling in a floral shirt against blurred greenery."
         />
       </div>
-      <div class="intro__text">
-        <p class="intro__lead">Data Science and &amp; machine learning for health care.</p>
-        <p class="intro__contact">
-          <a href="mailto:j@jaan.io?subject=Inquiry">Get in touch</a> if you want to discuss an idea or
-          grab a coffee. I'm available; let's bring it off.
-        </p>
-      </div>
+      <p class="home__contact">
+        <a href="mailto:j@jaan.io?subject=Inquiry">Get in touch</a> if you want to discuss an idea or
+        grab a coffee. I'm available; let's bring it off.
+      </p>
     </div>
-  </Section>
-
-  <Section labelledby="articles-label" bottom="gap">
-    <SectionHeading id="articles-label">Articles</SectionHeading>
-    {
-      /* Columns follow the number configured, so adding a fourth featured
-         article widens the grid rather than leaving a gap. FeatureGrid collapses
-         to one column below 760px regardless. */
-    }
-    <FeatureGrid columns={featured.length}>
-      {
-        featured.map((article) => (
-          <div>
-            <h3>
-              <a href={article.href} class="featured__link">
-                {article.title}
-              </a>
-            </h3>
-            <p>{article.blurb}</p>
-          </div>
-        ))
-      }
-    </FeatureGrid>
-  </Section>
-
-  <Carousel
-    items={items}
-    variant="natural"
-    enablePopup={false}
-    grayscale
-    heading="Portraits"
-    labels={{
-      prev: "Previous photo",
-      next: "Next photo",
-      counter: "Photo {n} of {total}",
-    }}
-  />
+  </div>
 </Base>
 
 <style>
-  /* Portrait immediately left of the opening lines. One column on small screens,
-     two once there's room for the text to keep a readable measure beside a
-     320px image. Centred rather than top-aligned: the text block is shorter
-     than the portrait, and hanging it from the top leaves an obvious void. */
-  .intro {
+  /* Fills the height <main> was given (see html.is-fullscreen in base.css) and
+     centres its contents in it, so the composition sits in the middle of the
+     screen rather than hanging from under the nav. */
+  .home {
+    width: var(--site-w);
+    margin-left: var(--site-ml);
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* The site's vertical rhythm is viewport-WIDTH based, which is the right
+       default for a page that can scroll. This one can't, so its rhythm has to
+       yield on a short viewport too — a landscape phone is 390px tall, and
+       --space-block alone would spend a quarter of that on gaps. Capped at the
+       token, so nothing here is ever looser than the rest of the site. */
+    gap: clamp(1rem, 4svh, var(--space-block));
+    padding-block: clamp(1rem, 4svh, var(--space-block));
+
+    /* The portrait is the one block here that cannot reflow, so on a short
+       viewport it is what overflows first — and this page has no scrollbar to
+       recover with. Hence a HEIGHT cap alongside the width one: 0.982 is the
+       frames' aspect ratio (1571×1600), so `svh × ratio` is the width at which
+       the portrait is exactly that many svh tall. Capping height directly
+       instead would leave the box wider than the image and crop the face, since
+       the frames are object-fit: cover.
+
+       Declared once, here, because BOTH the element and the two-column grid
+       track below need it. Sizing that track `auto` looked right and wasn't:
+       an auto track takes its width from the image's 320px intrinsic size, not
+       from the width this expression actually resolves to, so on a short
+       viewport the track stayed 320px wide around a 120px portrait and opened
+       a 200px hole between the portrait and the sentence. */
+    --portrait-w: min(100%, 320px, 32svh * 0.982);
+  }
+
+  /* The svh term is the landscape-phone case: --fs-hero is width-driven, and
+     844px of width asks for the full 6rem on a viewport only 390px tall. */
+  .home__title {
+    font-size: min(var(--fs-hero), 12svh);
+  }
+
+  /* Portrait immediately left of the line. One column on small screens, two
+     once there is room for the text to keep a readable measure beside it. */
+  .home__intro {
     display: grid;
-    gap: var(--space-gap);
+    gap: clamp(1rem, 4svh, var(--space-gap));
     align-items: center;
+    min-height: 0;
   }
 
   @media (min-width: 720px) {
-    .intro {
-      grid-template-columns: 320px minmax(0, 1fr);
+    .home__intro {
+      grid-template-columns: var(--portrait-w) minmax(0, 1fr);
     }
   }
 
-  .intro__portrait {
-    width: min(100%, 320px);
-    /* Square corners are deliberate site-wide — see --hover-radius in tokens.css.
-       The border lives here; PortraitBlink clips its own frames to the box. */
+  /* Square corners are deliberate site-wide — see --hover-radius in tokens.css.
+     The border lives here; PortraitBlink clips its own frames to the box. */
+  .home__portrait {
+    width: var(--portrait-w);
     border: 1px solid var(--line);
   }
 
-  .intro__text {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    /* An absolute cap, not a `ch` measure: `ch` here would resolve against this
-       container's inherited 1rem, not against the 2.75rem lead inside it, so it
-       reads as a sensible measure and lands at roughly half the intended width. */
-    max-width: 38rem;
-  }
-
-  /* Hero.astro sizes its first body paragraph large and its last at CTA size.
-     These two rules reproduce that, because the paragraphs no longer live in
-     Hero's slot — see the note in the markup above. */
-  .intro__lead {
-    font-size: clamp(2rem, 3.5vw, 2.75rem);
-    line-height: 1.25;
-    letter-spacing: -0.005em;
-  }
-
-  .intro__contact {
-    font-size: var(--fs-cta);
-    font-weight: 200;
-    line-height: 1.4;
-  }
-
-  /* The whole title is the link. Given a class so it opts out of the global
-     inline-link underline in base.css — that treatment is tuned for links inside
-     running prose and reads as heavy on a 2rem display heading. Colour on hover
-     matches the article list on /articles/. */
-  .featured__link {
-    color: inherit;
-    text-decoration: none;
-    box-shadow: none;
-    transition: color var(--dur-fast) var(--ease-out);
-  }
-
-  .featured__link:hover,
-  .featured__link:focus-visible {
-    color: var(--accent);
+  /* Identical in size and weight to .nav-link (chrome.css) — the two are meant
+     to read as one voice. Not `text-transform: uppercase` though: the nav is a
+     set of labels, this is a sentence. */
+  .home__contact {
+    font-size: var(--fs-md);
+    font-weight: 350;
+    line-height: 1.6;
+    /* rem, not ch: a `ch` measure resolves against the element's own font-size,
+       which is easy to get wrong when the size is a variable. */
+    max-width: 30rem;
   }
 </style>

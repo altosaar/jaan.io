@@ -62,6 +62,31 @@ export interface CarouselProps {
   enablePopup?: boolean;
   /** Section heading. Omitted → the section has no visible heading. */
   heading?: string;
+  /**
+   * Run the photo strip the full width of the viewport, edge to edge, instead
+   * of stopping at the content column. The header stays in the chrome column,
+   * so the arrows still line up with the site nav above them.
+   */
+  fullBleed?: boolean;
+  /**
+   * Show the visible "N of M" readout. Turning it off hides only the element —
+   * `labels.counter` is still used for each slide's accessible name, so the
+   * position is announced whether or not it is drawn.
+   */
+  showCounter?: boolean;
+  /**
+   * How far Arrow/Home/End reach.
+   *
+   * "section" (default) — only while focus is inside the carousel, which in
+   * practice means after tabbing or clicking into it. Correct when the carousel
+   * is one block among others: Home/End still take the visitor to the top and
+   * bottom of the page, where they expect them to.
+   *
+   * "page" — from anywhere on the document, with no focus needed. Use it only
+   * when the carousel IS the page, because it takes Home/End away from the
+   * document and a second carousel on the same page would answer the same keys.
+   */
+  keyboard?: "section" | "page";
   /** Photo size in px at each breakpoint (height for "natural", side for "square"). */
   sizePx?: { mobile: number; desktop: number };
   labels?: CarouselLabels;

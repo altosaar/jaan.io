@@ -39,6 +39,36 @@ body {
   overflow-x: clip;
 }
 
+/* ── Viewport-locked pages ──────────────────────── */
+/* Set by <Base fullscreen> (currently the home page only): the page is exactly
+   one screen, so there is nothing below the fold and nothing to scroll to.
+   Because the nav hides itself on scroll-down, a page that cannot scroll also
+   keeps its nav permanently — see SiteHeader.astro.
+
+   The lock is on <html> as well as <body>: iOS Safari ignores overflow:hidden
+   on <body> alone and scrolls the document anyway. 100svh rather than 100% so
+   the height tracks the SMALL viewport — the one with the mobile browser's
+   toolbars showing, which is what the visitor actually has on first paint. */
+html.is-fullscreen {
+  height: 100svh;
+  overflow: hidden;
+}
+html.is-fullscreen body {
+  height: 100%;
+  /* Drops the 100svh floor set below, which would otherwise fight the height
+     above on engines where the two resolve a pixel apart and reintroduce a
+     scrollbar on a page that has just declared it has none. */
+  min-height: 0;
+  overflow: hidden;
+}
+/* `main` is the flex child that absorbs the leftover height. min-height:0 lets
+   it actually shrink (a flex item's default `min-height: auto` refuses to go
+   below its content), so a viewport too short for the composition crops it
+   rather than pushing it past the bottom edge. */
+html.is-fullscreen main {
+  min-height: 0;
+}
+
 /* Inline links (no class) — underline flush with bg bottom, smooth hover */
 a:not([class]) {
   color: inherit;
@@ -120,6 +150,37 @@ main {
   width: 100%;
   margin-inline: auto;
   /* padding-top removed — site-chrome is in-flow sticky */
+}
+
+/* Centred pages (everything but the home page — see `centered` in Base.astro).
+   <main> was already centred; what wasn't was its contents. Every block on
+   every page sits in a .section / .prose / .carousel-section, and all three
+   size themselves `width: var(--site-w)` with `margin-left: var(--site-ml)` —
+   a deliberate breakout that widens them past <main> to 94vw and re-centres
+   them on the VIEWPORT. On a 1440px screen that put the text column's left
+   edge at x≈43 while <main> sat at x=270, which reads as unaligned rather than
+   full-bleed.
+
+   Redefining the two tokens for the subtree collapses the breakout to nothing
+   without touching a single one of those components: --site-w can no longer
+   exceed the column, so --site-ml resolves to 0 and each block fills <main>
+   exactly. Below ~957px the 94vw term still wins and the layout is unchanged,
+   which is why phones look the same as before.
+
+   The column is sized to --reading-w rather than the wider --main-max-w so it
+   IS the measure. Cap it at 900px instead and the blocks that set their own
+   `max-width: 68ch` (Prose, the /articles/ list) would sit at the left of a
+   column 220px wider than they are — centred column, off-centre text — while
+   the uncapped headings above them filled it. One width for both is what keeps
+   every page on a single left edge.
+
+   The site chrome keeps the full 94vw — it lives outside <main>, and a nav that
+   changed width between the home page and the rest would be the more obvious
+   inconsistency. */
+main.is-centered {
+  max-width: var(--reading-w);
+  --site-w: min(94vw, var(--reading-w));
+  --site-ml: calc(50% - var(--site-w) / 2);
 }
 
 /* Base heading */

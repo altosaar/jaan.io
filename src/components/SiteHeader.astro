@@ -3,7 +3,6 @@ interface Props {
   navMode?: "ticker" | "static";
 }
 import { SITE } from "../site.config";
-import Logo from "./Logo.astro";
 import NavLink from "./NavLink.astro";
 // No ticker on this site — the scrolling stats bar and its data were a
 // Community Cleanup feature. `navMode` is kept so the "compact" chrome style
@@ -18,8 +17,8 @@ const { navMode = "static" } = Astro.props;
 <header class={`site-chrome ${navMode === "ticker" ? "compact" : "static-nav"}`} id="site-chrome">
   <!-- Nav: logo left + links right (hidden in compact mode) -->
   <nav class="nav" id="main-nav" aria-label="Site navigation">
+    {/* A wordmark and nothing else. The bear mark appears only as the favicon. */}
     <a href="/" class="nav-home" aria-label={`${SITE.name} — home`}>
-      <Logo class="site-logo" />
       <span class="nav-wordmark">{SITE.name}</span>
     </a>
     <div class="nav-links">

@@ -12,6 +12,9 @@ const {
   grayscale = false,
   enablePopup = true,
   heading,
+  fullBleed = false,
+  showCounter = true,
+  keyboard = "section",
   sizePx = { mobile: 400, desktop: 460 },
   labels = {},
   id = "carousel",
@@ -83,16 +86,19 @@ const placeholders = await Promise.all(items.map((item) => lqip(item.img)));
       data-variant={variant}
       data-grayscale={String(grayscale)}
       data-enable-popup={String(enablePopup)}
+      data-full-bleed={String(fullBleed)}
+      data-keyboard={keyboard}
       data-counter-label={L.counter}
       style={`--size-d:${sizePx.desktop}px; --size-m:${sizePx.mobile}px`}
     >
-      <header class="carousel-header">
+      <header class:list={["carousel-header", !heading && "carousel-header--bare"]}>
         {heading && (
           <SectionHeading id={headingId} class="carousel-heading">
             {heading}
           </SectionHeading>
         )}
-        <p class="carousel-counter" aria-live="polite" />
+        {/* carousel.client.ts already guards on this being absent. */}
+        {showCounter && <p class="carousel-counter" aria-live="polite" />}
         <div class="carousel-controls">
           {/* Stroked, not a filled outline like it used to be. The button is now
               shorter than it is wide, so the glyph is squashed vertically to keep
@@ -351,6 +357,12 @@ const placeholders = await Promise.all(items.map((item) => lqip(item.img)));
     margin-bottom: 1.25rem;
   }
 
+  /* With no heading there is no item carrying --heading-flex: 1, so nothing
+     absorbs the free space and the controls would sit at the left. */
+  .carousel-header--bare {
+    justify-content: flex-end;
+  }
+
   .carousel-counter {
     font-size: 0.8125rem;
     font-weight: 400;
@@ -425,6 +437,28 @@ const placeholders = await Promise.all(items.map((item) => lqip(item.img)));
   }
   .embla__viewport.is-dragging {
     cursor: grabbing;
+  }
+
+  /* ── Full bleed (fullBleed prop) ────────────────── */
+  /* The strip runs the whole viewport width so the photos read as one
+     continuous band, while the header stays in the chrome column above it so
+     the arrows land on the same right edge as the nav's last button.
+
+     --chrome-w, NOT --site-w. Inside main.is-centered (base.css) --site-w is
+     the ~680px reading measure, and these arrows have to align with the NAV,
+     which lives outside <main> and is still on the full 94vw. Both are then
+     `width: 94vw` centred inside the same content box, so they land on the same
+     pixel whether or not a classic scrollbar is taking width. */
+  .carousel-section[data-full-bleed="true"] {
+    width: var(--chrome-w);
+    margin-left: calc(50% - var(--chrome-w) / 2);
+  }
+
+  /* 50% of the 94vw section is 47vw, so this is exactly −3vw on each side: the
+     gutter, cancelled, leaving the viewport 100vw. Replaces the one-sided right
+     bleed above rather than adding to it. */
+  .carousel-section[data-full-bleed="true"] .embla__viewport {
+    margin-inline: calc(50% - 50vw);
   }
 
   .embla__container {
