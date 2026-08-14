@@ -43,8 +43,35 @@ if (headings && links) {
   throw new Error("[Toc] Pass `headings` or `links`, not both — they are two modes of one rail.");
 }
 
+/**
+ * The footnote apparatus, which is not a section of the article.
+ *
+ * A contents list answers "what is this piece about". Footnotes are the
+ * machinery underneath it — you reach them by clicking a marker in the prose,
+ * never by deciding to go and read them — so a tag for them is a line of noise
+ * at the bottom of every rail.
+ *
+ * Two slugs, because a post that has footnotes ends up with two headings that
+ * both say "Footnotes" and the rail listed both:
+ *
+ *   footnotes       the author's own `## Footnotes`, the visible label
+ *   footnote-label  rehype's generated sr-only heading inside <section
+ *                   data-footnotes>, which render() hands back mixed in with
+ *                   the authored ones
+ *
+ * The generated slug is fixed by rehype and only movable via
+ * `remarkRehype.footnoteLabelProperties`, which nothing here sets. Both stay on
+ * the page; they just stop being destinations in the rail. Between them they
+ * were also the only tags that could not behave — they sit past where the
+ * physics post stops scrolling, so clicking either landed short of its heading
+ * and lit the previous section.
+ */
+const APPARATUS_SLUGS = new Set(["footnotes", "footnote-label"]);
+
 // h1 is the post title, which is not a section of itself.
-const items = (headings ?? []).filter((h) => h.depth >= 2 && h.depth <= maxDepth);
+const items = (headings ?? []).filter(
+  (h) => h.depth >= 2 && h.depth <= maxDepth && !APPARATUS_SLUGS.has(h.slug),
+);
 
 // A contents list of one is not worth a rail; an authored list of one is, since
 // the author asked for exactly those.

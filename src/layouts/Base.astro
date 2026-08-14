@@ -148,5 +148,58 @@ const orgSchema = {
       <slot />
     </main>
     {footer && <SiteFooter />}
+
+    <script>
+      // The other half of `scroll-behavior: smooth` in src/styles/base.css.
+      //
+      // That property scales its duration with the distance and saturates near
+      // 1.5s. Over a screen or three that reads as a glide and tells you which
+      // way you went; across the 29,600px physics post it is a wait, because
+      // the animation stopped conveying anything several screens back — content
+      // is a blur either way, and all the remaining time buys is the blur.
+      //
+      // So: past three screens, cut. The trick is to arrive FIRST — jump to the
+      // destination instantly here, and the browser's own fragment navigation,
+      // which runs straight after this handler, finds it has nowhere left to
+      // travel and its smooth scroll is a no-op.
+      //
+      // That is deliberately not `preventDefault()` and not a temporary
+      // `scroll-behavior: auto` on <html>. preventDefault would mean
+      // reimplementing fragment navigation — the hash, the history entry, where
+      // focus goes next. And flipping the property is a race that this code got
+      // wrong once already: restoring it on the next animation frame looked
+      // right and worked for the rail, but the fragment scroll does not always
+      // happen before that frame, and the footnote markers went on animating
+      // the full 29,000px. Arriving early has no such window. scrollIntoView
+      // honours scroll-margin-top, so it lands exactly where the browser was
+      // going to put it anyway.
+      //
+      // Under reduced motion the scroll is already instant and this is inert.
+      const MAX_SCREENS = 3;
+
+      document.addEventListener("click", (event) => {
+        // Anything that is not a plain left click is the browser's business:
+        // modified clicks open tabs and windows, and never scroll this page.
+        if (event.defaultPrevented || event.button !== 0) return;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        const link = target.closest<HTMLAnchorElement>('a[href^="#"]');
+        if (!link) return;
+
+        // `#` alone means the top of the document, so the distance is however
+        // far down we already are.
+        const id = decodeURIComponent(link.hash.slice(1));
+        const dest = id ? document.getElementById(id) : null;
+        if (id && !dest) return; // a fragment resolving to nothing scrolls nowhere
+
+        const distance = dest ? Math.abs(dest.getBoundingClientRect().top) : window.scrollY;
+        if (distance <= MAX_SCREENS * window.innerHeight) return;
+
+        if (dest) dest.scrollIntoView({ behavior: "instant", block: "start" });
+        else window.scrollTo({ top: 0, behavior: "instant" });
+      });
+    </script>
   </body>
 </html>
