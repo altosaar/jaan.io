@@ -6,14 +6,6 @@ import { glob } from "astro/loaders";
 // loudly instead of shipping empty text. The message names the offending field.
 const filled = (field: string) => z.string().trim().min(1, `${field} must not be empty`);
 
-// An optional text field where "present but blank" is treated as absent, so a
-// bare `caption:` line left behind by a hand edit is not a build error.
-const optionalText = z.preprocess(
-  (value) =>
-    value == null || (typeof value === "string" && value.trim() === "") ? undefined : value,
-  z.string().trim().min(1).optional(),
-);
-
 // Long-form pages (about, papers, consulting, …). Each is a Markdown file in
 // src/content/pages/ — the filename is the URL (about.md → /about/). `title` is
 // the short, page-specific part only; Base.astro appends " | Jaan Altosaar" so
@@ -48,11 +40,9 @@ const posts = defineCollection({
       // Original publication date. Preserved from the Jekyll `_posts/` filename
       // so the feed and any future archive keep their historical order.
       //
-      // It is shown on /articles and NOWHERE ELSE. A date at the top of a
-      // 2016 tutorial reads as a warning about the content rather than a fact
-      // about it, and these three posts are the opposite of stale — they are
-      // what the site's search traffic arrives for. In a dated list it is
-      // orientation; over the article itself it is a disclaimer.
+      // Orders /articles, and is printed as a bare YEAR under each article's
+      // own headline (src/pages/[slug].astro). The full date rides along in the
+      // <time datetime> attribute, so machines still get the day.
       date: z.coerce.date(),
       // The little line-art mark beside the post in the /articles list, carried
       // over from the Jekyll site's `image.thumb`. Optional: a post without one
@@ -62,44 +52,4 @@ const posts = defineCollection({
     }),
 });
 
-// The photo gallery shown in the carousel (Carousel.astro). One Markdown file
-// per photo.
-//
-// `alt` is required and authored per photo. Alt text describes THIS image to
-// someone who can't see it, so it can't be generated from a title — write what
-// is in the frame, and don't start with "Image of".
-//
-// `title` and `caption` are OPTIONAL here (the upstream template required
-// both). This is a portrait series: the people in these frames are private
-// individuals, not case studies, and inventing names or captions for them would
-// be worse than showing the photograph on its own. Carousel.astro renders the
-// caption block only when at least one of the two is present.
-const gallery = defineCollection({
-  loader: glob({ pattern: "*.md", base: "./src/content/gallery" }),
-  schema: ({ image }) =>
-    z.object({
-      title: optionalText,
-      caption: optionalText,
-      alt: filled("alt"),
-      // Optional CSS object-position for the cropped photo, e.g. "50% 30%".
-      // Absent, empty, or blank all mean "centered" (Carousel.astro falls back
-      // to "50% 50%").
-      focusPosition: z.preprocess(
-        (value) =>
-          value == null || (typeof value === "string" && value.trim() === "") ? undefined : value,
-        z
-          .string()
-          .trim()
-          .regex(
-            /^\d{1,3}% \d{1,3}%$/,
-            'Photo focus must be blank, or two percentages like "50% 30%" (horizontal then vertical).',
-          )
-          .optional(),
-      ),
-      image: image(),
-      // Lower numbers sort first; the 2nd entry is the default carousel highlight.
-      order: z.number().int().nonnegative().default(100),
-    }),
-});
-
-export const collections = { pages, posts, gallery };
+export const collections = { pages, posts };

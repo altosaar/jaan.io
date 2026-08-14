@@ -21,18 +21,25 @@
     "bytes": 235728
   },
   {
-    "slug": "portrait-04",
-    "source": "20240809-DSC02654_7008.jpg",
-    "width": 1333,
-    "height": 2000,
-    "bytes": 225328
-  },
-  {
     "slug": "portrait-05",
     "source": "bigbabyenergy__2022-07-24T183550.000Z.jpg",
     "width": 1440,
     "height": 1800,
     "bytes": 284319
+  },
+  {
+    "slug": "portrait-17",
+    "source": "DSC00341_resized.jpg",
+    "width": 1333,
+    "height": 2000,
+    "bytes": 278928
+  },
+  {
+    "slug": "portrait-04",
+    "source": "DSC01149.jpg",
+    "width": 1333,
+    "height": 2000,
+    "bytes": 161852
   },
   {
     "slug": "portrait-06",
@@ -49,25 +56,11 @@
     "bytes": 313954
   },
   {
-    "slug": "portrait-09",
-    "source": "DSC02009_3456.jpg",
+    "slug": "portrait-18",
+    "source": "DSC01997-kakuyon.jpg",
     "width": 1333,
     "height": 2000,
-    "bytes": 306041
-  },
-  {
-    "slug": "portrait-10",
-    "source": "DSC02689-Enhanced_3456.jpg",
-    "width": 1333,
-    "height": 2000,
-    "bytes": 154555
-  },
-  {
-    "slug": "portrait-11",
-    "source": "DSC03012_3504.jpg",
-    "width": 1333,
-    "height": 2000,
-    "bytes": 155740
+    "bytes": 197255
   },
   {
     "slug": "portrait-12",
@@ -110,5 +103,12 @@
     "width": 1333,
     "height": 2000,
     "bytes": 316495
+  },
+  {
+    "slug": "portrait-19",
+    "source": "DSC06911_3504.jpg",
+    "width": 1333,
+    "height": 2000,
+    "bytes": 156157
   }
 ]

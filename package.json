@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "photos": "node scripts/prep-photos.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "audit": "node scripts/seo-audit.mjs dist",

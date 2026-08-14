@@ -33,8 +33,20 @@
 //              starts with a hyphen (shell tools parse it as a flag) and
 //              `230127-DSC09597-.jpg` ends with one. Filenames become URLs.
 
+//   stable     slugs are assigned ONCE per source photo and then never move.
+//              Numbering by position in the sorted list looked fine and was a
+//              trap: inserting one photo shifts every slug after it, which
+//              silently re-points every alt string in src/data/gallery.ts at
+//              the wrong picture — the failure mode being a set of confident,
+//              well-written descriptions attached to the wrong faces, which no
+//              build check can catch. Slugs come from SOURCES.json when the
+//              source is already known and from the lowest free number when it
+//              is not, so adding a photo touches exactly one file and removing
+//              one leaves a gap. The numbers are opaque identifiers; gaps in
+//              them mean nothing.
+
 import sharp from "sharp";
-import { readdir, mkdir, writeFile } from "node:fs/promises";
+import { readdir, mkdir, writeFile, readFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
@@ -59,11 +71,33 @@ if (files.length === 0) {
 
 await mkdir(OUT, { recursive: true });
 
+// Slugs already handed out, so a photo keeps the one it has. Missing or
+// unreadable manifest just means every slug is allocated fresh.
+const known = new Map();
+try {
+  for (const entry of JSON.parse(await readFile(join(OUT, "SOURCES.json"), "utf8"))) {
+    known.set(entry.source, entry.slug);
+  }
+} catch {
+  /* first run */
+}
+
+const taken = new Set(known.values());
+const nextSlug = () => {
+  for (let n = 1; ; n++) {
+    const slug = `portrait-${String(n).padStart(2, "0")}`;
+    if (!taken.has(slug)) return slug;
+  }
+};
+
 const manifest = [];
 
-for (const [i, file] of files.entries()) {
-  const n = String(i + 1).padStart(2, "0");
-  const slug = `portrait-${n}`;
+for (const file of files) {
+  let slug = known.get(file);
+  if (!slug) {
+    slug = nextSlug();
+    taken.add(slug);
+  }
   const dest = join(OUT, `${slug}.jpg`);
 
   const info = await sharp(join(SRC, file))
@@ -79,8 +113,20 @@ for (const [i, file] of files.entries()) {
   );
 }
 
+// Photos dropped from the source folder are dropped from the repo. Without
+// this the set only ever grows: a removed photo keeps its file, keeps being
+// globbed by src/data/gallery.ts, and keeps appearing in the gallery, which is
+// the opposite of what removing it from the folder was meant to do.
+const keep = new Set(manifest.map((m) => `${m.slug}.jpg`));
+for (const file of await readdir(OUT)) {
+  if (file.endsWith(".jpg") && !keep.has(file)) {
+    await unlink(join(OUT, file));
+    console.log(`${"(gone from source)".padEnd(44)} → removed ${file}`);
+  }
+}
+
 // Written next to the photos so the mapping back to the originals survives the
-// rename. Not read by the build — this is for humans reconciling a re-export.
+// rename, and read back on the next run to keep every slug where it is.
 await writeFile(join(OUT, "SOURCES.json"), JSON.stringify(manifest, null, 2) + "\n");
 
 const total = manifest.reduce((sum, m) => sum + m.bytes, 0);
@@ -89,8 +135,8 @@ console.log(
     `Wrote ${OUT}/SOURCES.json`,
 );
 console.log(
-  `\nEvery photo needs a matching src/content/gallery/<slug>.md with authored ` +
-    `alt text.\nSee src/content.config.ts for the schema.`,
+  `\nEvery photo needs an authored alt string in src/data/gallery.ts, keyed by ` +
+    `its\nfilename. The build fails if one is missing or points at nothing.`,
 );
 
 // ── The two-frame portrait ───────────────────────────────────────────────────

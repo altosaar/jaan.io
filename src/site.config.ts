@@ -169,9 +169,14 @@ export const SITE = {
     ticker: false,
     /**
      * Shuffle the gallery into a new random order on every build.
-     * Off (default) → items appear in the `order` set in each Markdown file.
+     *
+     * ON here. These are portraits with no argument running between them — no
+     * chronology, no series, no first among them — so any fixed order is one
+     * a viewer reads meaning into that was never put there. Off → the photos
+     * appear in filename order, which is the order they happened to be
+     * processed in and means even less. See src/data/gallery.ts.
      */
-    randomizeGallery: false,
+    randomizeGallery: true,
     /**
      * Pick a random gallery photo for the social share (Open Graph) image.
      * Off here: the share image is the portrait in src/lib/og.ts, not a

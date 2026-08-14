@@ -196,9 +196,17 @@ const placeholders = await Promise.all(items.map((item) => lqip(item.img)));
                   style={item.focusPosition ? `--pos:${item.focusPosition}` : undefined}
                 >
                   <div class="card__media">
+                    {/* `title` carries the same string as `alt`, so hovering a
+                        photo shows what it is. That is the only native way to
+                        do it — no current browser surfaces alt on hover. The
+                        cost is that some screen readers announce alt and title
+                        both, reading the description twice; that is the accepted
+                        trade for sighted visitors being able to reach it at all.
+                        Remove the title attribute to go back to alt alone. */}
                     <Image
                       src={item.img}
                       alt={item.alt}
+                      title={item.alt || undefined}
                       width={info.fallbackW}
                       height={info.fallbackH}
                       widths={info.widths}

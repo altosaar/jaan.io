@@ -11,25 +11,13 @@
 import Base from "../layouts/Base.astro";
 import Carousel from "../components/Carousel.astro";
 import Section from "../components/Section.astro";
-import type { CarouselItem } from "../components/carousel.types";
-import { getCollection } from "astro:content";
+import { gallery } from "../data/gallery";
 
-// Items come from src/content/gallery/*.md (see src/content.config.ts). The
-// image() schema validates every photo at build time, so a missing or misnamed
-// image fails the build loudly — no hand-rolled checks needed.
-//
-// These items carry no Markdown body: the carousel runs with
-// enablePopup={false}, so there is no reveal panel for a body to fill.
-const gallery = await getCollection("gallery");
-const entries = gallery.sort((a, b) => a.data.order - b.data.order);
-
-const items: CarouselItem[] = entries.map((entry) => ({
-  img: entry.data.image,
-  alt: entry.data.alt,
-  title: entry.data.title,
-  caption: entry.data.caption,
-  focusPosition: entry.data.focusPosition,
-}));
+// Every photo in src/assets/gallery, already shuffled and already checked for
+// alt text — see src/data/gallery.ts. Passed straight to the carousel: a
+// GalleryPhoto is {img, alt}, which is a CarouselItem with the optional parts
+// left off, so there is nothing to map. No Markdown bodies either; the carousel
+// runs with enablePopup={false}, so there is no reveal panel to fill.
 ---
 
 <Base
@@ -56,7 +44,7 @@ const items: CarouselItem[] = entries.map((entry) => ({
          reader announcing sixteen anonymous "slide"s with no position. */
     }
     <Carousel
-      items={items}
+      items={gallery}
       variant="natural"
       enablePopup={false}
       grayscale
