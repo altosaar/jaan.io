@@ -183,17 +183,17 @@ main.is-centered {
   --site-ml: calc(50% - var(--site-w) / 2);
 }
 
-/* Base heading */
+/* Base heading.
+   No font-variation-settings: SOFT/WONK/opsz are Fraunces axes, and the display
+   role is Hanken Grotesk, which has only `wght`. Naming axes a font does not
+   have is silently inert — it reads as tuning that is doing nothing. They are
+   recorded on the Fraunces @font-face in fonts.css for whoever switches back. */
 h1 {
   font-family: var(--font-display);
   font-size: var(--fs-h1);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  font-optical-sizing: auto;
-  font-variation-settings:
-    "SOFT" 75,
-    "WONK" 1;
 }
 
 /* ── Shared CTA buttons (home + mobile menu) ── */
@@ -213,7 +213,10 @@ h1 {
   text-align: center;
   text-transform: uppercase;
   padding: 1.1rem 1.5rem;
-  font-family: var(--font-body);
+  /* inherit, not a role token: these render in the mobile menu today (chrome
+     face) but are shared with the page body, and a <button> would otherwise
+     fall back to the UA font instead of picking up whichever voice it sits in. */
+  font-family: inherit;
   font-size: var(--fs-cta);
   font-weight: 400;
   letter-spacing: -0.04em;
@@ -237,7 +240,10 @@ h1 {
   text-align: center;
   text-transform: uppercase;
   padding: 1.1rem 1.5rem;
-  font-family: var(--font-body);
+  /* inherit, not a role token: these render in the mobile menu today (chrome
+     face) but are shared with the page body, and a <button> would otherwise
+     fall back to the UA font instead of picking up whichever voice it sits in. */
+  font-family: inherit;
   font-size: var(--fs-cta);
   letter-spacing: -0.04em;
   font-weight: 400;

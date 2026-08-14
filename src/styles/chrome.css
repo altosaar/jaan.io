@@ -1,6 +1,22 @@
 /* Site chrome: the scrolling ticker, top nav, footer, and mobile menu.
    Kept together because the scroll-behavior script coordinates these states. */
 
+/* ── The chrome's voice ─────────────────────────────
+   Everything in this file speaks in --font-chrome rather than the content
+   face — see the note on the role tokens in tokens.css. Declared on the three
+   roots so each rule below inherits it and none has to repeat it.
+
+   Set on the roots and not on <body>, because <body> carries --font-body for
+   the page itself. A `<button>` does not inherit font-family from its parent
+   the way an anchor does, so any button in here that shows text needs
+   `font-family: inherit` of its own; the two that exist (the hamburger and the
+   carousel arrows) are icon-only, so today none do. */
+.site-chrome,
+.mobile-menu,
+.site-footer {
+  font-family: var(--font-chrome);
+}
+
 /* ── Ticker + site chrome + nav ── */
 /* ── Ticker ─────────────────────────────────────── */
 

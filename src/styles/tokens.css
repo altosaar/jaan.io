@@ -34,10 +34,38 @@
   --focus-ring-offset: 2px;
 
   /* ── Type ──────────────────────────────────────────────────────────────── */
-  /* Typefaces — change here to switch fonts site-wide. The @font-face blocks
-     they refer to live in src/styles/fonts.css. */
-  --font-body: "Inter", system-ui, sans-serif;
-  --font-display: "Fraunces", Georgia, serif;
+  /* Typefaces, by ROLE. These three lines are the only place in the codebase
+     that names a typeface: everything else asks for a role. Repointing a role
+     at another family is a one-line change here plus the matching @font-face in
+     src/styles/fonts.css and the preload list in src/site.config.ts.
+     `npm run fonts:check` proves no file has gone behind their back.
+
+     CONTENT and CHROME are deliberately different families. The split is the
+     design: the page speaks in one voice and the furniture around it in
+     another, so the nav does not read as part of the writing.
+
+       --font-display  the hero, and every heading
+       --font-body     running text, captions, buttons inside the content
+       --font-chrome   the header, nav, mobile menu, and footer
+
+     Display and body being the same family right now is a choice, not an
+     oversight — the two stay separate tokens so the hero can take its own face
+     again (as it did with Fraunces, whose @font-face is still in fonts.css)
+     without touching body copy.
+
+     Inter sits second in the two content stacks so that a glyph Hanken Grotesk
+     lacks is served by a font this site already ships, rather than by whatever
+     the OS happens to offer. It is free: Inter is downloaded for the chrome on
+     every page anyway.
+
+     It does NOT rescue the arrows. Measured with CSS.getPlatformFontsForNode:
+     neither family contains ← (U+2190) or ↩ (U+21A9), so "← Home" and the
+     footnote backrefs render their arrow from the system font — as they already
+     did when body copy was Inter. Nothing regressed there; it is simply not a
+     thing either webfont can fix. */
+  --font-body: "Hanken Grotesk", "Inter", system-ui, sans-serif;
+  --font-display: "Hanken Grotesk", "Inter", system-ui, sans-serif;
+  --font-chrome: "Inter", system-ui, sans-serif;
 
   /* The sizes this design actually reuses. One-off sizes stay inline at their
      use site; promote one here once a second place wants it. */

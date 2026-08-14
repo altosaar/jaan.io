@@ -28,7 +28,7 @@ export const SITE = {
   /** Open Graph locale, e.g. "en_US", "en_GB", "de_DE". */
   locale: "en_US",
   /** Appended to every page title as " | {name}" — see src/layouts/Base.astro. */
-  name: "Jaan Altosaar",
+  name: "JAAN ALTOSAAR",
   /** Fallback <meta name="description"> for pages that don't set their own. */
   description: "Machine learning for health & science.",
   /** Browser UI tint on mobile. Usually --bg from tokens.css, or a shade of it. */
@@ -37,7 +37,17 @@ export const SITE = {
   // ── Fonts ──────────────────────────────────────────────────────────────────
   // Preloaded in <head>. Must match the @font-face src URLs in
   // src/styles/fonts.css — see the swap recipe at the top of that file.
-  fonts: ["/fonts/Inter.woff2", "/fonts/Fraunces.woff2"],
+  //
+  // Only the files EVERY page needs belong here; a preload the page does not go
+  // on to use is pure wasted bandwidth, and the browser warns about it.
+  //   • HankenGrotesk-latin — the content face (--font-display, --font-body)
+  //   • Inter — the chrome face (--font-chrome): nav, mobile menu, footer
+  // Deliberately absent: HankenGrotesk-latin-ext, which its unicode-range
+  // fetches only when an accented character actually appears, and Fraunces,
+  // which no role token names any more.
+  //
+  // `npm run fonts:check` fails the build if this list and the roles disagree.
+  fonts: ["/fonts/HankenGrotesk-latin.woff2", "/fonts/Inter.woff2"],
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   // One source of truth. The header, the mobile menu, and the footer all read

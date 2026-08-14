@@ -62,6 +62,11 @@ jobs:
       - name: Contrast check
         run: npm run a11y
 
+      # Roles (tokens.css) vs @font-face files (fonts.css) vs the preload list
+      # (site.config.ts). Reads source only, so it belongs with the fast checks.
+      - name: Font wiring check
+        run: npm run fonts:check
+
       - name: Build
         run: npm run build
 
