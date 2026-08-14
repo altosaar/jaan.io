@@ -1,0 +1,260 @@
+---
+// A sticky table of contents in the page's left gutter — the tag-rail from
+// config.figma.com/san-francisco/faq/: small boxes stacked down the left, the
+// one you are reading filled light, the rest on the raised surface grey.
+//
+//   const { Content, headings } = await render(post);
+//   <Toc headings={headings} />
+//
+// It renders nothing at all when there is nothing to navigate (fewer than two
+// headings), so a short post does not get a one-item rail.
+//
+// WHY IT IS `position: fixed` AND NOT `position: sticky`
+// Sticky needs the element in the normal flow of something tall enough to
+// scroll within, and the flow here is a centred --reading-w column: the rail
+// belongs in the gutter OUTSIDE that column, aligned to the site chrome rather
+// than to the text. Fixed positions against the viewport, which is exactly the
+// coordinate system the nav uses, so the two line up by construction.
+import type { MarkdownHeading } from "astro";
+
+interface Props {
+  headings: MarkdownHeading[];
+  /** Deepest heading level to list. h2 is the section level in these posts. */
+  maxDepth?: number;
+  /** Accessible name for the landmark. */
+  label?: string;
+}
+
+const { headings, maxDepth = 3, label = "On this page" } = Astro.props;
+
+// h1 is the post title, which is not a section of itself.
+const items = headings.filter((h) => h.depth >= 2 && h.depth <= maxDepth);
+---
+
+{
+  items.length > 1 && (
+    <nav class="toc" aria-label={label}>
+      <ol class="toc__list">
+        {items.map((h) => (
+          <li class:list={["toc__item", `toc__item--d${h.depth}`]}>
+            <a class="toc__link" href={`#${h.slug}`} data-toc-link={h.slug}>
+              {h.text}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+<style>
+  .toc {
+    position: fixed;
+    /* The left edge lands on the nav wordmark's left edge. The nav is
+       `width: var(--site-w)` centred with auto margins inside a fixed, full-ICB
+       header, so its left edge sits at (ICB − 94vw) / 2. For a fixed element,
+       `100%` IS the ICB, so this is the same number arrived at the same way —
+       including when a classic scrollbar is taking width off the ICB, which a
+       plain `3vw` would get wrong by half the scrollbar. --chrome-w, not
+       --site-w: inside main.is-centered the latter is the ~680px reading
+       measure. */
+    left: calc((100% - var(--chrome-w)) / 2);
+
+    /* Centred on the viewport's vertical midpoint: pin both edges, give the box
+       its content height, and let the auto margins split what is left over.
+       That is the abspos centring rule, and it beats `top: 50%` +
+       `translateY(-50%)` here — a translate of half an odd-numbered height
+       lands the box on a half-pixel and softens 13px text. This way the box
+       stays on whole pixels. */
+    top: 0;
+    bottom: 0;
+    height: max-content;
+    margin-block: auto;
+
+    /* The cap is what keeps centring safe. The rail has to survive the physics
+       post's twenty-two headings on a short laptop screen, and at full height a
+       centred box would slide up under the fixed nav. Subtracting twice the nav
+       plus a rem means that even when the cap binds, the top edge lands exactly
+       one rem below the nav — the same clearance the headings' scroll-margin
+       uses — and the bottom edge mirrors it. Past that it scrolls itself. */
+    max-height: calc(100svh - 2 * (var(--nav-h) + 1rem));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    /* Room for the widest tag, bounded so a long heading cannot reach the text
+       column. See the media query below for where this stops fitting at all. */
+    width: min(15rem, calc((100vw - var(--reading-w)) / 2 - var(--edge) - 2rem));
+
+    /* Above the page, below the mobile menu (300) and its button (400). */
+    z-index: 40;
+  }
+
+  .toc__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    /* Tight, like the reference: the stack should read as one object. */
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  /* Nested headings step in, so the rail shows structure rather than a flat
+     list. Only h3 can indent — maxDepth stops at 3 by default. */
+  .toc__item--d3 {
+    padding-left: 0.75rem;
+  }
+
+  .toc__link {
+    display: inline-block;
+    /* Navigation, so it takes the chrome voice rather than the content face —
+       see the role tokens in tokens.css. */
+    font-family: var(--font-chrome);
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+    /* NOT uppercased, unlike the reference and unlike .nav-link. Those are
+       one-word category labels; these are sentences ("Mean-field versus
+       amortized inference"), and uppercasing them costs a line of wrapping
+       each and reads as shouting. */
+    color: var(--text);
+    background: var(--surface);
+    text-decoration: none;
+    box-shadow: none;
+    padding: 0.3rem 0.5rem;
+    border-radius: var(--hover-radius);
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  .toc__link:hover,
+  .toc__link:focus-visible {
+    background: var(--accent);
+    color: var(--bg);
+    outline: none;
+  }
+
+  /* The section you are in. Light fill on dark, the same inversion .nav-btn
+     uses, so "current" reads at a glance down a column of grey. Both pairs are
+     covered by npm run a11y: --text on --surface is 11.23:1, --bg on
+     --btn-light is 16.21:1. */
+  .toc__link.is-current {
+    background: var(--btn-light);
+    color: var(--bg);
+  }
+
+  /* Hover still wins over current, so pointing at another section previews it. */
+  .toc__link.is-current:hover,
+  .toc__link.is-current:focus-visible {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  /* Below this the gutter cannot hold the rail without crowding the measure:
+     the text column is --reading-w and centred, so each gutter is
+     (100vw − 680px) / 2, and the rail needs its own --edge plus a gap. At
+     1200px that leaves about 200px, which is the narrowest this reads at.
+     Hidden rather than reflowed inline — see the note in the report. */
+  @media (max-width: 1200px) {
+    .toc {
+      display: none;
+    }
+  }
+
+  /* The rail is a scroll-following affordance; honouring reduced-motion here
+     means not animating the fill as it moves between items. */
+  @media (prefers-reduced-motion: reduce) {
+    .toc__link {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // Which heading you are currently under.
+  //
+  // Deliberately a scroll handler and not an IntersectionObserver: IO answers
+  // "is this element in a band", which leaves a section taller than the band
+  // with no answer at all, and two short ones fighting over it. The question a
+  // table of contents actually asks is "which heading did I last pass", and
+  // that is a scan for the last one above a line — always exactly one answer,
+  // for any section length, and correct after a jump-link or a page restore
+  // rather than only after the next intersection.
+  const rail = document.querySelector<HTMLElement>(".toc");
+  if (rail) {
+    const links = new Map<string, HTMLAnchorElement>();
+    for (const a of rail.querySelectorAll<HTMLAnchorElement>("[data-toc-link]")) {
+      links.set(a.dataset.tocLink!, a);
+    }
+
+    const targets = [...links.keys()]
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+
+    // The line a heading has to cross to count as "reached".
+    //
+    // It must sit at or BELOW where a jump-link parks a heading, which is
+    // `scroll-margin-top: nav + 1rem` (Prose.astro). Set it above that and
+    // clicking a tag scrolls its heading to a spot the line has not reached, so
+    // the rail lights the PREVIOUS tag — an off-by-one that looks like the spy
+    // lagging rather than like a mismatched constant. Half a rem of slack
+    // absorbs subpixel rounding at that landing position.
+    const rootFs = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const navRem = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue("--nav-h"),
+    );
+    const navPx = Number.isFinite(navRem) ? navRem * rootFs : 56;
+    const line = navPx + rootFs * 1.5;
+
+    let current: HTMLAnchorElement | null = null;
+    const setCurrent = (next: HTMLAnchorElement | null) => {
+      if (next === current) return;
+      current?.classList.remove("is-current");
+      current?.removeAttribute("aria-current");
+      next?.classList.add("is-current");
+      // "true" rather than "location": the rail is not a set of page links, it
+      // points within this one.
+      next?.setAttribute("aria-current", "true");
+      current = next;
+
+      // Keep the highlight visible when the rail is scrolling itself — the
+      // physics post has twenty of these and the current one can be off-rail.
+      if (next && rail.scrollHeight > rail.clientHeight) {
+        const r = next.getBoundingClientRect();
+        const box = rail.getBoundingClientRect();
+        if (r.top < box.top || r.bottom > box.bottom) {
+          next.scrollIntoView({ block: "nearest" });
+        }
+      }
+    };
+
+    const update = () => {
+      let passed: HTMLElement | null = null;
+      for (const t of targets) {
+        if (t.getBoundingClientRect().top <= line) passed = t;
+        else break; // targets are in document order, so the first miss ends it
+      }
+      // Before the first heading you are still in the opening paragraphs. Fall
+      // back to the first item so the rail is never entirely unlit.
+      const id = (passed ?? targets[0])?.id;
+      setCurrent(id ? (links.get(id) ?? null) : null);
+    };
+
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        update();
+        ticking = false;
+      });
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+  }
+</script>

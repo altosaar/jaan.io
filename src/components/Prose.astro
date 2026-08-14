@@ -34,6 +34,19 @@ const { backHref = "/", backLabel = "← Back home" } = Astro.props;
     margin-bottom: 1.25rem;
   }
 
+  /* Anything reachable by a #fragment has to clear the fixed nav when it is
+     jumped to, or the heading you clicked lands underneath it and the section
+     appears to start at its second paragraph. The extra 1rem is the same line
+     the table of contents measures against (Toc.astro), so the heading you
+     land on is the one the rail then lights up. */
+  .prose :global(h2),
+  .prose :global(h3),
+  .prose :global(h4),
+  .prose :global(h5),
+  .prose :global(h6) {
+    scroll-margin-top: calc(var(--nav-h) + 1rem);
+  }
+
   .prose :global(h2) {
     font-family: var(--font-display);
     font-size: clamp(1.5rem, 3vw, 2rem);

@@ -12,6 +12,7 @@
 // path segment, so this route cannot accidentally shadow a nested page later.
 import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
+import Toc from "../components/Toc.astro";
 import { getCollection, render } from "astro:content";
 import type { GetStaticPaths } from "astro";
 // KaTeX's stylesheet is imported here, not in Base.astro, so it only ships on
@@ -24,7 +25,7 @@ export const getStaticPaths = (async () => {
 }) satisfies GetStaticPaths;
 
 const { post } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
 
 const published = post.data.date.toLocaleDateString("en-US", {
   year: "numeric",
@@ -35,6 +36,13 @@ const published = post.data.date.toLocaleDateString("en-US", {
 ---
 
 <Base title={post.data.title} description={post.data.description}>
+  {
+    /* Before the article in DOM order so a screen reader meets the outline
+       first, and inside its own labelled <nav> landmark so anyone who does not
+       want twenty links can skip past it in one move. */
+  }
+  <Toc headings={headings} />
+
   <Prose backHref="/" backLabel="← Home">
     <h1>{post.data.title}</h1>
     <p class="post-date">
