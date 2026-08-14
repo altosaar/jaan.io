@@ -34,7 +34,7 @@ const year = (d: Date) => d.getUTCFullYear();
       {
         posts.map((post) => (
           <li class="article">
-            <a href={`/${post.id}/`} class="article__link">
+            <a href={`/${post.id}`} class="article__link">
               <h2 class="article__title">{post.data.title}</h2>
             </a>
             <p class="article__meta">

@@ -1,0 +1,25 @@
+# Cloudflare Pages redirect rules.  [source] [destination] [status]
+#
+# Evaluated before static assets are served, so a rule here wins over a file of
+# the same name.
+#
+# ── Trailing slash → no trailing slash ──────────────────────────────────────
+# The site serves /about, not /about/ (astro.config.mjs `trailingSlash: never`
+# + `format: "file"`, which emits about.html). This is the other half of that
+# decision: one canonical URL per page, and one permanent redirect pointing at
+# it, so the same content is never reachable at two live addresses.
+#
+# It is not cosmetic here. jaan.io has served `permalink: /:title/` since 2013,
+# so EVERY indexed URL — the ones carrying 20–30k organic visits a month — ends
+# in a slash. At DNS cutover this rule is what turns each of them from a 404
+# into a 301 onto the new form. Losing it would not look broken in testing (the
+# nav links are already slash-less) and would quietly drop the traffic the port
+# exists to keep.
+#
+# 301, not 302: the move is permanent, and only a 301 passes ranking signals on
+# to the destination.
+#
+# The splat cannot swallow the site root. `/*/` requires a slash AFTER whatever
+# `*` matches, and "/" has no second slash — so "/" never matches and there is
+# no redirect loop. Verified against the deployment, not assumed.
+/*/ /:splat 301

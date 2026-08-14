@@ -56,32 +56,32 @@ export const SITE = {
   nav: {
     /** Header links, shown to the right of the logo on desktop. */
     header: [
-      { label: "Images", href: "/images/" },
-      { label: "About", href: "/about/" },
+      { label: "Images", href: "/images" },
+      { label: "About", href: "/about" },
     ] as SiteLink[],
     /**
      * The single emphasized header link, rendered as a button (.nav-btn in
      * src/styles/chrome.css, accent-filled by default).
      */
-    headerCta: { label: "Articles", href: "/articles/" } as SiteLink | null,
+    headerCta: { label: "Articles", href: "/articles" } as SiteLink | null,
 
     /** Links inside the mobile slide-over menu. */
     mobile: [
-      { label: "Images", href: "/images/" },
-      { label: "About", href: "/about/" },
+      { label: "Images", href: "/images" },
+      { label: "About", href: "/about" },
     ] as SiteLink[],
     /** The mobile menu's two call-to-action buttons. First is primary. */
     mobileCtas: [
-      { label: "Articles", href: "/articles/" },
+      { label: "Articles", href: "/articles" },
       { label: "Get in touch", href: "mailto:j@jaan.io" },
     ] as SiteLink[],
 
     /** Footer link columns. Add or remove a column by adding or removing an array. */
     footer: [
       [
-        { label: "Articles", href: "/articles/" },
-        { label: "Images", href: "/images/" },
-        { label: "About", href: "/about/" },
+        { label: "Articles", href: "/articles" },
+        { label: "Images", href: "/images" },
+        { label: "About", href: "/about" },
       ],
     ] as SiteLink[][],
   },

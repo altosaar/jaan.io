@@ -11,19 +11,28 @@ export default defineConfig({
   // share image) at build time.
   site: "https://jaan.io",
   output: "static",
-  // ── DO NOT CHANGE WITHOUT READING THIS ──────────────────────────────────────
-  // jaan.io has served `permalink: /:title/` since 2013 and earns 20–30k organic
-  // visits/month on those URLs. Every indexed URL ends in a slash
-  // (https://jaan.io/what-is-variational-autoencoder-vae-tutorial/), and the old
-  // S3 bucket 302s the bare form to the slashed form.
+  // ── READ THIS BEFORE TOUCHING THESE TWO LINES ───────────────────────────────
+  // The site serves slash-less URLs: /about, not /about/. Chosen deliberately
+  // (2026-08-14) in the knowledge of what follows.
   //
-  // The template this design came from used `trailingSlash: "never"` +
-  // `format: "file"`. Inheriting that would have silently changed the canonical
-  // URL of every ranking page. `format: "directory"` emits slug/index.html so
-  // the live URLs are reproduced byte-for-byte, and @astrojs/sitemap reads
-  // `trailingSlash` from here, so the sitemap matches automatically.
-  trailingSlash: "always",
-  build: { format: "directory" },
+  // WHAT THIS COSTS. jaan.io has served `permalink: /:title/` since 2013 and
+  // earns 20–30k organic visits/month on those URLs. Every indexed URL ends in
+  // a slash — https://jaan.io/what-is-variational-autoencoder-vae-tutorial/ —
+  // and the live S3 bucket 302s the bare form TO the slashed form. This config
+  // reverses that arrow, so at DNS cutover every ranking URL becomes a 301
+  // source rather than a 200. That is survivable — Google follows 301s and
+  // consolidates signals — but it is a real, one-way change to every URL the
+  // site is known by, and it is why public/_redirects carries an explicit rule
+  // instead of trusting the host to guess.
+  //
+  // WHAT MAKES IT SAFE. `format: "file"` emits about.html, which Cloudflare
+  // Pages serves at /about; the redirect rule sends /about/ → /about with a
+  // 301. @astrojs/sitemap reads `trailingSlash` from here, so the sitemap
+  // follows automatically, and Base.astro's canonical builder strips the .html
+  // so canonical, og:url, and sitemap all agree on the slash-less form.
+  // `npm run audit` fails the build if any of them drift apart.
+  trailingSlash: "never",
+  build: { format: "file" },
   // Emits sitemap-index.xml + sitemap-0.xml from `site`, listing every static
   // route (testimonials aren't routes, so they're correctly absent). Referenced
   // from public/robots.txt.
