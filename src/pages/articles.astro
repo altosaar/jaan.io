@@ -80,14 +80,18 @@ const year = (d: Date) => d.getUTCFullYear();
        rules were doing the separating that white space can do on its own, and
        four hairlines across the measure were the loudest thing on a page whose
        whole point is three headlines.
-       Which means the space has to carry it, so there is more of it: entries
-       used to be held apart by 1.5rem of padding from each neighbour, 3rem
-       between them, and this is that plus half again. One `gap` rather than
-       padding on both sides so the number in the file IS the gap on screen,
-       instead of half of it. */
+       Which means the space has to carry it, so there is a lot more of it.
+       Entries used to be held apart by 1.5rem of padding from each neighbour,
+       3rem between them; this is that raised by half twice over. At three
+       posts on a tall screen it reads as deliberate rather than as a list —
+       which is the right call at this length, and the thing to revisit if the
+       remaining eleven posts ever land, since twelve entries 108px apart is a
+       page you scroll rather than one you scan. One `gap` rather than padding
+       on both sides so the number in the file IS the gap on screen, instead of
+       half of it. */
     display: flex;
     flex-direction: column;
-    gap: 4.5rem;
+    gap: 6.75rem;
   }
 
   .article {
