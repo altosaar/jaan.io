@@ -8,6 +8,7 @@
 // Phase 4. The individual POST urls are unchanged and must stay that way.
 import Base from "../layouts/Base.astro";
 import Section from "../components/Section.astro";
+import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 
 const posts = (await getCollection("posts")).sort(
@@ -34,15 +35,23 @@ const year = (d: Date) => d.getUTCFullYear();
       {
         posts.map((post) => (
           <li class="article">
-            <a href={`/${post.id}`} class="article__link">
-              <h2 class="article__title">{post.data.title}</h2>
-            </a>
-            <p class="article__meta">
-              <time datetime={post.data.date.toISOString().slice(0, 10)}>
-                {year(post.data.date)}
-              </time>
-            </p>
-            <p class="article__desc">{post.data.description}</p>
+            {post.data.thumb && (
+              /* alt="" on purpose: the mark restates the headline sitting
+                 beside it, so naming it would make a screen reader announce
+                 every post twice. Decorative, and marked as such. */
+              <Image class="article__mark" src={post.data.thumb} alt="" width={160} height={160} />
+            )}
+            <div class="article__body">
+              <a href={`/${post.id}`} class="article__link">
+                <h2 class="article__title">{post.data.title}</h2>
+              </a>
+              <p class="article__meta">
+                <time datetime={post.data.date.toISOString().slice(0, 10)}>
+                  {year(post.data.date)}
+                </time>
+              </p>
+              <p class="article__desc">{post.data.description}</p>
+            </div>
           </li>
         ))
       }
@@ -69,10 +78,55 @@ const year = (d: Date) => d.getUTCFullYear();
   .article {
     padding: 1.5rem 0;
     border-top: 1px solid var(--line);
+    /* Mark on the left, text on the right — the arrangement from the Jekyll
+       blog index, which floated a 160px thumb beside the entry. Flex rather
+       than a float so the text block cannot wrap underneath the mark on a
+       narrow screen and leave it stranded in the margin. */
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(1rem, 3vw, 1.75rem);
   }
 
   .article:last-child {
     border-bottom: 1px solid var(--line);
+  }
+
+  .article__body {
+    /* Without this a long unbroken title (or a URL in a description) sets the
+       flex item's minimum width and pushes the row wider than the measure. */
+    min-width: 0;
+  }
+
+  /* The marks are line art drawn in BLACK on transparency, for a page that used
+     to be #f9f9f9. Dropped onto this one unchanged they render as nothing at
+     all — the same trap the legacy figures fall into inside posts, which
+     Prose.astro answers with a white plate behind the artwork.
+     A plate is wrong here: a row of white discs down a dark list would shout
+     louder than the headlines they belong to. Inverting is the better answer
+     for line art with no colour in it — pure black becomes pure white and the
+     transparency is untouched, so the drawing survives exactly, just in
+     reverse. Toned to sit at the text's brightness rather than above it, since
+     the mark is an aid to scanning and not the point of the row. */
+  .article__mark {
+    flex: none;
+    width: clamp(3.25rem, 7vw, 5rem);
+    height: auto;
+    filter: invert(1);
+    opacity: 0.85;
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+
+  /* Lights up with the headline it belongs to, so the row reads as one object
+     under the pointer rather than as an icon and a link that happen to be
+     adjacent. */
+  .article:hover .article__mark {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .article__mark {
+      transition: none;
+    }
   }
 
   /* The heading is the link, so the whole title is one tap target. The

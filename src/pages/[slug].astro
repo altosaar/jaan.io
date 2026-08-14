@@ -26,13 +26,6 @@ export const getStaticPaths = (async () => {
 
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
-
-const published = post.data.date.toLocaleDateString("en-US", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-  timeZone: "UTC",
-});
 ---
 
 <Base title={post.data.title} description={post.data.description}>
@@ -43,19 +36,16 @@ const published = post.data.date.toLocaleDateString("en-US", {
   }
   <Toc headings={headings} />
 
+  {
+    /* No date line. `date` is still in the frontmatter and still orders the
+       list on /articles, where it is shown — but over the article itself a
+       2016 stamp reads as a warning about the writing rather than a fact about
+       it, and these posts are the opposite of stale: they are what most of the
+       site's search traffic arrives for. The old Jekyll layout had reached the
+       same conclusion and commented its date line out. */
+  }
   <Prose>
     <h1>{post.data.title}</h1>
-    <p class="post-date">
-      <time datetime={post.data.date.toISOString().slice(0, 10)}>{published}</time>
-    </p>
     <Content />
   </Prose>
 </Base>
-
-<style>
-  .post-date {
-    color: var(--text-muted);
-    font-size: var(--fs-sm);
-    margin-bottom: 2.5rem;
-  }
-</style>

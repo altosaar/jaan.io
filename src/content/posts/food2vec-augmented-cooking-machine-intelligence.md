@@ -2,6 +2,7 @@
 title: "food2vec - Augmented cooking with machine intelligence"
 description: "Building a recommendation system for food & exploring the world's cuisines."
 date: 2017-01-22
+thumb: ../../assets/thumbs/food2vec-icon.png
 ---
 **TL;DR: Check out the [tools demo](https://altosaar.github.io/food2vec/) to explore food analogies and recommendations, or scroll down for an interactive map of a hundred thousand recipes from around the world.**
 

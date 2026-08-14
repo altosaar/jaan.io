@@ -41,13 +41,25 @@ const posts = defineCollection({
     // a silent failure. Jekyll's `:title` preserved case, so this must too.
     generateId: ({ entry }) => entry.replace(/\.md$/, ""),
   }),
-  schema: z.object({
-    title: filled("title"),
-    description: filled("description"),
-    // Original publication date. Preserved from the Jekyll `_posts/` filename
-    // so the feed and any future archive keep their historical order.
-    date: z.coerce.date(),
-  }),
+  schema: ({ image }) =>
+    z.object({
+      title: filled("title"),
+      description: filled("description"),
+      // Original publication date. Preserved from the Jekyll `_posts/` filename
+      // so the feed and any future archive keep their historical order.
+      //
+      // It is shown on /articles and NOWHERE ELSE. A date at the top of a
+      // 2016 tutorial reads as a warning about the content rather than a fact
+      // about it, and these three posts are the opposite of stale — they are
+      // what the site's search traffic arrives for. In a dated list it is
+      // orientation; over the article itself it is a disclaimer.
+      date: z.coerce.date(),
+      // The little line-art mark beside the post in the /articles list, carried
+      // over from the Jekyll site's `image.thumb`. Optional: a post without one
+      // simply lists without a mark (see articles.astro), which is better than
+      // blocking a new post on commissioning an icon.
+      thumb: image().optional(),
+    }),
 });
 
 // The photo gallery shown in the carousel (Carousel.astro). One Markdown file

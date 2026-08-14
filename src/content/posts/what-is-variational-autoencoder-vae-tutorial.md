@@ -2,6 +2,7 @@
 title: "Tutorial - What is a variational autoencoder?"
 description: "Understanding Variational Autoencoders (VAEs) from two perspectives: deep learning and graphical models."
 date: 2016-07-18
+thumb: ../../assets/thumbs/confusion-thumb.png
 ---
 Why do deep learning researchers and probabilistic machine learning folks get confused when discussing variational autoencoders? What is a variational autoencoder? Why is there unreasonable confusion surrounding this term?
 
