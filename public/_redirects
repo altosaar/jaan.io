@@ -3,6 +3,25 @@
 # Evaluated before static assets are served, so a rule here wins over a file of
 # the same name.
 #
+# Rules are matched top to bottom and the FIRST match wins, so anything
+# specific has to sit above the catch-all at the bottom of this file.
+#
+# ── One URL that was never meant to exist ───────────────────────────────────
+# https://jaan.io/variational-autoencoder-perspectives.md/ is live, indexed,
+# and an accident: a file named 2016-07-24-…-perspectives.md.bak sat in the
+# Jekyll _posts directory, Jekyll's glob matched it anyway, and it published a
+# page whose slug carries the .md through into the URL. What it serves is a cut
+# section of the VAE tutorial — three bullets on why the probability-model view
+# beats the neural-net one — with no title and no frontmatter.
+#
+# So it does not become a page here. It sends its traffic to the post the text
+# was cut from, which is the nearest thing to what a visitor arriving on it was
+# looking for. Both forms are listed rather than letting the slashed one fall
+# through to the rule below, which would land it on a bare .md path that has
+# nothing behind it: one hop from wherever the link points, not two into a 404.
+/variational-autoencoder-perspectives.md/ /what-is-variational-autoencoder-vae-tutorial 301
+/variational-autoencoder-perspectives.md /what-is-variational-autoencoder-vae-tutorial 301
+
 # ── Trailing slash → no trailing slash ──────────────────────────────────────
 # The site serves /about, not /about/ (astro.config.mjs `trailingSlash: never`
 # + `format: "file"`, which emits about.html). This is the other half of that
