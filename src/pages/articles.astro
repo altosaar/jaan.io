@@ -165,14 +165,26 @@ const year = (d: Date) => d.getUTCFullYear();
     color: var(--accent);
   }
 
+  /* The year belongs to the description, not to the headline.
+     It used to sit 0.5rem from each, which is the one arrangement that says
+     nothing: equidistant between two things reads as floating between them.
+     Pulling the description up tight underneath and opening a gap above turns
+     the two into one block that the year introduces — proximity doing the
+     grouping, which is the only thing that can do it here, since the year is
+     the same muted grey whichever side it leans toward.
+
+     Margins, not a wrapper element. A <div> that exists only to carry spacing
+     is a layout instruction wearing a tag: it adds a node to the accessibility
+     tree that stands for nothing, and the next person has to read the CSS
+     anyway to find out why it is there. The gap IS the relationship. */
   .article__meta {
-    margin-top: 0.5rem;
+    margin-top: 1.25rem;
     font-size: var(--fs-sm);
     color: var(--text-muted);
   }
 
   .article__desc {
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
     font-size: var(--fs-body);
     line-height: 1.6;
     max-width: var(--reading-w-tight);
