@@ -109,7 +109,19 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     line-height: 1.6;
   }
 
+  /* The font-size is not decoration — without it a list changes size depending
+     on how the author spaced it. Markdown makes a list "loose" when there is a
+     blank line between items, and wraps each item's text in a <p>; a "tight"
+     list leaves the text bare in the <li>. The <p> rule above sets --fs-body,
+     so a loose list rendered at 1.3rem while a tight one fell back to the
+     inherited --fs-base of 1rem — a 30% jump between two lists on the same
+     page, decided by invisible whitespace in the source. The GRE post has one
+     of each, four paragraphs apart. Setting it here makes both lists agree, and
+     it is the same value the <p> rule already applies, so loose lists are
+     unchanged. Nested lists need no exception: --fs-body is a rem, which is
+     root-relative and so cannot compound down the levels. */
   .prose :global(li) {
+    font-size: var(--fs-body);
     margin-bottom: 0.375rem;
   }
 
