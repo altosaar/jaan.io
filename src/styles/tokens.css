@@ -117,12 +117,24 @@
   --site-ml: calc(50% - var(--site-w) / 2);
   /* Cap on <main> for full-bleed pages. Widen it for an image-led site. */
   --main-max-w: 900px;
-  /* The measure. 42.5rem is 680px, which is what `max-width: 68ch` in
-     Prose.astro and on the /articles/ list resolves to at the inherited 1rem in
-     Inter — spelled as a length here so it does not silently change with the
-     font. Centred pages size their whole column to this (see main.is-centered
-     in base.css), which is what puts every page's text on one left edge. */
-  --reading-w: 42.5rem;
+  /* THE MEASURE, and the only place it is decided. Centred pages size their
+     whole column to --reading-w (main.is-centered in base.css), which is what
+     puts every page's text on one left edge — so every block that sets its own
+     max-width has to derive it from here or it will cap the column and hang
+     left inside it.
+
+     53.125rem = 850px. Widened 25% from 42.5rem/680px (which was `68ch` at the
+     inherited 1rem). Spelled as lengths rather than `ch` on purpose: `ch`
+     resolves against each ELEMENT's font-size, so the same "60ch" was a
+     different width on a 1rem paragraph and a 1.1rem intro. That is also why
+     changing this one number is now enough.
+
+     --reading-w-tight is the same 25% wider: 37.5rem/600px → 46.875rem/750px.
+     It is the shorter measure muted and secondary text sits at (card
+     descriptions, page intros), kept proportional so the relationship between
+     the two survives any future change to the main measure. */
+  --reading-w: 53.125rem;
+  --reading-w-tight: 46.875rem;
   --ticker-h: 3.3rem;
   --nav-h: 3.52rem;
   /* Corner radius on nav links, footer links, and CTA buttons. 0 is a

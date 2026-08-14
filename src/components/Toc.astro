@@ -153,12 +153,17 @@ const items = headings.filter((h) => h.depth >= 2 && h.depth <= maxDepth);
     color: var(--bg);
   }
 
-  /* Below this the gutter cannot hold the rail without crowding the measure:
-     the text column is --reading-w and centred, so each gutter is
-     (100vw − 680px) / 2, and the rail needs its own --edge plus a gap. At
-     1200px that leaves about 200px, which is the narrowest this reads at.
-     Hidden rather than reflowed inline — see the note in the report. */
-  @media (max-width: 1200px) {
+  /* Below this the gutter cannot hold the rail without crowding the measure.
+     The text column is --reading-w (850px) and centred, so each gutter is
+     (100vw − 850) / 2, from which the rail still owes an --edge and a 2rem gap:
+
+       1400px → (1400−850)/2 − 48 − 32 = 195px   readable
+       1300px → (1300−850)/2 − 48 − 32 = 145px   too narrow to set a heading in
+
+     This threshold moved out from 1200px when the measure was widened 25% —
+     a wider column is a narrower gutter, and the rail pays for it. Hidden
+     rather than reflowed inline; see the note in the report. */
+  @media (max-width: 1400px) {
     .toc {
       display: none;
     }

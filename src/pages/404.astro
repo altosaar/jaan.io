@@ -10,7 +10,13 @@ import Section from "../components/Section.astro";
   description="That page doesn't exist. Head back to the home page."
   navMode="static"
 >
-  <Section as="div" class="notfound" top="section">
+  {
+    /* `bottom="block"` rather than a `.notfound { padding-bottom }` rule: the
+       class went onto Section's OWN element, which carries Section's scope id
+       and not this page's, so the rule never matched anything and Astro pruned
+       it. Section already takes the spacing as a prop. */
+  }
+  <Section as="div" top="section" bottom="block">
     <h1>Page not found</h1>
     <p>
       {
@@ -24,13 +30,14 @@ import Section from "../components/Section.astro";
 </Base>
 
 <style>
-  .notfound {
-    padding-bottom: var(--space-block);
-  }
-  .notfound p {
+  /* Targets the <p> directly instead of descending from `.notfound`. Astro
+     scopes a rule to the elements written in THIS file, and the wrapper was not
+     one of them — it is Section's element, stamped with Section's id. There is
+     exactly one paragraph on this page, so no class is needed to reach it. */
+  p {
     font-size: var(--fs-body);
     line-height: 1.55;
     margin-top: 1rem;
-    max-width: 60ch;
+    max-width: var(--reading-w-tight);
   }
 </style>
