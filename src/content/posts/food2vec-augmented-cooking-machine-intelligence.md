@@ -32,7 +32,7 @@ Here is a similarity map of the $2,087$ ingredients used in the recipes. Hover o
 
 The map of foods is reasonable. Ingredients from Asia cluster together, as do ingredients used in European and North American cooking.
 
-## Recipe embedding map
+## Recipe embedding
 
 We can generate an embedding for a recipe by taking the average of its ingredients' embeddings. Here is a map of $95, 896$ recipes from around the world. Hover over a point to see the recipe, and click on the cuisine legend on the right to show or hide certain regions:
 
@@ -40,7 +40,7 @@ We can generate an embedding for a recipe by taking the average of its ingredien
 
 Interesting patterns emerge. Asian recipes cluster together, as do Southern European recipes. Northern European and American foods are all over the place, maybe because of transmission of recipes due to migration, or over-representation in the data.
 
-## Food similarity tool
+## Food similarity
 
 Access the tool at [this link](https://altosaar.github.io/food2vec/#food-similarity-tool). We can calculate food similarity by looking at which food is closest in the high dimensional space in the embeddings.
 
@@ -50,7 +50,7 @@ These mostly make sense - foods are closest to other foods they appear with in r
  * Milk is closest to nutmeg
  * Olive oil is closest to parmesan cheese
 
-## Food analogy tool
+## Food analogies
 
 Access the tool [here](https://altosaar.github.io/food2vec/#food-analogy-tool). Food analogies, like word analogies, are calculated with vector arithmetic. For the analogy "Food A is to food B, as food C is to food D", the goal is to predict a reasonable food D. We can do this by subtracting food B from food A, then adding food C. For example, calculating $(bacon - egg) + orangejuice$ in embedding space will yield an embedding. The closest embedding to this is $coffee$ in our model of food. The classic example from word embeddings is $(king - man) + woman = queen$. Is this intuitive? King is to man as woman is to queen makes sense in natural language, but food analogies are less clear. With practice, we may be able to train our taste detectors and devise hypotheses to test in the realm of food. I also included cuisine embeddings by representing them as the average of their recipes' embeddings.
 
@@ -62,7 +62,7 @@ Some of these are more plausible than others:
 * Rice is to sesame seed as macaroni is to pimento.
 * Roasted beef is to green bell pepper as pork sausage is to fenugreek.
 
-## Recipe recommendation tool
+## Recipe recommendations
 
 Access the tool [here](https://altosaar.github.io/food2vec/#recipe-recommendation-tool). We can use our model of food as a recommendation system for cooks. By taking the average embedding for a set of foods, we can look up foods with the closest embeddings. 
 
@@ -91,5 +91,4 @@ If you end up adding an ingredient to your food based on these tools, I'd love t
 
 Feel free to ping me on [Twitter](https://twitter.com/thejaan) or [email](mailto:altosaar@princeton.edu) with feedback or ideas!
 
-Discussion on [Hacker News](https://news.ycombinator.com/item?id=13472721) and [Reddit](https://www.reddit.com/r/MachineLearning/comments/5px9uz/p_food_visualization_and_recommendation_engine_in/). Also see [slides](/talks/2017_Altosaar_food2vec_slides.pdf) from a talk at the New York Times on this project. 
-
+Discussion on [Hacker News](https://news.ycombinator.com/item?id=13472721) and [Reddit](https://www.reddit.com/r/MachineLearning/comments/5px9uz/p_food_visualization_and_recommendation_engine_in/). Also see [slides](/talks/2017_Altosaar_food2vec_slides.pdf) from a talk at the New York Times on this project.
