@@ -8,6 +8,9 @@ node_modules/
 # Astro
 .astro/
 
+# Wrangler's local state and upload cache
+.wrangler/
+
 # env
 .env
 .env.*
