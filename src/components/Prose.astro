@@ -67,6 +67,26 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     margin-bottom: 1.25rem;
   }
 
+  /* A dateline — the small muted line under a title, before the article opens.
+     Opt in with class="prose-dateline" (src/pages/[slug].astro).
+
+     It lives HERE, in the component that owns the slotted content, and not in
+     the page that writes the element, because of how the two selectors weigh
+     up. A page's scoped `.post-year` compiles to `.post-year[data-astro-cid-…]`
+     — two class-likes, no element — while the rule above compiles to
+     `.prose[data-astro-cid-…] p`, two class-likes AND an element, which is
+     heavier. So a page trying to restyle its own dateline silently loses the
+     font size and the margin while keeping the colour, which is exactly what
+     the previous `.post-date` did: it read as body text with a paragraph's
+     tail for as long as it existed, and looked close enough to intentional
+     that nobody caught it. Adding the element to this selector puts it
+     unambiguously on top and leaves the page nothing to get wrong. */
+  .prose :global(p.prose-dateline) {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+  }
+
   .prose :global(h3) {
     font-family: var(--font-display);
     font-size: clamp(1.25rem, 2.2vw, 1.5rem);

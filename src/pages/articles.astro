@@ -11,11 +11,11 @@ import Section from "../components/Section.astro";
 import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 
+// `date` still orders the list, it is just no longer printed here — the year
+// lives on the article itself now (src/pages/[slug].astro).
 const posts = (await getCollection("posts")).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime(),
 );
-
-const year = (d: Date) => d.getUTCFullYear();
 ---
 
 <Base
@@ -45,14 +45,7 @@ const year = (d: Date) => d.getUTCFullYear();
               <a href={`/${post.id}`} class="article__link">
                 <h2 class="article__title">{post.data.title}</h2>
               </a>
-              <div class="article__note">
-                <p class="article__meta">
-                  <time datetime={post.data.date.toISOString().slice(0, 10)}>
-                    {year(post.data.date)}
-                  </time>
-                </p>
-                <p class="article__desc">{post.data.description}</p>
-              </div>
+              <p class="article__desc">{post.data.description}</p>
             </div>
           </li>
         ))
@@ -167,60 +160,13 @@ const year = (d: Date) => d.getUTCFullYear();
     color: var(--accent);
   }
 
-  /* The year and the description share a line, the year leading it.
-     This is the wrapper the previous arrangement did not need and this one
-     does: it is not carrying spacing, it is establishing the relationship
-     between two boxes side by side. Spacing alone cannot express "beside".
-
-     `align-items: baseline` is the whole trick. The year is --fs-sm and the
-     description --fs-body with a 1.6 line-height, so aligning the BOXES
-     (stretch, or flex-start) would hang the year off the top of a taller line
-     and the two would only be on the same row, not on the same line. Baselines
-     put the digits and the first letter on one line of type, which is what
-     "on the same line" means to a reader.
-
-     The measure moves up here from .article__desc. The line now starts at the
-     year, so the year is part of what has to stay inside a readable length —
-     bounding the description alone would let the row run past it by however
-     wide the year is.
-
-     Wrapped lines return to the description's own left edge, not to the year's,
-     because the description is a block in a row rather than text flowing
-     around an inline. That is the wanted behaviour: the year introduces the
-     sentence once, and every line after it lines up under the first. */
-  .article__note {
-    margin-top: 1.25rem;
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    max-width: var(--reading-w-tight);
-  }
-
-  .article__meta {
-    /* Never let the year wrap or be squeezed — it is four characters and it
-       sets where the description begins. */
-    flex: none;
-    font-size: var(--fs-sm);
-    color: var(--text-muted);
-  }
-
+  /* No year here any more; it belongs to the article now. Which gives the
+     description the full measure back — the year was costing it ~42px and
+     breaking the two short ones onto a second line. */
   .article__desc {
+    margin-top: 1.25rem;
     font-size: var(--fs-body);
     line-height: 1.6;
-  }
-
-  /* Below this the row costs more than it says. The mark and the year together
-     take a third of a phone's width off the description, which drops it to
-     around thirty characters a line — a measure that hyphenates badly and
-     reads as a column of fragments. Stacking gives the sentence its width
-     back; the year still introduces it, just from above. */
-  @media (max-width: 40rem) {
-    .article__note {
-      display: block;
-    }
-
-    .article__desc {
-      margin-top: 0.25rem;
-    }
+    max-width: var(--reading-w-tight);
   }
 </style>

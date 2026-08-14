@@ -36,16 +36,24 @@ const { Content, headings } = await render(post);
   }
   <Toc headings={headings} />
 
-  {
-    /* No date line. `date` is still in the frontmatter and still orders the
-       list on /articles, where it is shown — but over the article itself a
-       2016 stamp reads as a warning about the writing rather than a fact about
-       it, and these posts are the opposite of stale: they are what most of the
-       site's search traffic arrives for. The old Jekyll layout had reached the
-       same conclusion and commented its date line out. */
-  }
   <Prose>
     <h1>{post.data.title}</h1>
+    {
+      /* The dateline: under the headline, above the first paragraph, which is
+         where a reader of anything already looks for it.
+
+         The YEAR alone is shown, but `datetime` carries the whole date. That
+         split is the point of the element — a person gets the resolution that
+         is useful to them (2016 places the piece; the 18th of July does not),
+         and a machine still gets the exact day for sorting, feeds and rich
+         results. Written out rather than derived from the visible text,
+         because the visible text is deliberately lossy. */
+    }
+    <p class="prose-dateline">
+      <time datetime={post.data.date.toISOString().slice(0, 10)}>
+        {post.data.date.getUTCFullYear()}
+      </time>
+    </p>
     <Content />
   </Prose>
 </Base>
