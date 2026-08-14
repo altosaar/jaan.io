@@ -86,6 +86,22 @@ export const SITE = {
     ] as SiteLink[][],
   },
 
+  // ── The /about/ rail ───────────────────────────────────────────────────────
+  // The tag rail in that page's left gutter (Toc.astro with `links` instead of
+  // headings). Its own list rather than a slice of `social` below: the labels
+  // are addressed to a reader mid-sentence ("email me", not "Email"), and it is
+  // a deliberate shortlist — Flickr is in `social` and `sameAs` but not here.
+  //
+  // The X link keeps its twitter.com URL. It still resolves, it is the one
+  // already asserted in `sameAs`, and rewriting a URL search engines have
+  // associated with this person buys nothing.
+  contact: [
+    { label: "email me", href: "mailto:j@jaan.io" },
+    { label: "github", href: "https://github.com/altosaar", external: true },
+    { label: "linkedin", href: "https://www.linkedin.com/in/jaanaltosaar", external: true },
+    { label: "x", href: "https://twitter.com/thejaan", external: true },
+  ] as SiteLink[],
+
   // ── Social & contact ───────────────────────────────────────────────────────
   // Rendered as the footer's second column. Overlaps `sameAs` below on purpose:
   // this list is what humans click, `sameAs` is what search engines read.

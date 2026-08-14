@@ -1,13 +1,22 @@
 ---
-// A sticky table of contents in the page's left gutter — the tag-rail from
-// config.figma.com/san-francisco/faq/: small boxes stacked down the left, the
-// one you are reading filled light, the rest on the raised surface grey.
+// A fixed tag rail in the page's left gutter — the shape from
+// config.figma.com/san-francisco/faq/: small boxes stacked down the left, on
+// the raised-surface grey, aligned to the nav wordmark's left edge.
+//
+// TWO MODES, ONE RAIL. Pass exactly one of them.
 //
 //   const { Content, headings } = await render(post);
-//   <Toc headings={headings} />
+//   <Toc headings={headings} />          // a contents list that follows scroll
 //
-// It renders nothing at all when there is nothing to navigate (fewer than two
-// headings), so a short post does not get a one-item rail.
+//   <Toc links={SITE.contact} label="Elsewhere" />   // an authored list
+//
+// The second exists so /about/'s contact rail is the SAME object as the
+// articles' contents rail rather than a lookalike built beside it — one set of
+// styles, one alignment, one breakpoint. Only the first has a current item,
+// because only it has sections you can be inside.
+//
+// It renders nothing when there is nothing to navigate: fewer than two
+// headings, or an empty link list.
 //
 // WHY IT IS `position: fixed` AND NOT `position: sticky`
 // Sticky needs the element in the normal flow of something tall enough to
@@ -16,32 +25,57 @@
 // than to the text. Fixed positions against the viewport, which is exactly the
 // coordinate system the nav uses, so the two line up by construction.
 import type { MarkdownHeading } from "astro";
+import type { SiteLink } from "../site.config";
 
 interface Props {
-  headings: MarkdownHeading[];
+  headings?: MarkdownHeading[];
+  /** An authored rail. Mutually exclusive with `headings`. */
+  links?: SiteLink[];
   /** Deepest heading level to list. h2 is the section level in these posts. */
   maxDepth?: number;
   /** Accessible name for the landmark. */
   label?: string;
 }
 
-const { headings, maxDepth = 3, label = "On this page" } = Astro.props;
+const { headings, links, maxDepth = 3, label } = Astro.props;
+
+if (headings && links) {
+  throw new Error("[Toc] Pass `headings` or `links`, not both — they are two modes of one rail.");
+}
 
 // h1 is the post title, which is not a section of itself.
-const items = headings.filter((h) => h.depth >= 2 && h.depth <= maxDepth);
+const items = (headings ?? []).filter((h) => h.depth >= 2 && h.depth <= maxDepth);
+
+// A contents list of one is not worth a rail; an authored list of one is, since
+// the author asked for exactly those.
+const show = links ? links.length > 0 : items.length > 1;
+const name = label ?? (links ? "Elsewhere" : "On this page");
 ---
 
 {
-  items.length > 1 && (
-    <nav class="toc" aria-label={label}>
+  show && (
+    <nav class="toc" aria-label={name}>
       <ol class="toc__list">
-        {items.map((h) => (
-          <li class:list={["toc__item", `toc__item--d${h.depth}`]}>
-            <a class="toc__link" href={`#${h.slug}`} data-toc-link={h.slug}>
-              {h.text}
-            </a>
-          </li>
-        ))}
+        {links
+          ? links.map((link) => (
+              <li class="toc__item">
+                <a
+                  class="toc__link"
+                  href={link.href}
+                  target={link.external ? "_blank" : undefined}
+                  rel={link.external ? "noopener noreferrer" : undefined}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))
+          : items.map((h) => (
+              <li class:list={["toc__item", `toc__item--d${h.depth}`]}>
+                <a class="toc__link" href={`#${h.slug}`} data-toc-link={h.slug}>
+                  {h.text}
+                </a>
+              </li>
+            ))}
       </ol>
     </nav>
   )
@@ -189,16 +223,19 @@ const items = headings.filter((h) => h.depth >= 2 && h.depth <= maxDepth);
   // for any section length, and correct after a jump-link or a page restore
   // rather than only after the next intersection.
   const rail = document.querySelector<HTMLElement>(".toc");
-  if (rail) {
-    const links = new Map<string, HTMLAnchorElement>();
-    for (const a of rail.querySelectorAll<HTMLAnchorElement>("[data-toc-link]")) {
-      links.set(a.dataset.tocLink!, a);
-    }
+  const links = new Map<string, HTMLAnchorElement>();
+  for (const a of rail?.querySelectorAll<HTMLAnchorElement>("[data-toc-link]") ?? []) {
+    links.set(a.dataset.tocLink!, a);
+  }
 
-    const targets = [...links.keys()]
-      .map((id) => document.getElementById(id))
-      .filter((el): el is HTMLElement => el !== null);
+  const targets = [...links.keys()]
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => el !== null);
 
+  // Nothing to spy on in `links` mode — an authored rail has no sections to be
+  // "in" — so bail before attaching any listeners rather than running a scan
+  // that can only ever return nothing.
+  if (rail && targets.length > 0) {
     // The line a heading has to cross to count as "reached".
     //
     // It must sit at or BELOW where a jump-link parks a heading, which is

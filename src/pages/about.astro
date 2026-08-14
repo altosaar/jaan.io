@@ -7,6 +7,8 @@
 // keeps the two from competing for the same paths.
 import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
+import Toc from "../components/Toc.astro";
+import { SITE } from "../site.config";
 import { getEntry, render } from "astro:content";
 
 const page = await getEntry("pages", "about");
@@ -21,6 +23,13 @@ const { Content } = await render(page);
        title ("About | Jaan Altosaar") and the collection schema requires it —
        emptying it there fails the build rather than hiding the heading. */
   }
+  {
+    /* The same rail the articles carry, in its `links` mode: /about/ has no
+       sections worth listing, but it is the page someone lands on wanting to
+       reach him, and the gutter is already the site's place for that. */
+  }
+  <Toc links={SITE.contact} label="Elsewhere" />
+
   <Prose backHref="/" backLabel="← Home">
     <Content />
   </Prose>
