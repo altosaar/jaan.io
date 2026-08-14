@@ -121,21 +121,6 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
 
     /* Above the page, below the mobile menu (300) and its button (400). */
     z-index: 40;
-
-    /* --- Ribbon choreography (see the block below the link styles) ---------
-       --n is the tag count, written once by the script. The stagger is the gap
-       between one tag setting off and the next; 36ms is the figure that reads
-       as a ribbon rather than a queue, but a twenty-two-heading post would
-       spend most of a second just handing off, so it is also capped to fit the
-       whole hand-off inside 180ms however many tags there are. */
-    --n: 1;
-    --toc-stagger: min(36ms, calc(180ms / var(--n)));
-
-    /* Same duration and curve as the header (chrome.css) — the rail is not
-       animating alongside the nav, it is animating WITH it. */
-    transition:
-      opacity var(--dur-slide) var(--ease-standard),
-      transform var(--dur-slide) var(--ease-standard);
   }
 
   .toc__list {
@@ -202,71 +187,6 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
     color: var(--bg);
   }
 
-  /* ── The ribbon ─────────────────────────────────────────────────────────
-     Scrolling down puts the header away (SiteHeader.astro sets .is-nav-hidden
-     on <html>); the rail goes with it, and the way it goes is the whole point.
-
-     Each tag slides up onto the one above it — bottom tag first, then the next,
-     on up the column, so the stack closes like a fan and not like a lift door.
-     Reversed paint order is what makes them slide UNDER rather than over:
-     without it, document order puts the LAST tag on top and the collapse looks
-     like a pile-on. Then the closed deck, which is now just the top tag, fades.
-     Scrolling up runs the identical motion with the stagger reversed, so the
-     deck spreads from the top down.
-
-     Two numbers do all of it, both written per-tag by the script: --i (the
-     tag's place in the column) and --dy (how far that tag has to travel to land
-     on the first one). Tags are not a uniform height — a two-line heading is
-     taller than a one-line one — so a single repeated step would leave the
-     closed stack ragged. Each tag carries its own measurement.
-
-     With the script absent or the geometry unmeasured, --dy is 0 and the rail
-     simply fades. Nothing about this is load-bearing for reading the page. */
-  .toc__item {
-    position: relative;
-    z-index: calc(var(--n) - var(--i, 0));
-    transition: transform var(--dur-slide) var(--ease-standard);
-    /* Spreading: the top tag leads and the rest follow it down the column. */
-    transition-delay: calc(var(--i, 0) * var(--toc-stagger));
-  }
-
-  :global(html.is-nav-hidden) .toc__item {
-    transform: translateY(calc(-1 * var(--dy, 0px)));
-    /* Closing: the exact inverse — the bottom tag leads and the rest follow it
-       up. Same rate, same curve; only the order of departure changes. */
-    transition-delay: calc((var(--n) - 1 - var(--i, 0)) * var(--toc-stagger));
-  }
-
-  :global(html.is-nav-hidden) .toc {
-    opacity: 0;
-    /* A last lift as it goes, echoing the header's own exit. */
-    transform: translateY(-0.75rem);
-    /* Invisible, so it must stop swallowing clicks in the left gutter. */
-    pointer-events: none;
-    /* "and then the top one disappears": the deck holds until the tags have
-       finished closing into it, and only then goes. Coming back it leads —
-       the base rule above carries no delay — so the deck reappears and then
-       spreads. */
-    transition-delay: calc((var(--n) - 1) * var(--toc-stagger));
-  }
-
-  /* Keyboard escape hatch. The rail stays in the tab order while it is closed
-     (hiding it would mean the outline is reachable only by mouse-scrolling up),
-     so tabbing into it has to bring it back — otherwise focus lands on an
-     invisible link. :focus-within re-runs the spread exactly as scrolling up
-     would, which is also how it reads: the ribbon opens to meet you. */
-  :global(html.is-nav-hidden) .toc:focus-within {
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
-    transition-delay: 0ms;
-  }
-
-  :global(html.is-nav-hidden) .toc:focus-within .toc__item {
-    transform: none;
-    transition-delay: calc(var(--i, 0) * var(--toc-stagger));
-  }
-
   /* Below this the gutter cannot hold the rail without crowding the measure.
      The text column is --reading-w (850px) and centred, so each gutter is
      (100vw − 850) / 2, from which the rail still owes an --edge and a 2rem gap:
@@ -284,36 +204,10 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
   }
 
   /* The rail is a scroll-following affordance; honouring reduced-motion here
-     means not animating the fill as it moves between items, and — far more
-     to the point — not sliding eight boxes across the screen every time the
-     page moves. The rail still leaves with the header, it just cuts.
-
-     0.01ms rather than `transition: none`, matching the house rule in
-     chrome.css: a transition that never runs never fires transitionend, and
-     the chrome's own scroll script depends on that event. Nothing here listens
-     for it, but a rail that animates by a different mechanism than the header
-     it is synchronised to is a trap for whoever edits this next. */
+     means not animating the fill as it moves between items. */
   @media (prefers-reduced-motion: reduce) {
     .toc__link {
       transition: none;
-    }
-
-    .toc,
-    .toc__item,
-    :global(html.is-nav-hidden) .toc,
-    :global(html.is-nav-hidden) .toc__item,
-    :global(html.is-nav-hidden) .toc:focus-within,
-    :global(html.is-nav-hidden) .toc:focus-within .toc__item {
-      transition-duration: 0.01ms;
-      transition-delay: 0ms;
-    }
-
-    :global(html.is-nav-hidden) .toc {
-      transform: none;
-    }
-
-    :global(html.is-nav-hidden) .toc__item {
-      transform: none;
     }
   }
 </style>
@@ -337,53 +231,6 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
   const targets = [...links.keys()]
     .map((id) => document.getElementById(id))
     .filter((el): el is HTMLElement => el !== null);
-
-  // ── Ribbon geometry ────────────────────────────────────────────────────
-  // The collapse itself is entirely in CSS. All it wants from here are three
-  // numbers per layout: how many tags there are, where each one sits in the
-  // column, and how far it has to travel to land on the first one.
-  //
-  // Measured rather than assumed, because tag heights are not uniform: a
-  // heading that wraps to two lines is taller than one that does not, and a
-  // single repeated step would leave the closed stack ragged by however many
-  // pixels the wrapping added.
-  //
-  // Runs for both modes of the rail — /about/'s contact list closes the same
-  // way, on the rare screen short enough for that page to scroll at all.
-  const list = rail?.querySelector<HTMLElement>(".toc__list");
-  if (rail && list) {
-    const items = [...list.querySelectorAll<HTMLElement>(".toc__item")];
-    rail.style.setProperty("--n", String(items.length));
-
-    const measure = () => {
-      // Distances are ACCUMULATED from heights and the flex gap rather than
-      // read off positions, and that is not a stylistic choice:
-      //
-      //   · offsetTop rounds to whole pixels. Tags are 31.15px apart here, so
-      //     a rounded offset leaves each tag up to half a pixel out and the
-      //     closed stack shows a hairline of every tag behind the top one.
-      //   · getBoundingClientRect() has the subpixel precision but reports the
-      //     TRANSFORMED position — it would measure the collapse it is feeding,
-      //     which is circular the moment anything re-measures mid-animation.
-      //
-      // A height and a gap are subpixel-exact AND untouched by a translate, so
-      // summing them is both precise and safe to re-run at any moment.
-      const gap = parseFloat(getComputedStyle(list).rowGap) || 0;
-      let dy = 0;
-      for (const [i, el] of items.entries()) {
-        el.style.setProperty("--i", String(i));
-        el.style.setProperty("--dy", `${dy}px`);
-        dy += el.getBoundingClientRect().height + gap;
-      }
-    };
-
-    measure();
-    // Catches the three things that move these numbers: the viewport resizing,
-    // the webfont swapping in under the fallback, and a heading rewrapping
-    // because of either. Observing the rail is enough — all three change its
-    // own box. Transforms do not, so this cannot feed itself.
-    new ResizeObserver(measure).observe(rail);
-  }
 
   // Nothing to spy on in `links` mode — an authored rail has no sections to be
   // "in" — so bail before attaching any listeners rather than running a scan
@@ -414,27 +261,15 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
       // points within this one.
       next?.setAttribute("aria-current", "true");
       current = next;
-    };
 
-    // Keep the highlight visible when the rail is scrolling itself — the
-    // physics post has twenty-one tags and at 1600×900 they overflow the rail
-    // by 200px, so the current one can be off-rail.
-    //
-    // Called from update() rather than from setCurrent() because it has to run
-    // on two occasions, not one: when the current section changes, and when the
-    // ribbon re-opens. Skipping it while the ribbon is closed is the point of
-    // the first check — every tag is stacked on the first one then, so
-    // scrollIntoView would drag the rail to the top and leave it there, and the
-    // rail would re-open showing its first tag rather than the section you are
-    // actually in. Deferring instead means the very next scroll frame after it
-    // re-opens puts it right.
-    const revealCurrent = () => {
-      if (!current || document.documentElement.classList.contains("is-nav-hidden")) return;
-      if (rail.scrollHeight <= rail.clientHeight) return;
-      const r = current.getBoundingClientRect();
-      const box = rail.getBoundingClientRect();
-      if (r.top < box.top || r.bottom > box.bottom) {
-        current.scrollIntoView({ block: "nearest" });
+      // Keep the highlight visible when the rail is scrolling itself — the
+      // physics post has twenty of these and the current one can be off-rail.
+      if (next && rail.scrollHeight > rail.clientHeight) {
+        const r = next.getBoundingClientRect();
+        const box = rail.getBoundingClientRect();
+        if (r.top < box.top || r.bottom > box.bottom) {
+          next.scrollIntoView({ block: "nearest" });
+        }
       }
     };
 
@@ -448,7 +283,6 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
       // back to the first item so the rail is never entirely unlit.
       const id = (passed ?? targets[0])?.id;
       setCurrent(id ? (links.get(id) ?? null) : null);
-      revealCurrent();
     };
 
     let ticking = false;
