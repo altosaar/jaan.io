@@ -39,7 +39,7 @@ import { SITE } from "../site.config";
       </div>
       <p class="home__contact">
         <a href="mailto:j@jaan.io?subject=Inquiry">Get in touch</a> if you want to discuss an idea or
-        grab a coffee. I'm available; let's bring it off.
+        grab a coffee. I'm available.
       </p>
     </div>
   </div>
@@ -80,6 +80,13 @@ import { SITE } from "../site.config";
        viewport the track stayed 320px wide around a 120px portrait and opened
        a 200px hole between the portrait and the sentence. */
     --portrait-w: min(100%, 320px, 32svh * 0.982);
+
+    /* The other two measures of the portrait row, named here for the same
+       reason --portrait-w is: the row's own max-width below is the sum of all
+       three, and a sum written from three literals drifts the first time one of
+       them is edited. */
+    --intro-gap: clamp(1rem, 4svh, var(--space-gap));
+    --intro-text-w: 30rem;
   }
 
   /* The svh term is the landscape-phone case: --fs-hero is width-driven, and
@@ -89,17 +96,40 @@ import { SITE } from "../site.config";
   }
 
   /* Portrait immediately left of the line. One column on small screens, two
-     once there is room for the text to keep a readable measure beside it. */
+     once there is room for the text to keep a readable measure beside it.
+     The pair is centred on the screen while the headline above it stays on the
+     site's left edge — the two are composed against different things, the
+     headline against the column every other page aligns to, the portrait and
+     its sentence against the screen. `justify-items` handles the stacked case,
+     where centring a full-width paragraph is a no-op and centring the portrait
+     is the whole effect. */
   .home__intro {
     display: grid;
-    gap: clamp(1rem, 4svh, var(--space-gap));
+    gap: var(--intro-gap);
     align-items: center;
+    justify-items: center;
     min-height: 0;
   }
 
   @media (min-width: 720px) {
     .home__intro {
       grid-template-columns: var(--portrait-w) minmax(0, 1fr);
+
+      /* Centred by capping the ROW and letting auto margins take the slack, not
+         by sizing the text track to its content and centring the tracks.
+         `grid-template-columns: … auto` reads like the obvious way to do it and
+         breaks at the bottom of this breakpoint: an `auto` track is sized from
+         the paragraph's own max-width with no reference to what is left over,
+         so just above 720px the pair wants ~830px inside a 677px column and
+         overflows a page that has had its scrollbars removed — the one kind of
+         overflow nothing on this page can recover from.
+         A flexible track cannot do that. It takes the space that exists, so the
+         row is the full width when the width is tight and exactly this sum when
+         there is room, and the margins only have slack to absorb in the second
+         case. Centring becomes something that happens when it fits, rather than
+         something asserted whether it fits or not. */
+      max-width: calc(var(--portrait-w) + var(--intro-gap) + var(--intro-text-w));
+      margin-inline: auto;
     }
   }
 
@@ -118,7 +148,8 @@ import { SITE } from "../site.config";
     font-weight: 350;
     line-height: 1.6;
     /* rem, not ch: a `ch` measure resolves against the element's own font-size,
-       which is easy to get wrong when the size is a variable. */
-    max-width: 30rem;
+       which is easy to get wrong when the size is a variable. The value is on
+       .home as --intro-text-w because the row's max-width is computed from it. */
+    max-width: var(--intro-text-w);
   }
 </style>
