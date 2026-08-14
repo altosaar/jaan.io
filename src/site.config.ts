@@ -96,10 +96,10 @@ export const SITE = {
   // already asserted in `sameAs`, and rewriting a URL search engines have
   // associated with this person buys nothing.
   contact: [
-    { label: "email me", href: "mailto:j@jaan.io" },
-    { label: "github", href: "https://github.com/altosaar", external: true },
-    { label: "linkedin", href: "https://www.linkedin.com/in/jaanaltosaar", external: true },
-    { label: "x", href: "https://twitter.com/thejaan", external: true },
+    { label: "EMAIL ME", href: "mailto:j@jaan.io" },
+    { label: "GITHUB", href: "https://github.com/altosaar", external: true },
+    { label: "LINKEDIN", href: "https://www.linkedin.com/in/jaanaltosaar", external: true },
+    { label: "X", href: "https://x.com/thejaan", external: true },
   ] as SiteLink[],
 
   // ── Social & contact ───────────────────────────────────────────────────────
