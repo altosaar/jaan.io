@@ -43,7 +43,7 @@ const published = post.data.date.toLocaleDateString("en-US", {
   }
   <Toc headings={headings} />
 
-  <Prose backHref="/" backLabel="← Home">
+  <Prose>
     <h1>{post.data.title}</h1>
     <p class="post-date">
       <time datetime={post.data.date.toISOString().slice(0, 10)}>{published}</time>

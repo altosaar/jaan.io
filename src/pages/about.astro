@@ -30,7 +30,47 @@ const { Content } = await render(page);
   }
   <Toc links={SITE.contact} label="Elsewhere" />
 
-  <Prose backHref="/" backLabel="← Home">
-    <Content />
-  </Prose>
+  <div class="about">
+    <Prose>
+      <Content />
+    </Prose>
+  </div>
 </Base>
+
+<style>
+  /* /about/ alone is centred on the screen's vertical midpoint, so it lines up
+     with the contact rail in the gutter (Toc.astro centres the same way).
+     Everything else on the site hangs from the top.
+
+     Same construction as .gallery on /images/, for the same reasons:
+       · 100svh MINUS the nav, because #chrome-spacer already holds the nav's
+         height in flow above <main> — using the full viewport height would make
+         the document exactly one nav taller than the screen and hand a page
+         with nothing below the fold a scrollbar.
+       · padding-bottom of one nav-height as a counterweight: this box starts
+         BELOW the nav, so centring inside it would sit half a nav low. Taking
+         that much off the other end puts the midpoint back on the viewport's.
+       · `safe center` because the prose is usually TALLER than one screen. Plain
+         `center` overflows a flex container in both directions, which would cut
+         off the first paragraph above the scroll origin where it cannot be
+         reached. `safe` falls back to start-alignment exactly then, so the page
+         behaves like every other article until the content actually fits. The
+         plain `center` before it is the fallback for engines that don't parse
+         the keyword. */
+  .about {
+    min-height: calc(100svh - var(--nav-h));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-content: safe center;
+    padding-bottom: var(--nav-h);
+  }
+
+  /* Prose pays for its own vertical rhythm with padding-top: --space-section
+     and padding-bottom: --space-block. Centring a box with 80px above and 48px
+     below puts the TEXT 16px lower than the box, so the words would sit off the
+     midpoint the rail is on. The wrapper owns the spacing here instead. */
+  .about :global(.prose) {
+    padding-block: 0;
+  }
+</style>

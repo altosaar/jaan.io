@@ -92,9 +92,10 @@ export const SITE = {
   // are addressed to a reader mid-sentence ("email me", not "Email"), and it is
   // a deliberate shortlist — Flickr is in `social` and `sameAs` but not here.
   //
-  // The X link keeps its twitter.com URL. It still resolves, it is the one
-  // already asserted in `sameAs`, and rewriting a URL search engines have
-  // associated with this person buys nothing.
+  // The X link points at x.com while `social` and `schema.sameAs` below still
+  // say twitter.com. That is not drift: twitter.com/thejaan still redirects to
+  // x.com/thejaan, this list is what a reader clicks, and sameAs is what search
+  // engines have already associated with this person — worth leaving alone.
   contact: [
     { label: "EMAIL ME", href: "mailto:j@jaan.io" },
     { label: "GITHUB", href: "https://github.com/altosaar", external: true },

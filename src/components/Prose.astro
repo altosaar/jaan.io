@@ -3,12 +3,18 @@
 // schedule, partners, and the rest). The rendered Markdown arrives via <slot/>,
 // so its elements are styled with :global() below.
 interface Props {
-  /** Where the closing back-link points. Pass `null` to omit the link. */
+  /**
+   * Where the closing back-link points, or `null` for none — which is the
+   * default and what every route currently uses. The nav is fixed and always on
+   * screen, so a second way home at the bottom of the page was repeating an
+   * offer the visitor already had. Still supported for a page that ends
+   * somewhere the nav cannot take you.
+   */
   backHref?: string | null;
   backLabel?: string;
 }
 
-const { backHref = "/", backLabel = "← Back home" } = Astro.props;
+const { backHref = null, backLabel = "← Back home" } = Astro.props;
 ---
 
 <div class="prose">
