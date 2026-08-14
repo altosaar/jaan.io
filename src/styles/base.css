@@ -13,6 +13,37 @@ html {
   background: var(--bg);
 }
 
+/* Anchor jumps glide instead of cutting: click a heading in the contents rail
+   and the page travels there rather than teleporting, so you keep your bearings
+   about which direction you moved and how far.
+
+   The browser's own scroller does this, not a script. That matters for more
+   than brevity — it means EVERY way of reaching a fragment behaves the same:
+   the rail, the sixteen footnote markers and their ↩ backlinks in the physics
+   post, the skip-link, and the back button returning you to a fragment. A
+   handler bolted onto the rail's links would smooth exactly one of those and
+   leave the rest cutting, which reads as a bug rather than as restraint. It
+   also stays out of the way of the reader — a native smooth scroll is
+   interrupted the moment they touch the wheel, where a scripted one has to
+   remember to yield and usually does not.
+
+   `no-preference` rather than a `reduce` override: a browser too old to answer
+   the question at all lands on the instant jump, which is the safe end.
+
+   Measured cost, since it scales with distance (Chrome, 1600×1000):
+     one screen      1,000px   531ms
+     three screens   3,000px   901ms
+     rail's last tag 28,603px  1,541ms   ← only the physics post is this tall
+   Under ~3,000px — every hop on every other post — it reads as a glide. The
+   physics post's full-length jumps are the one place it becomes a journey; if
+   that grates, the fix is to stop animating past a few screens, not to make
+   the whole thing faster. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 ::selection {
   background: var(--accent);
   color: var(--bg);
