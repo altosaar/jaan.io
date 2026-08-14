@@ -47,6 +47,20 @@ const { navMode = "static" } = Astro.props;
   // ── Scroll behavior ─────────────────────────────────────────────
   if (isStaticNav) {
     // Static-nav pages: start visible, hide on scroll-down, reveal on scroll-up.
+
+    // One writer for "the chrome is away". The header and the menu button are
+    // siblings of this script's element and could be reached with a selector,
+    // but the table-of-contents rail lives in the left gutter INSIDE <main> —
+    // out of sibling range — so the state is mirrored onto <html>. That is the
+    // whole coupling: the rail reacts in CSS (see Toc.astro) instead of running
+    // a second scroll listener, which is the only way to guarantee the two
+    // animations start on the same frame and never drift apart.
+    const setHidden = (hidden: boolean) => {
+      chrome.classList.toggle("is-hidden", hidden);
+      menuBtn?.classList.toggle("is-nav-hidden", hidden);
+      document.documentElement.classList.toggle("is-nav-hidden", hidden);
+    };
+
     let lastY = window.scrollY;
     let ticking = false;
     window.addEventListener(
@@ -55,13 +69,8 @@ const { navMode = "static" } = Astro.props;
         if (!ticking) {
           requestAnimationFrame(() => {
             const y = window.scrollY;
-            if (y > lastY && y > 8) {
-              chrome.classList.add("is-hidden");
-              menuBtn?.classList.add("is-nav-hidden");
-            } else if (y < lastY) {
-              chrome.classList.remove("is-hidden");
-              menuBtn?.classList.remove("is-nav-hidden");
-            }
+            if (y > lastY && y > 8) setHidden(true);
+            else if (y < lastY) setHidden(false);
             lastY = y;
             ticking = false;
           });
