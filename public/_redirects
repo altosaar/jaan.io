@@ -22,6 +22,19 @@
 /variational-autoencoder-perspectives.md/ /what-is-variational-autoencoder-vae-tutorial 301
 /variational-autoencoder-perspectives.md /what-is-variational-autoencoder-vae-tutorial 301
 
+# ── notonspotify ────────────────────────────────────────────────────────────
+# A clock that tells track time, for music that isn't on Spotify. It lives in
+# its own repo on its own subdomain; this is the memorable address people are
+# given, and the only line about it in this repo.
+#
+# 302, not 301: the subdomain is where it happens to live today, and a
+# permanent redirect would be a promise this site has no reason to make.
+#
+# Both forms are listed so the slashed one is a single hop rather than two
+# through the catch-all below.
+/notonspotify/ https://notonspotify.jaan.io 302
+/notonspotify https://notonspotify.jaan.io 302
+
 # ── Trailing slash → no trailing slash ──────────────────────────────────────
 # The site serves /about, not /about/ (astro.config.mjs `trailingSlash: never`
 # + `format: "file"`, which emits about.html). This is the other half of that
