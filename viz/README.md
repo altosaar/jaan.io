@@ -186,6 +186,12 @@ Only two things are dropped, because neither survives the size:
   ramped evenly, since an even ramp over nineteen sectors puts neighbours four
   percent apart and the stack reads as one flat mass.
 
+  **No exceptions.** The hospital-charges mark briefly kept its chart's red x=y
+  reference line, on the reasoning that the cloud is read against it. One mark
+  carrying a colour the other seven do not is worse than the line is good: the
+  row is a set, and the set is monochrome. `grep -ohE '#[0-9a-fA-F]{3,8}|rgb\(' 
+dist/thumbs/*.svg` should return nothing.
+
 Inlined rather than `<img src="…">`, which is what the Framework docs show. An
 SVG loaded through `<img>` is a separate document: it inherits no colour and no
 custom properties, so `currentColor` would resolve to black and the marks would
