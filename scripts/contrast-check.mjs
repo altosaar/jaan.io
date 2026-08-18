@@ -34,7 +34,18 @@ import { readFileSync } from "node:fs";
 const PAIRS = [
   { fg: "--text", bg: "--bg", min: 4.5, what: "Body text on the page background" },
   { fg: "--text-muted", bg: "--bg", min: 4.5, what: "Dim text: prose back-link, ticker control" },
-  { fg: "--text", bg: "--surface", min: 4.5, what: "Text on a raised surface (.cta-secondary)" },
+  {
+    fg: "--text",
+    bg: "--surface",
+    min: 4.5,
+    what: "Text on a raised surface (.cta-secondary, chart tooltips, map popup)",
+  },
+  {
+    fg: "--text-muted",
+    bg: "--surface",
+    min: 4.5,
+    what: "Dim text on a raised surface (map popup field names)",
+  },
   { fg: "--bg", bg: "--btn-light", min: 4.5, what: "Primary button label" },
   { fg: "--bg", bg: "--accent", min: 4.5, what: "Label on an accent fill (hover/focus states)" },
   { fg: "--bg", bg: "--select", min: 4.5, what: "Text inside <mark>" },

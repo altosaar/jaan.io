@@ -19,10 +19,6 @@
    ───────────────────────────────────────────────────────────────────────────── */
 
 .viz-embed {
-  /* Plot reads these two. --plot-background is the tooltip and swatch plate;
-     leaving it at its white default is the single most visible thing that goes
-     wrong when a chart built for a light theme is dropped onto a dark one. */
-  --plot-background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
   font-size: var(--fs-base);
@@ -55,6 +51,37 @@
 .viz-embed figure {
   margin: 0;
   max-width: 100%;
+}
+
+/* ── Tooltips ──────────────────────────────────────────────────────────────
+   Plot's tip mark paints its callout with `fill: var(--plot-background)` and
+   its text with `currentColor`. Inherit the page's text colour onto a plate
+   that stayed white and you get #e2e2e2 on #ffffff — about 1.2:1, which is
+   what these charts shipped with.
+
+   The var HAS TO BE SET ON THE SVG, not on .viz-embed. Every Plot figure
+   carries its own scoped stylesheet that declares `--plot-background: white`
+   on the svg element itself, and a custom property set on an element always
+   beats one inherited from an ancestor no matter how specific the ancestor's
+   selector is. Specificity only settles which rule wins ON A GIVEN ELEMENT —
+   here `.viz-embed svg` (0,1,1) against Plot's `:where(.plot-xxxxx)` (0,0,0),
+   which it does.
+
+   --surface rather than --bg: a tooltip is a thing floating above the chart,
+   and on this palette --bg is the same black the plot area already is, so the
+   callout would read as a hole rather than as a panel. --surface gives
+   #e2e2e2 on #292929, about 11:1. */
+.viz-embed svg {
+  --plot-background: var(--surface);
+}
+
+/* The callout's outline. Plot strokes it with currentColor, which at full
+   strength is the same value as the text inside it and draws a bright box
+   around every hover. --line is the site's hairline token and does the job of
+   separating the panel from the bars behind it without competing with the
+   words it contains. */
+.viz-embed [aria-label="tip"] path {
+  stroke: var(--line);
 }
 
 /* NOT `overflow: visible` on the svg. Several of these charts pin their x
@@ -155,7 +182,13 @@
   width: 100%;
 }
 
-.maplibregl-popup-content {
+/* Scoped under .viz-embed for specificity, not tidiness. MapLibre colours the
+   callout arrow with rules like `.maplibregl-popup-anchor-top
+   .maplibregl-popup-tip` (0,2,0), so a bare `.maplibregl-popup-tip` (0,1,0)
+   loses to them however the stylesheets are ordered — which left a white arrow
+   pointing at a dark panel on every anchor direction. Three classes wins
+   outright, and confining the override to our own embeds is correct anyway. */
+.viz-embed .maplibregl-popup-content {
   background: var(--surface);
   color: var(--text);
   max-height: 22rem;
@@ -163,7 +196,26 @@
   font-family: var(--font-body);
 }
 
-.maplibregl-popup-content .viz-popup {
+/* All four sides. MapLibre points the arrow by giving one border a colour and
+   removing the opposite one, and which side that is depends on where the popup
+   ended up relative to the cursor — so colouring only top and bottom fixes two
+   of the four cases and leaves the other two white. */
+.viz-embed .maplibregl-popup .maplibregl-popup-tip {
+  border-top-color: var(--surface);
+  border-bottom-color: var(--surface);
+  border-left-color: var(--surface);
+  border-right-color: var(--surface);
+}
+
+/* Unused today — the map builds its popup with `closeButton: false` — but a
+   <button> does not inherit `color` from its parent, so this one computes to
+   the UA's black and would be invisible on --surface the moment anyone turns
+   it on. One line now beats finding it later. */
+.viz-embed .maplibregl-popup-close-button {
+  color: var(--text-muted);
+}
+
+.viz-embed .maplibregl-popup-content .viz-popup {
   border-collapse: collapse;
   font-size: 0.75rem;
 }
@@ -176,11 +228,6 @@
 .viz-popup td:first-child {
   color: var(--text-muted);
   white-space: nowrap;
-}
-
-.maplibregl-popup-tip {
-  border-top-color: var(--surface);
-  border-bottom-color: var(--surface);
 }
 
 /* ── Page furniture ────────────────────────────────────────────────────────
