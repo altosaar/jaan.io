@@ -175,6 +175,52 @@ write(
    ) TO '/dev/stdout' (FORMAT CSV)`,
 );
 
+// ── What one hospital charges ────────────────────────────────────────────────
+// charts/hospital-prices.js: a log-log scatter of every listed procedure, min
+// charge against max. 28,101 points is far too many to draw as SVG circles —
+// even thinned to one in twelve it came to 104 kB — so it rasterises like the
+// glucose heatmap and the parcel map, which fits ALL of them in a few kB.
+//
+// The grid spans the chart's own [1, 3000000] on both axes in log space. Equal
+// domains on both axes is what makes the diagonal meaningful, and it also means
+// the reference line falls exactly corner to corner, so the mark can draw it
+// without carrying any geometry.
+{
+  const SX = 256;
+  const SY = 160;
+  const lo = Math.log10(1);
+  const hi = Math.log10(3_000_000);
+
+  const csv = q(
+    `COPY (
+       SELECT
+         least(${SX - 1}, floor((log10(min_charge) - ${lo}) / ${hi - lo} * ${SX}))::INT AS gx,
+         least(${SY - 1}, floor((log10(max_charge) - ${lo}) / ${hi - lo} * ${SY}))::INT AS gy,
+         count(*) AS n
+       FROM '${P(local, "nyu-langone-charges.parquet")}'
+       WHERE min_charge >= 1 AND max_charge >= 1
+         AND min_charge <= 3000000 AND max_charge <= 3000000
+       GROUP BY 1, 2
+     ) TO '/dev/stdout' (FORMAT CSV)`,
+  );
+
+  // The chart draws each dot at fill-opacity 0.5, so overlapping points build
+  // up. 1 - 0.6^n is that accumulation: one point in a cell is faint, four are
+  // nearly solid, which is how the dense band along the diagonal reads on the
+  // real thing.
+  const grey = new Uint8Array(SX * SY);
+  let points = 0;
+  for (const line of csv.trim().split("\n").slice(1)) {
+    const [gx, gy, n] = line.split(",").map(Number);
+    // Charges count up; PNG rows count down from the top.
+    grey[(SY - 1 - gy) * SX + gx] = Math.round(255 * (1 - 0.6 ** n));
+    points += n;
+  }
+  const png = greyPNG(grey, SX, SY);
+  writeFileSync(join(out, "hospital-prices.png"), png);
+  report("hospital-prices.png", `${points} points`, png.length);
+}
+
 // ── The two New York ACS pages (the datasets that live in R2) ────────────────
 // Both open on pumas[0] — the first area once sorted by state then label, which
 // is Connecticut's Lower Connecticut River Valley — in the most recent year.

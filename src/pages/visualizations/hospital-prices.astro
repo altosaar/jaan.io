@@ -1,0 +1,77 @@
+---
+// Ported from payless.health/hospital/nyu-langone — the One Fact Foundation's
+// hospital price transparency site.
+import Viz from "../../layouts/Viz.astro";
+import VizEmbed from "../../components/VizEmbed.astro";
+---
+
+<Viz
+  title="What one hospital charges"
+  description="Every price NYU Langone Tisch publishes, plotted as the lowest against the highest rate it has negotiated for the same procedure."
+  eyebrow="Visualizations"
+  eyebrowHref="/visualizations"
+>
+  <p class="viz-note">
+    Each point is one procedure, medication or treatment, placed by the minimum and maximum charge
+    the hospital lists for it across insurance products. If a hospital charged everyone the same,
+    every point would sit on the red diagonal. How far a point lies above that line is how much the
+    price of that one thing depends on who is paying for it.
+  </p>
+  <p class="viz-note">
+    Filter by insurer, search the descriptions, or drag a box across the scatter — the table below
+    follows. It is worth looking for the widest gaps: those are the ones where the same care, at the
+    same hospital, is billed at wildly different rates.
+  </p>
+
+  {
+    /* Laid out at a fixed width for the same reason the glucose page is: Mosaic
+       sizes a plot when it is constructed and these views share a live
+       selection, so re-rendering on resize would discard whatever the reader
+       had filtered. */
+  }
+  <VizEmbed module="hospital-prices" export="HospitalPrices" minHeight={760} scroll />
+
+  <h2 class="viz-h2">The other hospitals</h2>
+  <p class="viz-note">
+    This is one of ten hospitals with the same dashboard on <a
+      href="https://payless.health"
+      rel="noopener">payless.health</a
+    > — Mount Sinai, NewYork-Presbyterian, Houston Methodist, Lehigh Valley, Indiana University and others,
+    plus a side-by-side comparison of two. Only NYU Langone is reproduced here; the rest live in <a
+      href="https://github.com/onefact/payless.health/tree/main/docs/hospital"
+      rel="noopener">onefact/payless.health/docs/hospital</a
+    >, one Markdown page and one Mosaic spec apiece.
+  </p>
+  <p class="viz-note">
+    Behind them is a collection of <a
+      href="https://data.payless.health/#hospital_price_transparency/"
+      rel="noopener">4,000+ hospital price sheets</a
+    >, published under the US price transparency rules. The project is run by the <a
+      href="https://www.onefact.org/"
+      rel="noopener">One Fact Foundation</a
+    >, a 501(c)(3) building open source AI to reduce the price of health care.
+  </p>
+
+  <Fragment slot="sources">
+    <ul>
+      <li>
+        Data: <a
+          href="https://med.nyu.edu/standard-charges/nyu-langone-health-standard-charges/"
+          rel="noopener">NYU Langone Health standard charges</a
+        >, as published by the hospital.
+      </li>
+      <li>
+        Analysis: <a
+          href="https://colab.research.google.com/github/onefact/data_build_tool_payless.health/blob/main/notebooks/EIN_133971298_NYU-langone.ipynb"
+          rel="noopener">the notebook that produces this extract</a
+        >.
+      </li>
+      <li>
+        Chart: <a
+          href="https://github.com/onefact/payless.health/blob/main/docs/public/specs/yaml/nyu-langone.yaml"
+          rel="noopener">nyu-langone.yaml</a
+        > — the Mosaic spec this page's version is transcribed from.
+      </li>
+    </ul>
+  </Fragment>
+</Viz>

@@ -1,13 +1,16 @@
 // The /visualizations index, in the order it is read.
 //
-// Ported from jaan.li, which was an Observable Framework site whose sidebar
-// listed these seven under "Visualizations". The paths are the ones that site
+// Seven are ported from jaan.li, an Observable Framework site whose sidebar
+// listed them under "Visualizations". Their paths are the ones that site
 // served, moved under /visualizations — so /glucose became
 // /visualizations/glucose, and the four American Community Survey pages kept
-// their nesting.
+// their nesting. jaan.li is not resolving today, so none of these are live URLs
+// that need redirecting; this is a port of the source, not of a running site.
 //
-// jaan.li is not resolving today, so none of these are live URLs that need
-// redirecting; this is a port of the source, not of a running site.
+// The eighth, hospital-prices, comes from payless.health/hospital/nyu-langone —
+// one of ten hospital dashboards there, and the only one reproduced here. That
+// site IS live, so this is a copy rather than a rescue, and the page links back
+// to the rest.
 
 export interface Visualization {
   /** Path under /visualizations, without a leading or trailing slash. */
@@ -27,6 +30,14 @@ export interface Visualization {
 }
 
 export const VISUALIZATIONS: Visualization[] = [
+  {
+    slug: "hospital-prices",
+    title: "What one hospital charges",
+    blurb:
+      "Every price NYU Langone Tisch publishes, as the lowest against the highest rate negotiated for the same procedure. Points on the red diagonal cost everyone the same; almost none of them do.",
+    scale: "28,101 procedures \u00b7 319 insurers",
+    thumb: "hospital-prices",
+  },
   {
     slug: "synthetic-healthcare-data",
     title: "Synthetic healthcare data",

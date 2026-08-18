@@ -30,6 +30,7 @@ export default {
     "/charts/acs-2022.js",
     "/charts/acs-income.js",
     "/charts/acs-new-york.js",
+    "/charts/hospital-prices.js",
 
     // The index thumbnails: Observable Plot rendered to SVG at build time by
     // the data loaders in src/thumbs/, one per visualization. Framework calls
@@ -43,5 +44,6 @@ export default {
     "/thumbs/acs-income.svg",
     "/thumbs/acs-new-york-area.svg",
     "/thumbs/acs-income-by-race.svg",
+    "/thumbs/hospital-prices.svg",
   ],
 };

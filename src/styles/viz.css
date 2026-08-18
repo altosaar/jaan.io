@@ -134,6 +134,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Mosaic wraps each of its inputs in <div class="input"><label>…<control>,
+   with no styling of its own — the payless.health page these came from carries
+   its own stylesheet for them, which is not part of the library. Same treatment
+   as the Observable Inputs above so the two engines' controls match. */
+.viz-embed .input {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  max-width: 100%;
+}
+
+.viz-embed .input label {
+  color: var(--text-muted);
+  font-family: var(--font-chrome);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 /* Observable Inputs emit <form><label>…<input></form>. */
 .viz-control form {
   display: flex;
@@ -152,7 +174,12 @@
   white-space: nowrap;
 }
 
-.viz-control select {
+/* Every control inside an embed, whichever library made it. Left to the
+   browser these are white boxes with black text — the single most jarring thing
+   on the page next to a chart drawn in the site's own palette. The width cap is
+   not cosmetic either: the hospital dashboard's payor menu sizes itself to the
+   longest of 319 option labels and ran to 410px. */
+.viz-embed :is(select, input[type="text"], input[type="search"]) {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--line);
@@ -163,15 +190,74 @@
   max-width: min(28rem, 60vw);
 }
 
+.viz-embed input::placeholder {
+  color: var(--text-muted);
+}
+
 .viz-control input[type="range"] {
   accent-color: var(--accent);
   width: 150px;
   max-width: 40vw;
 }
 
+.viz-embed :is(select, input):focus-visible,
 .viz-control :is(select, input):focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
+}
+
+/* ── Mosaic's data table ───────────────────────────────────────────────────
+   The hospital dashboard puts a scrolling table of every matching row under its
+   scatter. Mosaic builds it as a bare <table> and leaves the styling to the
+   host page; unstyled it is 28,000 rows of undifferentiated text.
+
+   The sticky header is the part that actually breaks rather than merely looks
+   plain: Mosaic leaves `th` at `position: static` with a transparent
+   background, so scrolling the table runs the rows straight through the column
+   names. It needs both the sticky and an opaque ground to be readable at all. */
+
+.viz-embed table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.8rem;
+  /* Charges line up by digit — the comparison down a price column is the
+     reason the table is here. */
+  font-variant-numeric: tabular-nums;
+}
+
+.viz-embed thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-family: var(--font-chrome);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 0.4rem 0.75rem 0.4rem 0;
+  border-bottom: 1px solid var(--line);
+  /* Clip rather than wrap or spill. Mosaic lays the table out on fixed column
+     widths sized for the VALUES, and these headers are raw database column
+     names — "billing_code" is wider than the codes underneath it and ran into
+     the next heading. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.viz-embed tbody td {
+  padding: 0.3rem 0.75rem 0.3rem 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+/* Rules this faint disappear against the page on their own; the row highlight
+   is what makes a wide row trackable across six columns. */
+.viz-embed tbody tr:hover {
+  background: var(--surface);
 }
 
 /* ── The MapPLUTO popup ────────────────────────────────────────────────────

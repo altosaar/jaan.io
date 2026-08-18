@@ -175,11 +175,13 @@ Run these against the Pages preview URL before touching DNS, and again after.
 - [ ] Keyboard pass over the carousel: Tab in, arrows, Home/End, and confirm
       off-screen slides are not focusable. No script tests this.
 
-## 7. /visualizations — three pages need the R2 bucket
+## 7. /visualizations — three of the eight need the R2 bucket
 
-The seven Observable pages from `../jaan.li` are ported and deployed under
-`/visualizations/…`. Four work now. **Three do not, and will not, until the R2
-bucket below exists:**
+Eight pages are deployed under `/visualizations/…` — seven ported from
+`../jaan.li`, plus the NYU Langone hospital-price dashboard from
+`../payless.health` (its 1.1 MB extract ships with the site, so it needs
+nothing). Five work now. **Three do not, and will not, until the R2 bucket
+below exists:**
 
 | Page                                                       | Dataset                                                            | Size   |
 | ---------------------------------------------------------- | ------------------------------------------------------------------ | ------ |

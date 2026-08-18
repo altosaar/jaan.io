@@ -145,13 +145,16 @@ export function emitRaw(body) {
  * directly, so the raster still takes its colour from the page the way every
  * other mark does.
  *
- * `image-rendering: pixelated` matches vg.raster's own setting on the glucose
- * plot: these are coarse grids, and smoothing them would invent detail.
+ * `image-rendering: pixelated` by default, matching vg.raster's own setting on
+ * the glucose plot: those grids are coarser than the box they fill, and
+ * smoothing them would invent detail. Pass `smooth` for a grid finer than its
+ * box — the scatter is 256 x 160 shown at 128 wide, where pixelating throws
+ * away detail that is really there.
  */
-export const maskedRaster = ({ id, png, x, y, width, height }) =>
+export const maskedRaster = ({ id, png, x, y, width, height, smooth = false }) =>
   `<defs><mask id="${id}">` +
   `<image href="data:image/png;base64,${png}" x="${x}" y="${y}" width="${width}" height="${height}"` +
-  ` preserveAspectRatio="none" style="image-rendering:pixelated"/>` +
+  ` preserveAspectRatio="none"${smooth ? "" : ' style="image-rendering:pixelated"'}/>` +
   `</mask></defs>` +
   `<rect x="${x}" y="${y}" width="${width}" height="${height}" mask="url(#${id})"/>`;
 

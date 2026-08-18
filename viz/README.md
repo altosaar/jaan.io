@@ -13,8 +13,9 @@ the chart comes from here.
 
 ## Why keep Framework in the loop
 
-The seven pages this replaces came from `jaan.li`, a full Framework site, and
-were written against Framework's primitives: `FileAttachment`, `DuckDBClient`,
+Seven of these pages came from `jaan.li`, a full Framework site, and the eighth
+from `payless.health`; all were written against Framework's or Mosaic's
+primitives: `FileAttachment`, `DuckDBClient`,
 `resize`, `Inputs`, and Mosaic's `vg`. Framework's build bakes file resolutions
 into the module, self-hosts every npm dependency, and preloads the transitive
 import graph. Reproducing duckdb-wasm's worker and wasm plumbing under Vite is
