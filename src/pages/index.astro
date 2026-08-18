@@ -1,15 +1,14 @@
 ---
-// The home page is one screen and nothing more: the headline, the portrait, and
-// a single line of invitation. No footer, no scrolling, so the nav — which
-// hides itself on scroll-down — is permanently visible.
+// The home page is one screen and nothing more: the headline and a single line
+// of invitation. No footer, no scrolling, so the nav — which hides itself on
+// scroll-down — is permanently visible.
 //
-// Only two type treatments exist on this page, deliberately:
+// The portrait used to sit here, beside the sentence. It now opens /about,
+// wrapped by the bio it belongs to (src/pages/about.astro), which leaves this
+// page as two type treatments and nothing else:
 //   • the display h1 (Fraunces, --fs-hero)
 //   • everything else — the nav links and the one sentence — at --fs-md/350
 import Base from "../layouts/Base.astro";
-import PortraitBlink from "../components/PortraitBlink.astro";
-import portraitOpen from "../assets/portrait-open.webp";
-import portraitClosed from "../assets/portrait-closed.webp";
 import { SITE } from "../site.config";
 ---
 
@@ -27,21 +26,14 @@ import { SITE } from "../site.config";
        font-size: var(--fs-hero). */
   }
   <div class="home">
-    <h1 class="home__title">Large language models for health.</h1>
+    <h1 class="home__title">I make complex systems legible.</h1>
 
-    <div class="home__intro">
-      <div class="home__portrait">
-        <PortraitBlink
-          open={portraitOpen}
-          closed={portraitClosed}
-          alt="Jaan Altosaar, smiling in a floral shirt against blurred greenery."
-        />
-      </div>
-      <p class="home__contact">
-        <a href="mailto:j@jaan.io?subject=Inquiry">Get in touch</a> if you want to discuss an idea or
-        grab a coffee. I'm available.
-      </p>
-    </div>
+    <p class="home__contact">
+      Lately: machine learning for health, designing clinical language models for high-stakes
+      decisions.<br /><br />
+      <a class="home__cta" href="mailto:j@jaan.io?subject=Inquiry">Get in touch</a> if you want to discuss
+      an idea or grab a coffee. I'm available.
+    </p>
   </div>
 </Base>
 
@@ -64,80 +56,12 @@ import { SITE } from "../site.config";
        token, so nothing here is ever looser than the rest of the site. */
     gap: clamp(1rem, 4svh, var(--space-block));
     padding-block: clamp(1rem, 4svh, var(--space-block));
-
-    /* The portrait is the one block here that cannot reflow, so on a short
-       viewport it is what overflows first — and this page has no scrollbar to
-       recover with. Hence a HEIGHT cap alongside the width one: 0.982 is the
-       frames' aspect ratio (1571×1600), so `svh × ratio` is the width at which
-       the portrait is exactly that many svh tall. Capping height directly
-       instead would leave the box wider than the image and crop the face, since
-       the frames are object-fit: cover.
-
-       Declared once, here, because BOTH the element and the two-column grid
-       track below need it. Sizing that track `auto` looked right and wasn't:
-       an auto track takes its width from the image's 320px intrinsic size, not
-       from the width this expression actually resolves to, so on a short
-       viewport the track stayed 320px wide around a 120px portrait and opened
-       a 200px hole between the portrait and the sentence. */
-    --portrait-w: min(100%, 320px, 32svh * 0.982);
-
-    /* The other two measures of the portrait row, named here for the same
-       reason --portrait-w is: the row's own max-width below is the sum of all
-       three, and a sum written from three literals drifts the first time one of
-       them is edited. */
-    --intro-gap: clamp(1rem, 4svh, var(--space-gap));
-    --intro-text-w: 30rem;
   }
 
   /* The svh term is the landscape-phone case: --fs-hero is width-driven, and
      844px of width asks for the full 6rem on a viewport only 390px tall. */
   .home__title {
     font-size: min(var(--fs-hero), 12svh);
-  }
-
-  /* Portrait immediately left of the line. One column on small screens, two
-     once there is room for the text to keep a readable measure beside it.
-     The pair is centred on the screen while the headline above it stays on the
-     site's left edge — the two are composed against different things, the
-     headline against the column every other page aligns to, the portrait and
-     its sentence against the screen. `justify-items` handles the stacked case,
-     where centring a full-width paragraph is a no-op and centring the portrait
-     is the whole effect. */
-  .home__intro {
-    display: grid;
-    gap: var(--intro-gap);
-    align-items: center;
-    justify-items: center;
-    min-height: 0;
-  }
-
-  @media (min-width: 720px) {
-    .home__intro {
-      grid-template-columns: var(--portrait-w) minmax(0, 1fr);
-
-      /* Centred by capping the ROW and letting auto margins take the slack, not
-         by sizing the text track to its content and centring the tracks.
-         `grid-template-columns: … auto` reads like the obvious way to do it and
-         breaks at the bottom of this breakpoint: an `auto` track is sized from
-         the paragraph's own max-width with no reference to what is left over,
-         so just above 720px the pair wants ~830px inside a 677px column and
-         overflows a page that has had its scrollbars removed — the one kind of
-         overflow nothing on this page can recover from.
-         A flexible track cannot do that. It takes the space that exists, so the
-         row is the full width when the width is tight and exactly this sum when
-         there is room, and the margins only have slack to absorb in the second
-         case. Centring becomes something that happens when it fits, rather than
-         something asserted whether it fits or not. */
-      max-width: calc(var(--portrait-w) + var(--intro-gap) + var(--intro-text-w));
-      margin-inline: auto;
-    }
-  }
-
-  /* Square corners are deliberate site-wide — see --hover-radius in tokens.css.
-     The border lives here; PortraitBlink clips its own frames to the box. */
-  .home__portrait {
-    width: var(--portrait-w);
-    border: 1px solid var(--line);
   }
 
   /* Identical in size and weight to .nav-link (chrome.css) — the two are meant
@@ -148,8 +72,78 @@ import { SITE } from "../site.config";
     font-weight: 350;
     line-height: 1.6;
     /* rem, not ch: a `ch` measure resolves against the element's own font-size,
-       which is easy to get wrong when the size is a variable. The value is on
-       .home as --intro-text-w because the row's max-width is computed from it. */
-    max-width: var(--intro-text-w);
+       which is easy to get wrong when the size is a variable. */
+    max-width: 30rem;
+  }
+
+  /* ── The one accent on the page ─────────────────────────────────────────
+     The home page carries a single green highlight, and this is it: the thing
+     the page is actually asking you to do. Everything else — the headline, the
+     nav, the sentence around it — is one colour on black.
+
+     It is the site's ordinary inline-link HOVER state (base.css `a:not([class])`),
+     worn at rest. Deliberately no padding: an inline background covers the
+     text's own box and not the line-height's half-leading, so the highlight
+     hugs the words and cannot collide with the line above it when the sentence
+     rewraps on a narrow screen.
+
+     Adding the class is also what detaches it from that base rule — `:not([class])`
+     stops matching — so the rest state below is the whole state, with no
+     underline shadow left underneath to fight the fill. */
+  .home__cta {
+    background-color: var(--accent);
+    color: var(--bg);
+    text-decoration: none;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  /* Hover has to move somewhere, and the direction is the one .nav-btn already
+     established for a filled control: accent at rest, the light fill on hover,
+     black text throughout. --bg on --btn-light is 16.21:1, checked by
+     scripts/contrast-check.mjs.
+
+     `outline: none` follows the note in base.css: the focus ring is for
+     controls whose only focus signal would be a colour swap on the glyph. This
+     one inverts its entire background, which is unambiguous — and an accent
+     ring drawn around an accent-filled box is invisible anyway. */
+  .home__cta:hover,
+  .home__cta:focus-visible {
+    background-color: var(--btn-light);
+    color: var(--bg);
+    outline: none;
+  }
+
+  /* ── The nav's CTA, demoted for this page only ──────────────────────────
+     ARTICLES is `nav.headerCta` in site.config.ts, so site-wide it is the one
+     nav item filled with the accent (chrome.css `.nav-btn`). On the home page
+     that puts a second green box on a page whose whole point is that there is
+     exactly one, and it sits in the corner competing with the invitation in
+     the middle of the screen. Here it reads as a third nav link — the divider
+     stays, because the grouping it marks is still true.
+
+     Scoped by being in THIS page's <style>: Astro only ships a page's styles
+     with that page, so nothing about /articles or any post is touched. The
+     selector carries the parent class purely for weight — `.nav-btn` alone
+     ties with the chrome.css rule and would then depend on sheet order.
+
+     Every declaration below is .nav-link's, copied rather than shared, because
+     the two rules live in different files and a selector list spanning them
+     isn't possible. Size, weight, case and padding are already identical
+     between .nav-btn and .nav-link, so only the four that differ are here. */
+  :global(.nav-links .nav-btn) {
+    background: transparent;
+    color: var(--text);
+    border-radius: var(--hover-radius);
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+  :global(.nav-links .nav-btn:hover),
+  :global(.nav-links .nav-btn:focus-visible) {
+    background: var(--accent);
+    color: var(--bg);
+    outline: none;
   }
 </style>

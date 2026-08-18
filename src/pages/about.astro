@@ -8,6 +8,9 @@
 import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import Toc from "../components/Toc.astro";
+import PortraitBlink from "../components/PortraitBlink.astro";
+import portraitOpen from "../assets/portrait-open.webp";
+import portraitClosed from "../assets/portrait-closed.webp";
 import { SITE } from "../site.config";
 import { getEntry, render } from "astro:content";
 
@@ -32,6 +35,26 @@ const { Content } = await render(page);
 
   <div class="about">
     <Prose>
+      {
+        /* The portrait sits INSIDE <Prose>, before the Markdown, so it is a
+           float in the same block the paragraphs flow through and the bio wraps
+           around it. Putting it in its own wrapper beside the prose would have
+           made it a column, and a column is what the home page already tried:
+           a portrait with one sentence parked next to it. Here it is the
+           picture the text is written about, in the text.
+
+           A float and not a grid, because the wrap has to be RAGGED — the text
+           closes over the bottom of the frame and runs full measure for the
+           remaining paragraphs. A grid track would hold a 320px gutter empty
+           all the way down the page. */
+      }
+      <PortraitBlink
+        class="about__portrait"
+        open={portraitOpen}
+        closed={portraitClosed}
+        alt="Jaan Altosaar, smiling in a floral shirt against blurred greenery."
+        sizes="(max-width: 719.98px) 180px, 320px"
+      />
       <Content />
     </Prose>
   </div>
@@ -69,8 +92,64 @@ const { Content } = await render(page);
   /* Prose pays for its own vertical rhythm with padding-top: --space-section
      and padding-bottom: --space-block. Centring a box with 80px above and 48px
      below puts the TEXT 16px lower than the box, so the words would sit off the
-     midpoint the rail is on. The wrapper owns the spacing here instead. */
+     midpoint the rail is on. The wrapper owns the spacing here instead.
+
+     flow-root is what keeps the float above INSIDE this box. Without it the
+     .prose element's height is measured from its in-flow text alone, and a
+     portrait taller than the paragraphs beside it would hang out of the bottom
+     — over whatever follows, and out of the centring calculation above. The bio
+     is comfortably taller than 320px today, so this costs nothing now and is
+     the difference between a trim and a broken page the day someone shortens
+     it. */
   .about :global(.prose) {
     padding-block: 0;
+    display: flow-root;
+  }
+
+  /* Stacked and centred by default. A float only earns its keep when what is
+     left beside it is still a readable measure: at 390px the column is ~366px,
+     and a 45% frame would leave the text about twenty characters wide — a
+     ragged stack of two-word lines, which is worse than no wrap at all. So the
+     portrait is a plain block on a phone and starts floating at the same 720px
+     the rest of the site treats as the two-column threshold.
+
+     180px against the 320px it floats at, and the two sizes are tied to the two
+     ROLES rather than to a screen size. Floated, the portrait is read alongside
+     the sentence beside it, and 320px is what leaves that sentence a readable
+     measure. Stacked, nothing sits beside it — it is a band the reader scrolls
+     past before reaching a single word, so its only job is to be recognisable,
+     and its cost is the paragraphs it pushes below the fold. At 320px in a
+     ~366px column it was a cover image and the bio opened off-screen; at 180px
+     it is a portrait the first paragraphs sit under.
+
+     `min(100%, …)` still caps it, though the cap is now almost theoretical: it
+     only binds below a 192px viewport, narrower than any phone. It stays because
+     it is the rule that keeps the frame from ever being wider than the text it
+     belongs to, whatever the column becomes. */
+  .about :global(.about__portrait) {
+    width: min(100%, 180px);
+    margin: 0 auto 1.5rem;
+    /* The border lives here; PortraitBlink clips its own frames to the box.
+       Square corners are deliberate site-wide — see --hover-radius. */
+    border: 1px solid var(--line);
+  }
+
+  @media (min-width: 720px) {
+    .about :global(.about__portrait) {
+      float: right;
+      /* Back to full size the moment it has text beside it. Restated here
+         rather than left to the rule above, because the width is what makes
+         the wrap readable and the two have to change together — and the
+         `sizes` attribute on the component splits at this same 720px, so the
+         browser is already choosing its srcset rung on the assumption that
+         these two agree. */
+      width: min(100%, 320px);
+      /* --space-gap is the site's column gap and is far too wide against a
+         floated image — it is sized for whole sections. This is the gutter
+         between a picture and the line of text beside it, so it is set to the
+         paragraph's own bottom margin (Prose.astro: 1.25rem) and reads as one
+         consistent space around the frame. */
+      margin: 0.375rem 0 1.25rem 1.25rem;
+    }
   }
 </style>

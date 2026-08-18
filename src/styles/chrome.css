@@ -354,6 +354,43 @@
 .nav-btn:focus-visible {
   background: var(--btn-light);
   outline: none;
+  /* Cancels the arrival animation below. An animation outranks the cascade
+     while it is running, so a pointer that reaches the button inside the first
+     225ms would otherwise sit on a fading-in fill instead of the hover state.
+     Removing the animation hands the element straight back to this rule. */
+  animation: none;
+}
+
+/* ── Arriving on the page ────────────────────────────────────────────────
+   The fill fades in rather than being there already. The home page renders
+   this same link WITHOUT the accent (see the demotion block in
+   src/pages/index.astro), so leaving / for any other page swapped a plain nav
+   link for a green one between two paints — a flash in the corner, at the
+   moment attention is on the page arriving. Fading it in over the same
+   225ms/ease the hover uses makes it read as the button filling in.
+
+   An @keyframes and not a transition: a transition needs a change of computed
+   value to fire, and there is no "before" on a page that has just loaded. A
+   one-shot animation with only a `from` is the missing half — the `to` is
+   whatever the cascade already decided, so this rule needs no knowledge of it
+   and keeps working if the button is ever restyled.
+
+   That is also why it costs nothing on the home page, where it is declared
+   too: there the computed fill IS transparent, so the animation runs from
+   transparent to transparent and nothing happens.
+
+   Not gated on prefers-reduced-motion. A cross-fade between two colours in
+   place is not motion — nothing moves, scales, or parallaxes — and gating it
+   would hand exactly the people most sensitive to a sudden change the abrupt
+   version this rule exists to remove. */
+@keyframes nav-btn-arrive {
+  from {
+    background-color: transparent;
+    color: var(--text);
+  }
+}
+.nav-btn {
+  animation: nav-btn-arrive var(--dur-fast) var(--ease-out);
 }
 
 /* ── Footer ── */
