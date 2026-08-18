@@ -175,44 +175,118 @@ Run these against the Pages preview URL before touching DNS, and again after.
 - [ ] Keyboard pass over the carousel: Tab in, arrows, Home/End, and confirm
       off-screen slides are not focusable. No script tests this.
 
-## 7. /visualizations — the R2 bucket
+## 7. /visualizations — three pages need the R2 bucket
 
-The seven Observable pages from `../jaan.li` are ported and live under
-`/visualizations/…`. They are not a regression risk — `jaan.li` is not
-resolving, so none of these URLs are live today and none need a redirect — but
-**three of them do not work until an R2 bucket exists.**
+The seven Observable pages from `../jaan.li` are ported and deployed under
+`/visualizations/…`. Four work now. **Three do not, and will not, until the R2
+bucket below exists:**
 
-The charts are built by the Observable Framework project in `viz/` into
-`public/visualizations/` by `scripts/build-visualizations.mjs`, which
-`npm run build` runs **before** `astro build`. Building into `public/` rather
-than `dist/` is what makes them work under `astro dev` as well. Full detail is
-in `viz/README.md`.
+| Page                                                       | Dataset                                                            | Size   |
+| ---------------------------------------------------------- | ------------------------------------------------------------------ | ------ |
+| `/visualizations/new-york-real-estate`                     | `new_york_real_estate_MapPLUTO_data_min_zoom_0_max_zoom_g.pmtiles` | 101 MB |
+| `/visualizations/american-community-survey/new-york-area`  | `income-histogram-historical-new-york-area.parquet`                | 45 MB  |
+| `/visualizations/american-community-survey/income-by-race` | `income-histogram-historical-new-york-area-by-race.parquet`        | 25 MB  |
 
-- [ ] **Create the `jaan-io-data` R2 bucket, attach `data.jaan.io`, set its
-      CORS policy, and upload the three large datasets.** Commands and the CORS
-      JSON are in `viz/README.md`. Until this is done, New York real estate,
-      ACS → New York area, and ACS → income by race show their error state; the
-      other four pages are self-contained and work now. To run all seven
-      locally in the meantime: `npm run viz:local && npm run dev`.
-- [ ] Confirm the New York map paints in a real browser. It is verified at the
-      network layer — the PMTiles archive answers with `206 Partial Content`
-      and the Protomaps style, sprites and fonts all return 200 — but headless
-      Chrome renders WebGL through software GL and produces a blank canvas, so
-      nothing automated can check the last step.
-- [ ] `public/_viz-data/` (created by `npm run viz:local`) is **local-only**.
-      Every file in it is over the Pages 25 MiB limit. It is gitignored and
-      `npm run build` never stages it, but do not deploy a tree that has it.
+All three are over Cloudflare Pages' 25 MiB per-file ceiling, so they cannot be
+served from the site itself. Each page currently renders its headline, prose and
+source note, then replaces the chart with "This chart could not be loaded" —
+it fails visibly rather than blanking, and the other four pages are unaffected.
 
-Two things worth knowing about how this is wired, because both are load-bearing
-and neither is obvious:
+**No rebuild or redeploy is needed afterwards.** The deployed modules already
+request `https://data.jaan.io/<file>`; those three pages start working the
+moment the bucket answers.
 
+### The runbook
+
+```sh
+# 1. Create the bucket.
+npx wrangler r2 bucket create jaan-io-data
+
+# 2. Upload the three datasets, from this repo's root.
+SRC=../jaan.li/src
+npx wrangler r2 object put jaan-io-data/new_york_real_estate_MapPLUTO_data_min_zoom_0_max_zoom_g.pmtiles \
+  --file "$SRC/data/new_york_real_estate_MapPLUTO_data_min_zoom_0_max_zoom_g.pmtiles" \
+  --content-type application/octet-stream --remote
+npx wrangler r2 object put jaan-io-data/income-histogram-historical-new-york-area.parquet \
+  --file "$SRC/american-community-survey/data/income-histogram-historical-new-york-area.parquet" \
+  --content-type application/vnd.apache.parquet --remote
+npx wrangler r2 object put jaan-io-data/income-histogram-historical-new-york-area-by-race.parquet \
+  --file "$SRC/american-community-survey/data/income-histogram-historical-new-york-area-by-race.parquet" \
+  --content-type application/vnd.apache.parquet --remote
+```
+
+3. **Attach the custom domain `data.jaan.io`** in the dashboard: R2 →
+   `jaan-io-data` → Settings → Public access → Custom domains. That hostname is
+   what `DATA_BASE` in `viz/src/charts/config.js` points at; change one and
+   change the other.
+
+4. **Set the CORS policy.** `data.jaan.io` and `jaan.io` are different origins.
+   Allowing the `Range` request header and exposing `Content-Range` is the part
+   that matters — without it DuckDB and PMTiles lose range requests and fall
+   back to pulling whole files, which is a 101 MB download on the map page.
+
+   ```json
+   [
+     {
+       "AllowedOrigins": ["https://jaan.io"],
+       "AllowedMethods": ["GET", "HEAD"],
+       "AllowedHeaders": ["range", "if-match"],
+       "ExposeHeaders": ["content-range", "content-length", "etag"],
+       "MaxAgeSeconds": 3600
+     }
+   ]
+   ```
+
+   Add the Pages preview origin too if you want the three pages working there.
+
+5. **Verify** — a range request must come back `206`, not `200`:
+
+   ```sh
+   curl -sI -r 0-99 -H "Origin: https://jaan.io" \
+     https://data.jaan.io/income-histogram-historical-new-york-area.parquet \
+     | grep -iE "^HTTP|content-range|access-control-allow-origin"
+   ```
+
+   Then open the three pages. A `200` where a `206` belongs means the charts
+   will work but download the whole file.
+
+### Also outstanding
+
+- [ ] **Confirm the New York map paints in a real browser.** Verified at the
+      network layer — the PMTiles archive answers `206` and the Protomaps style,
+      sprites and fonts all return 200 — but headless Chrome renders WebGL
+      through software GL and produces a blank canvas, so nothing automated can
+      check the last step.
+- [ ] `viz/src/charts/new-york-real-estate.js` carries a **Protomaps API key**
+      inline. It was already public in the `jaanli/jaan.li` repo this was ported
+      from, but it is published here too now. Rotate it if that matters.
+- [ ] The four Jekyll `/projects/` entries are still unported — see §1.
+
+### Working on all seven locally in the meantime
+
+```sh
+npm run viz:local   # copies the three datasets out of ../jaan.li, points the modules at localhost
+npm run dev
+```
+
+`public/_viz-data/` (what that creates) is **local-only** and gitignored. Every
+file in it is over the Pages limit; `npm run build` deletes it before Astro runs
+so a production build cannot carry it, and re-running `viz:local` restores it.
+
+### Two things that are load-bearing and not obvious
+
+- The charts build into `public/visualizations/` **before** `astro build`, not
+  into `dist/` after it. Astro copies `public/` verbatim, so dev and production
+  serve identical files; building into `dist/` works in production and 404s
+  every chart under `astro dev`.
 - DuckDB-wasm's two binaries (40 MB and 36 MB) are **rewritten to jsDelivr and
-  deleted from the tree** at merge time. They are over the Pages per-file limit
-  and cannot ship. The merge script fails the build if anything else is.
+  deleted from the tree** by `scripts/build-visualizations.mjs`. They are over
+  the Pages per-file limit and cannot ship. That script fails the build rather
+  than shipping anything still over the cap.
 - The loader in `src/layouts/Viz.astro` is `is:inline` deliberately. A
-  Vite-processed script rewrites every dynamic import into `__vitePreload(…,
-__VITE_PRELOAD__)`, and since these modules are not Vite's, the placeholder is
-  never substituted and every chart page throws on load.
+  Vite-processed script rewrites every dynamic import into
+  `__vitePreload(…, __VITE_PRELOAD__)`, and since these modules are not Vite's
+  the placeholder is never substituted and every chart page throws on load.
 
 ## Do not commit
 
