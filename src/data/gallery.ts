@@ -35,6 +35,8 @@ import { SITE } from "../site.config";
  * They are also what the tooltip shows on hover — see Carousel.astro.
  */
 const ALT: Record<string, string> = {
+  "portrait-01.jpg":
+    "A very cool man adjusting his glasses in a very cool neighborhood in Brooklyn, New York",
   "portrait-02.jpg":
     "A woman with long grey-blonde hair smiles broadly on a city street at dusk, out-of-focus traffic lights blooming red and green behind her.",
   "portrait-03.jpg":
@@ -49,6 +51,8 @@ const ALT: Record<string, string> = {
     "A woman's face framed by a dense tangle of green branches, one eye catching the light as she smiles through the foliage.",
   "portrait-08.jpg":
     "A man in a patterned headwrap, sunglasses and feathered wings presses his palms together in greeting behind a yellow scooter strung with sunflowers and LED lights on a wet night street.",
+  "portrait-09.jpg":
+    "A woman in a haute luxury ad campaign for a local trash club in a cheeky editorial shoot.",
   "portrait-12.jpg":
     "An older woman in a quilted cap and denim jacket turns toward the camera with a warm, crinkled smile.",
   "portrait-13.jpg":

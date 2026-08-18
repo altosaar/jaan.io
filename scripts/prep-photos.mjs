@@ -1,6 +1,12 @@
 // Prepare gallery photos for the repo.
 //
-//   node scripts/prep-photos.mjs [sourceDir]
+//   npm run photos                          # the default folder
+//   npm run photos -- ~/Pictures/some-dir   # another one (note the --)
+//   npm run photos -- --dry-run             # say what would change, write nothing
+//   npm run photos -- --help
+//
+// The `--` is npm's, not this script's: without it npm eats the arguments
+// rather than passing them on.
 //
 // Reads camera masters (default: ~/Pictures/_jaan.io-picpicks) and writes
 // web-sized JPEGs into src/assets/gallery/, where Astro's image() collection
@@ -50,7 +56,57 @@ import { readdir, mkdir, writeFile, readFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
-const SRC = process.argv[2] ?? join(homedir(), "Pictures", "_jaan.io-picpicks");
+const DEFAULT_SRC = join(homedir(), "Pictures", "_jaan.io-picpicks");
+const DEFAULT_PORTRAITS = "/Users/me/Pictures/221207-jaan-gif-photoshop-auto-aligned";
+
+const USAGE = `Prepare gallery photos for the repo.
+
+  npm run photos                          the default folder
+  npm run photos -- <dir>                 another one (the -- is npm's)
+  npm run photos -- --dry-run             report what would change, write nothing
+
+Options
+  --portraits <dir>   source for the two-frame home-page portrait
+                      (default: ${DEFAULT_PORTRAITS})
+  --dry-run, -n       write nothing; print what a real run would do
+  --help, -h          this
+
+Default source: ${DEFAULT_SRC}
+
+THE FOLDER IS THE LIST. Every image in it becomes a gallery photo, and any
+gallery photo whose source has left it is deleted from the repo. To add one
+picture, put one picture in the folder — and check with --dry-run first, because
+anything else sitting in there gets added too.`;
+
+// Hand-rolled rather than a dependency: two flags and a positional.
+const argv = process.argv.slice(2);
+if (argv.includes("--help") || argv.includes("-h")) {
+  console.log(USAGE);
+  process.exit(0);
+}
+
+const DRY = argv.includes("--dry-run") || argv.includes("-n");
+const takeFlag = (name, fallback) => {
+  const i = argv.indexOf(name);
+  if (i < 0) return fallback;
+  const value = argv[i + 1];
+  if (!value || value.startsWith("-")) {
+    console.error(`[prep-photos] ${name} needs a directory\n\n${USAGE}`);
+    process.exit(1);
+  }
+  argv.splice(i, 2);
+  return value;
+};
+
+const PORTRAIT_DIR = takeFlag("--portraits", DEFAULT_PORTRAITS);
+const positional = argv.filter((a) => !a.startsWith("-"));
+if (positional.length > 1) {
+  console.error(
+    `[prep-photos] Expected at most one source directory, got: ${positional.join(", ")}\n\n${USAGE}`,
+  );
+  process.exit(1);
+}
+const SRC = positional[0] ?? DEFAULT_SRC;
 const OUT = "src/assets/gallery";
 
 /** Long-edge cap. Astro derives every responsive rung from this master. */
@@ -59,7 +115,23 @@ const QUALITY = 80;
 
 const IMAGE_RE = /\.(jpe?g|png|webp|tiff?)$/i;
 
-const files = (await readdir(SRC))
+// A wrong path is the most likely mistake now that this takes one, and
+// readdir's raw ENOENT stack does not say which argument was wrong.
+let entries;
+try {
+  entries = await readdir(SRC);
+} catch (err) {
+  console.error(
+    err.code === "ENOENT"
+      ? `[prep-photos] No such directory: ${SRC}`
+      : `[prep-photos] Cannot read ${SRC}: ${err.message}`,
+  );
+  process.exit(1);
+}
+
+// Top level only — no recursion. The default folder has a `todo/` subdirectory
+// of photos not yet chosen, and descending into it would publish them.
+const files = entries
   .filter((f) => IMAGE_RE.test(f) && !f.startsWith("._"))
   // Stable, locale-independent order so slug numbering is reproducible across
   // machines. `numeric` keeps DSC0999 before DSC01000.
@@ -69,7 +141,7 @@ if (files.length === 0) {
   throw new Error(`[prep-photos] No images found in ${SRC}`);
 }
 
-await mkdir(OUT, { recursive: true });
+if (!DRY) await mkdir(OUT, { recursive: true });
 
 // Slugs already handed out, so a photo keeps the one it has. Missing or
 // unreadable manifest just means every slug is allocated fresh.
@@ -92,23 +164,32 @@ const nextSlug = () => {
 
 const manifest = [];
 
+const added = [];
+
 for (const file of files) {
   let slug = known.get(file);
+  const isNew = !slug;
   if (!slug) {
     slug = nextSlug();
     taken.add(slug);
   }
   const dest = join(OUT, `${slug}.jpg`);
 
-  const info = await sharp(join(SRC, file))
+  const pipeline = sharp(join(SRC, file))
     .rotate() // EXIF orientation — see the header. Must precede resize().
     .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: "inside", withoutEnlargement: true })
-    .jpeg({ quality: QUALITY, mozjpeg: true })
-    .toFile(dest);
+    .jpeg({ quality: QUALITY, mozjpeg: true });
+  const info = DRY
+    ? await pipeline.toBuffer({ resolveWithObject: true }).then((r) => r.info)
+    : await pipeline.toFile(dest);
 
   manifest.push({ slug, source: file, width: info.width, height: info.height, bytes: info.size });
+  // NEW is the line that matters: it is the one that needs an alt string
+  // writing, and the one that reveals anything unexpected sitting in the
+  // folder. Everything else is a re-encode of a photo already in the gallery.
+  if (isNew) added.push({ slug, file });
   console.log(
-    `${file.padEnd(44)} → ${slug}.jpg  ${info.width}×${info.height}  ` +
+    `${isNew ? "NEW  " : "     "}${file.padEnd(44)} → ${slug}.jpg  ${info.width}×${info.height}  ` +
       `${(info.size / 1e6).toFixed(2)} MB`,
   );
 }
@@ -118,26 +199,41 @@ for (const file of files) {
 // globbed by src/data/gallery.ts, and keeps appearing in the gallery, which is
 // the opposite of what removing it from the folder was meant to do.
 const keep = new Set(manifest.map((m) => `${m.slug}.jpg`));
-for (const file of await readdir(OUT)) {
+const removed = [];
+for (const file of await readdir(OUT).catch(() => [])) {
   if (file.endsWith(".jpg") && !keep.has(file)) {
-    await unlink(join(OUT, file));
-    console.log(`${"(gone from source)".padEnd(44)} → removed ${file}`);
+    if (!DRY) await unlink(join(OUT, file));
+    removed.push(file);
+    console.log(`${"     (gone from source)".padEnd(49)} → removed ${file}`);
   }
 }
 
 // Written next to the photos so the mapping back to the originals survives the
 // rename, and read back on the next run to keep every slug where it is.
-await writeFile(join(OUT, "SOURCES.json"), JSON.stringify(manifest, null, 2) + "\n");
+if (!DRY) {
+  await writeFile(join(OUT, "SOURCES.json"), JSON.stringify(manifest, null, 2) + "\n");
+}
 
 const total = manifest.reduce((sum, m) => sum + m.bytes, 0);
 console.log(
-  `\n${manifest.length} photos → ${OUT}  (${(total / 1e6).toFixed(1)} MB total)\n` +
-    `Wrote ${OUT}/SOURCES.json`,
+  `\n${manifest.length} photos → ${OUT}  (${(total / 1e6).toFixed(1)} MB total)` +
+    (DRY ? "\n\nDRY RUN — nothing was written." : `\nWrote ${OUT}/SOURCES.json`),
 );
-console.log(
-  `\nEvery photo needs an authored alt string in src/data/gallery.ts, keyed by ` +
-    `its\nfilename. The build fails if one is missing or points at nothing.`,
-);
+
+// The build refuses to run until each of these has a description, so say which
+// ones and where, rather than leaving it to be discovered as a build failure.
+if (added.length > 0) {
+  console.log(
+    `\n${added.length} NEW photo${added.length > 1 ? "s" : ""}. Add a line for each to the ALT ` +
+      `table in\nsrc/data/gallery.ts, describing what the photograph shows:\n`,
+  );
+  for (const { slug, file } of added) console.log(`  "${slug}.jpg": "…",   // ${file}`);
+  console.log(`\nThe build fails until every one of them has one.`);
+} else if (removed.length > 0) {
+  console.log(`\nRemove the ALT lines for: ${removed.join(", ")}`);
+} else {
+  console.log(`\nNo photos added or removed; src/data/gallery.ts needs no change.`);
+}
 
 // ── The two-frame portrait ───────────────────────────────────────────────────
 // Not gallery entries: these are imported directly by PortraitBlink.astro (the
@@ -152,7 +248,6 @@ console.log(
 // of that GIF is 2.3 MB and the full-size one 5.9 MB, for a two-frame loop. Two
 // still images that CSS alternates between cost a fraction of that and stay
 // responsive (srcset per frame), which is why this exists as a pair of stills.
-const PORTRAIT_DIR = process.argv[3] ?? "/Users/me/Pictures/221207-jaan-gif-photoshop-auto-aligned";
 const FRAMES = [
   ["20221207-DSC08262_0001_Layer 0.jpg", "portrait-open.webp"],
   ["20221207-DSC08262_0000_Layer 1.jpg", "portrait-closed.webp"],

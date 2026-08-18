@@ -14,6 +14,13 @@
     "bytes": 235728
   },
   {
+    "slug": "portrait-01",
+    "source": "20260418-DSC01450.jpg",
+    "width": 1333,
+    "height": 2000,
+    "bytes": 288459
+  },
+  {
     "slug": "portrait-05",
     "source": "bigbabyenergy__2022-07-24T183550.000Z.jpg",
     "width": 1440,
@@ -103,5 +110,12 @@
     "width": 1333,
     "height": 2000,
     "bytes": 156157
+  },
+  {
+    "slug": "portrait-09",
+    "source": "instagram-version.jpg",
+    "width": 1080,
+    "height": 1350,
+    "bytes": 253573
   }
 ]
