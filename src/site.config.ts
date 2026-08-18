@@ -56,6 +56,7 @@ export const SITE = {
   nav: {
     /** Header links, shown to the right of the logo on desktop. */
     header: [
+      { label: "Projects", href: "/projects" },
       { label: "Images", href: "/images" },
       { label: "About", href: "/about" },
     ] as SiteLink[],
@@ -67,6 +68,7 @@ export const SITE = {
 
     /** Links inside the mobile slide-over menu. */
     mobile: [
+      { label: "Projects", href: "/projects" },
       { label: "Images", href: "/images" },
       { label: "About", href: "/about" },
     ] as SiteLink[],
@@ -80,6 +82,7 @@ export const SITE = {
     footer: [
       [
         { label: "Articles", href: "/articles" },
+        { label: "Projects", href: "/projects" },
         { label: "Images", href: "/images" },
         { label: "About", href: "/about" },
       ],

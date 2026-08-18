@@ -22,3 +22,20 @@ public/fonts/
 # Generated interactive figures carried over from the Jekyll site.
 # These are build output from _src/, not hand-edited source.
 public/files/
+
+# The Observable Framework sub-project. Its hand-written source (viz/src/charts,
+# the config, the README) IS formatted — only its build output and Framework's
+# own npm cache are skipped. The cache is a tree of minified bundles Framework
+# downloads and rewrites; formatting it would be pointless and slow.
+viz/dist/
+viz/node_modules/
+viz/src/.observablehq/
+# Committed data extracts for the index thumbnails: CSV Prettier cannot parse,
+# and one deliberately minified GeoJSON it would expand tenfold.
+viz/src/thumbs/data/
+
+# Vendored third-party stylesheet, shipped byte-for-byte as published.
+public/vendor/
+
+# Generated chart bundles — see scripts/build-visualizations.mjs.
+public/visualizations/

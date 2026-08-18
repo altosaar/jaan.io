@@ -1,0 +1,218 @@
+---
+// /visualizations — the index of the seven ported Observable pages.
+//
+// Reached from /projects. The list itself is src/data/visualizations.ts, which
+// this page and /projects both read, so the count on the projects card cannot
+// drift from what is actually here.
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import { VISUALIZATIONS } from "../data/visualizations";
+import "../styles/viz.css";
+
+// The marks beside each entry, drawn server-side by the data loaders in
+// viz/src/thumbs and written to public/visualizations/thumbs by
+// scripts/build-visualizations.mjs — which npm run dev and npm run build both
+// run first, so the files are there before this page renders.
+//
+// Inlined rather than <img src="…">. These are drawn entirely in currentColor,
+// and an SVG loaded through <img> is a separate document: it inherits no colour
+// and no custom properties from the page, so currentColor would resolve to
+// black and every mark would vanish against this background. Inlining also
+// spends no requests.
+//
+// Resolved from process.cwd(), NOT from import.meta.url. In dev those agree, but
+// in a build Astro prerenders from a bundled chunk whose import.meta.url is
+// dist/.prerender/chunks/…, so "../../public" lands on dist/public and finds
+// nothing. cwd is the project root in both.
+const thumbDir = join(process.cwd(), "public", "visualizations", "thumbs");
+
+// Two different failures, told apart deliberately. No thumbs directory at all
+// means the charts have not been built in this checkout yet — worth a warning,
+// not worth blocking someone reading the page. A missing file inside a
+// directory that does exist means a mark was renamed or its loader broke, and
+// silently rendering the row without it is how a bug ships unnoticed. It has
+// already happened once: an earlier version caught both cases the same way and
+// shipped a production build with all seven marks quietly absent.
+const built = existsSync(thumbDir);
+if (!built) {
+  console.warn(`[visualizations] no marks at ${thumbDir} — run \`npm run viz\``);
+}
+const marks = new Map(
+  VISUALIZATIONS.map((viz) => [
+    viz.slug,
+    built ? readFileSync(join(thumbDir, `${viz.thumb}.svg`), "utf8") : null,
+  ]),
+);
+---
+
+<Base
+  title="Visualizations"
+  description="Interactive views of large public datasets: healthcare claims, census microdata, New York property records, and hospital glucose readings."
+>
+  <Section as="header" top="section" bottom="block">
+    <p class="viz-index__eyebrow"><a href="/projects">Projects</a></p>
+    <h1 class="viz-index__title">Visualizations</h1>
+    <p class="viz-index__intro">
+      Each of these runs its own queries in your browser, against the actual dataset, using DuckDB
+      compiled to WebAssembly. Nothing is pre-rendered, which is why a few of them take a moment to
+      appear — and why you can ask them questions the original authors did not anticipate.
+    </p>
+  </Section>
+
+  <Section bottom="gap">
+    <ul class="viz-index" role="list">
+      {
+        VISUALIZATIONS.map((viz) => (
+          <li class="viz-index__item">
+            {marks.get(viz.slug) && (
+              /* aria-hidden is set on the SVG itself by the loader: the mark is
+                 a drawing of the chart whose name is sitting right beside it,
+                 so announcing it would say everything twice. */
+              <div class="viz-index__mark" set:html={marks.get(viz.slug)} />
+            )}
+            <div class="viz-index__body">
+              <a href={`/visualizations/${viz.slug}`} class="viz-index__link">
+                <h2 class="viz-index__name">{viz.title}</h2>
+              </a>
+              <p class="viz-index__blurb">{viz.blurb}</p>
+              <p class="viz-index__scale">{viz.scale}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+</Base>
+
+<style>
+  .viz-index__eyebrow {
+    font-family: var(--font-chrome);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .viz-index__eyebrow a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .viz-index__eyebrow a:hover,
+  .viz-index__eyebrow a:focus-visible {
+    color: var(--accent);
+  }
+
+  .viz-index__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-h1);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  .viz-index__intro {
+    margin-top: 1.5rem;
+    font-size: var(--fs-md);
+    line-height: 1.5;
+    color: var(--text-muted);
+    max-width: var(--reading-w-tight);
+  }
+
+  /* Tighter than /articles' 6.75rem: seven entries rather than three, and each
+     carries three lines instead of two, so the same spacing would turn a list
+     you scan into a page you scroll. */
+  .viz-index {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: var(--reading-w);
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  /* Mark left, text right — the arrangement /articles uses for its post marks,
+     so the two index pages read as the same kind of page. */
+  .viz-index__item {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(1rem, 3vw, 1.75rem);
+  }
+
+  .viz-index__body {
+    /* Without this a long unbroken blurb sets the flex item's minimum width and
+       pushes the row past the measure. */
+    min-width: 0;
+  }
+
+  /* The marks are 128 × 80 and drawn in currentColor, so they are already the
+     right colour; the job here is size and weight. Dimmer than the text at
+     rest — a row of seven charts at full brightness competes with the headlines
+     they belong to — and brought up to match on hover, so the whole row lights
+     as one object under the pointer. */
+  .viz-index__mark {
+    flex: none;
+    width: clamp(4.5rem, 11vw, 7.5rem);
+    color: var(--text);
+    opacity: 0.6;
+    transition: opacity var(--dur-fast) var(--ease-out);
+    /* Nudged down so the mark's optical centre sits with the headline's
+       x-height rather than its cap line. */
+    margin-top: 0.35rem;
+  }
+
+  .viz-index__mark :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .viz-index__item:hover .viz-index__mark {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .viz-index__mark {
+      transition: none;
+    }
+  }
+
+  .viz-index__link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .viz-index__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .viz-index__link:hover .viz-index__name,
+  .viz-index__link:focus-visible .viz-index__name {
+    color: var(--accent);
+  }
+
+  .viz-index__blurb {
+    margin-top: 0.9rem;
+    font-size: var(--fs-base);
+    line-height: 1.6;
+    max-width: var(--reading-w-tight);
+  }
+
+  .viz-index__scale {
+    margin-top: 0.6rem;
+    font-family: var(--font-chrome);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+</style>

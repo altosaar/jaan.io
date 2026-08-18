@@ -1,0 +1,42 @@
+---
+// Was jaan.li/new-york-real-estate.
+import Viz from "../../layouts/Viz.astro";
+import VizEmbed from "../../components/VizEmbed.astro";
+---
+
+<Viz
+  title="New York real estate"
+  description="Every tax lot in New York City, drawn from the Department of City Planning's MapPLUTO extract. Hover any parcel for the full record the city holds on it."
+  eyebrow="Visualizations"
+  eyebrowHref="/visualizations"
+>
+  {
+    /* MapLibre's stylesheet, vendored into public/vendor rather than loaded
+       from unpkg the way the original page did. It is only needed on this one
+       route, so it is linked here instead of in Base.astro. */
+  }
+  <link slot="head" rel="stylesheet" href="/vendor/maplibre-gl-4.0.2.css" />
+
+  <p class="viz-note">
+    850,000 properties, served as a PMTiles archive so the map fetches only the tiles in view.
+    Hovering a lot shows every MapPLUTO field the city publishes for it — zoning, lot and building
+    area, year built, assessed value, owner.
+  </p>
+
+  <VizEmbed module="new-york-real-estate" export="PropertyMap" minHeight={720} />
+
+  <Fragment slot="sources">
+    <ul>
+      <li>
+        Data: MapPLUTO, New York City Department of City Planning, converted to PMTiles. The code
+        and data are public and free to reuse.
+      </li>
+      <li>
+        Source and full-screen version: <a
+          href="https://altosaar.github.io/new-york-real-estate/"
+          rel="noopener">altosaar.github.io/new-york-real-estate</a
+        >.
+      </li>
+    </ul>
+  </Fragment>
+</Viz>

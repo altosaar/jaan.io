@@ -1,0 +1,50 @@
+---
+// Mounts one chart from the Observable Framework build in viz/.
+//
+// The module it loads is NOT part of the Astro bundle. It is built separately
+// (`npm run viz`, see viz/README.md) into dist/visualizations/charts/*.js as a
+// standalone ES module with its dependencies self-hosted alongside it, and it
+// is fetched at runtime from that URL. Everything on the page around it — type,
+// colour, chrome, prose — is ordinary Astro.
+//
+// That split is the whole design: Framework is very good at bundling DuckDB-
+// wasm, Apache Arrow, PMTiles and Plot with their file resolutions baked in,
+// and very opinionated about what the page around them looks like. Taking only
+// the module means taking only the half worth having.
+interface Props {
+  /** Module basename under /visualizations/charts/, e.g. "glucose". */
+  module: string;
+  /** Named export to call. It must return a DOM node (or a promise of one). */
+  export: string;
+  /**
+   * Space to hold open until the chart lands, in px. Not cosmetic: these
+   * modules pull a DuckDB-wasm binary and a parquet file before they can draw
+   * anything, so without a reserved box the rest of the page reflows when they
+   * finish. Set it near the chart's real height.
+   */
+  minHeight?: number;
+  /**
+   * Let the figure scroll sideways instead of shrinking. For the Mosaic
+   * cross-filter, which is laid out at a fixed 1063px and cannot be re-rendered
+   * narrower without dropping the reader's live selection.
+   */
+  scroll?: boolean;
+}
+
+const { module, export: exportName, minHeight = 480, scroll = false } = Astro.props;
+const src = `/visualizations/charts/${module}.js`;
+---
+
+<div
+  class:list={["viz-embed", scroll && "viz-embed--scroll"]}
+  data-src={src}
+  data-export={exportName}
+  style={`min-height:${minHeight}px`}
+>
+  <!-- Replaced by the chart on success, or by an error message on failure.
+       Not a spinner: the wait is dominated by a multi-megabyte wasm download,
+       and saying so is more use than an animation.
+       The loader that does the replacing lives in src/layouts/Viz.astro — see
+       the note there for why it cannot live in this file. -->
+  <p class="viz-embed__status">Loading chart data…</p>
+</div>

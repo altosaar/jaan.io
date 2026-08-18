@@ -1,0 +1,932 @@
+k,x,y
+Finance and Insurance,1995.2623149688789,28.0
+Finance and Insurance,2238.72113856834,171.0
+Finance and Insurance,2511.88643150958,82.0
+Finance and Insurance,2818.382931264455,296.0
+Finance and Insurance,3162.2776601683795,158.0
+Finance and Insurance,3548.133892335753,116.0
+Finance and Insurance,3981.0717055349733,299.0
+Finance and Insurance,4466.835921509631,782.0
+Finance and Insurance,5011.872336272725,180.0
+Finance and Insurance,5623.413251903491,532.0
+Finance and Insurance,6309.57344480193,409.0
+Finance and Insurance,7079.457843841381,259.0
+Finance and Insurance,7943.282347242814,546.0
+Finance and Insurance,8912.509381337459,401.0
+Finance and Insurance,10000.0,1188.0
+Finance and Insurance,11220.18454301963,947.0
+Finance and Insurance,12589.254117941662,698.0
+Finance and Insurance,14125.375446227554,1105.0
+Finance and Insurance,15848.93192461114,740.0
+Finance and Insurance,17782.794100389227,891.0
+Finance and Insurance,19952.62314968879,2225.0
+Finance and Insurance,22387.21138568338,2573.0
+Finance and Insurance,25118.864315095823,1553.0
+Finance and Insurance,28183.82931264455,3581.0
+Finance and Insurance,31622.776601683792,3991.0
+Finance and Insurance,35481.33892335753,3240.0
+Finance and Insurance,39810.71705534969,6022.0
+Finance and Insurance,44668.359215096345,8340.0
+Finance and Insurance,50118.72336272725,4373.0
+Finance and Insurance,56234.13251903491,5682.0
+Finance and Insurance,63095.7344480193,5892.0
+Finance and Insurance,70794.57843841374,4445.0
+Finance and Insurance,79432.82347242821,5517.0
+Finance and Insurance,89125.0938133746,4086.0
+Finance and Insurance,100000.0,6609.0
+Finance and Insurance,112201.84543019629,4245.0
+Finance and Insurance,125892.54117941661,3058.0
+Finance and Insurance,141253.75446227554,3255.0
+Finance and Insurance,158489.3192461114,2133.0
+Finance and Insurance,177827.94100389228,1467.0
+Finance and Insurance,199526.2314968879,2557.0
+Finance and Insurance,223872.11385683378,1790.0
+Finance and Insurance,251188.6431509582,598.0
+Finance and Insurance,281838.2931264455,905.0
+Finance and Insurance,316227.7660168379,453.0
+Finance and Insurance,354813.3892335753,169.0
+Finance and Insurance,398107.1705534969,465.0
+Finance and Insurance,446683.5921509635,671.0
+Finance and Insurance,501187.2336272725,910.0
+Finance and Insurance,562341.3251903491,784.0
+Finance and Insurance,630957.344480193,365.0
+Finance and Insurance,707945.7843841374,875.0
+Information,1995.2623149688789,15.0
+Information,2238.72113856834,89.0
+Information,2511.88643150958,46.0
+Information,2818.382931264455,215.0
+Information,3162.2776601683795,103.0
+Information,3548.133892335753,79.0
+Information,3981.0717055349733,182.0
+Information,4466.835921509631,378.0
+Information,5011.872336272725,112.0
+Information,5623.413251903491,238.0
+Information,6309.57344480193,199.0
+Information,7079.457843841381,109.0
+Information,7943.282347242814,285.0
+Information,8912.509381337459,203.0
+Information,10000.0,485.0
+Information,11220.18454301963,361.0
+Information,12589.254117941662,268.0
+Information,14125.375446227554,367.0
+Information,15848.93192461114,239.0
+Information,17782.794100389227,282.0
+Information,19952.62314968879,664.0
+Information,22387.21138568338,713.0
+Information,25118.864315095823,446.0
+Information,28183.82931264455,884.0
+Information,31622.776601683792,952.0
+Information,35481.33892335753,707.0
+Information,39810.71705534969,1315.0
+Information,44668.359215096345,1950.0
+Information,50118.72336272725,1080.0
+Information,56234.13251903491,1468.0
+Information,63095.7344480193,1635.0
+Information,70794.57843841374,1218.0
+Information,79432.82347242821,1720.0
+Information,89125.0938133746,1323.0
+Information,100000.0,1991.0
+Information,112201.84543019629,1259.0
+Information,125892.54117941661,1088.0
+Information,141253.75446227554,990.0
+Information,158489.3192461114,831.0
+Information,177827.94100389228,607.0
+Information,199526.2314968879,821.0
+Information,223872.11385683378,638.0
+Information,251188.6431509582,242.0
+Information,281838.2931264455,372.0
+Information,316227.7660168379,178.0
+Information,354813.3892335753,75.0
+Information,398107.1705534969,124.0
+Information,446683.5921509635,87.0
+Information,501187.2336272725,134.0
+Information,562341.3251903491,157.0
+Information,630957.344480193,323.0
+Information,707945.7843841374,103.0
+Utilities,1995.2623149688789,2.0
+Utilities,2238.72113856834,14.0
+Utilities,2511.88643150958,10.0
+Utilities,2818.382931264455,30.0
+Utilities,3162.2776601683795,11.0
+Utilities,3548.133892335753,11.0
+Utilities,3981.0717055349733,29.0
+Utilities,4466.835921509631,81.0
+Utilities,5011.872336272725,22.0
+Utilities,5623.413251903491,54.0
+Utilities,6309.57344480193,49.0
+Utilities,7079.457843841381,28.0
+Utilities,7943.282347242814,61.0
+Utilities,8912.509381337459,40.0
+Utilities,10000.0,124.0
+Utilities,11220.18454301963,73.0
+Utilities,12589.254117941662,47.0
+Utilities,14125.375446227554,71.0
+Utilities,15848.93192461114,60.0
+Utilities,17782.794100389227,64.0
+Utilities,19952.62314968879,187.0
+Utilities,22387.21138568338,191.0
+Utilities,25118.864315095823,152.0
+Utilities,28183.82931264455,303.0
+Utilities,31622.776601683792,365.0
+Utilities,35481.33892335753,346.0
+Utilities,39810.71705534969,658.0
+Utilities,44668.359215096345,1060.0
+Utilities,50118.72336272725,638.0
+Utilities,56234.13251903491,902.0
+Utilities,63095.7344480193,955.0
+Utilities,70794.57843841374,763.0
+Utilities,79432.82347242821,1184.0
+Utilities,89125.0938133746,918.0
+Utilities,100000.0,1578.0
+Utilities,112201.84543019629,971.0
+Utilities,125892.54117941661,789.0
+Utilities,141253.75446227554,617.0
+Utilities,158489.3192461114,377.0
+Utilities,177827.94100389228,239.0
+Utilities,199526.2314968879,253.0
+Utilities,223872.11385683378,133.0
+Utilities,251188.6431509582,41.0
+Utilities,281838.2931264455,52.0
+Utilities,316227.7660168379,22.0
+Utilities,354813.3892335753,9.0
+Utilities,398107.1705534969,14.0
+Utilities,446683.5921509635,31.0
+Utilities,501187.2336272725,55.0
+Utilities,562341.3251903491,31.0
+Utilities,630957.344480193,11.0
+Utilities,707945.7843841374,7.0
+"Mining, Quarrying, and Oil and Gas Extraction",2238.72113856834,9.0
+"Mining, Quarrying, and Oil and Gas Extraction",2511.88643150958,5.0
+"Mining, Quarrying, and Oil and Gas Extraction",2818.382931264455,8.0
+"Mining, Quarrying, and Oil and Gas Extraction",3162.2776601683795,8.0
+"Mining, Quarrying, and Oil and Gas Extraction",3548.133892335753,8.0
+"Mining, Quarrying, and Oil and Gas Extraction",3981.0717055349733,13.0
+"Mining, Quarrying, and Oil and Gas Extraction",4466.835921509631,31.0
+"Mining, Quarrying, and Oil and Gas Extraction",5011.872336272725,12.0
+"Mining, Quarrying, and Oil and Gas Extraction",5623.413251903491,13.0
+"Mining, Quarrying, and Oil and Gas Extraction",6309.57344480193,23.0
+"Mining, Quarrying, and Oil and Gas Extraction",7079.457843841381,16.0
+"Mining, Quarrying, and Oil and Gas Extraction",7943.282347242814,21.0
+"Mining, Quarrying, and Oil and Gas Extraction",8912.509381337459,20.0
+"Mining, Quarrying, and Oil and Gas Extraction",10000.0,49.0
+"Mining, Quarrying, and Oil and Gas Extraction",11220.18454301963,38.0
+"Mining, Quarrying, and Oil and Gas Extraction",12589.254117941662,45.0
+"Mining, Quarrying, and Oil and Gas Extraction",14125.375446227554,64.0
+"Mining, Quarrying, and Oil and Gas Extraction",15848.93192461114,40.0
+"Mining, Quarrying, and Oil and Gas Extraction",17782.794100389227,26.0
+"Mining, Quarrying, and Oil and Gas Extraction",19952.62314968879,105.0
+"Mining, Quarrying, and Oil and Gas Extraction",22387.21138568338,130.0
+"Mining, Quarrying, and Oil and Gas Extraction",25118.864315095823,59.0
+"Mining, Quarrying, and Oil and Gas Extraction",28183.82931264455,171.0
+"Mining, Quarrying, and Oil and Gas Extraction",31622.776601683792,161.0
+"Mining, Quarrying, and Oil and Gas Extraction",35481.33892335753,139.0
+"Mining, Quarrying, and Oil and Gas Extraction",39810.71705534969,316.0
+"Mining, Quarrying, and Oil and Gas Extraction",44668.359215096345,506.0
+"Mining, Quarrying, and Oil and Gas Extraction",50118.72336272725,260.0
+"Mining, Quarrying, and Oil and Gas Extraction",56234.13251903491,406.0
+"Mining, Quarrying, and Oil and Gas Extraction",63095.7344480193,508.0
+"Mining, Quarrying, and Oil and Gas Extraction",70794.57843841374,342.0
+"Mining, Quarrying, and Oil and Gas Extraction",79432.82347242821,488.0
+"Mining, Quarrying, and Oil and Gas Extraction",89125.0938133746,392.0
+"Mining, Quarrying, and Oil and Gas Extraction",100000.0,529.0
+"Mining, Quarrying, and Oil and Gas Extraction",112201.84543019629,321.0
+"Mining, Quarrying, and Oil and Gas Extraction",125892.54117941661,197.0
+"Mining, Quarrying, and Oil and Gas Extraction",141253.75446227554,214.0
+"Mining, Quarrying, and Oil and Gas Extraction",158489.3192461114,136.0
+"Mining, Quarrying, and Oil and Gas Extraction",177827.94100389228,105.0
+"Mining, Quarrying, and Oil and Gas Extraction",199526.2314968879,132.0
+"Mining, Quarrying, and Oil and Gas Extraction",223872.11385683378,67.0
+"Mining, Quarrying, and Oil and Gas Extraction",251188.6431509582,20.0
+"Mining, Quarrying, and Oil and Gas Extraction",281838.2931264455,50.0
+"Mining, Quarrying, and Oil and Gas Extraction",316227.7660168379,4.0
+"Mining, Quarrying, and Oil and Gas Extraction",354813.3892335753,10.0
+"Mining, Quarrying, and Oil and Gas Extraction",398107.1705534969,25.0
+"Mining, Quarrying, and Oil and Gas Extraction",446683.5921509635,12.0
+"Mining, Quarrying, and Oil and Gas Extraction",501187.2336272725,77.0
+"Mining, Quarrying, and Oil and Gas Extraction",562341.3251903491,11.0
+"Mining, Quarrying, and Oil and Gas Extraction",630957.344480193,1.0
+"Professional, Scientific, and Technical Services",1995.2623149688789,100.0
+"Professional, Scientific, and Technical Services",2238.72113856834,618.0
+"Professional, Scientific, and Technical Services",2511.88643150958,294.0
+"Professional, Scientific, and Technical Services",2818.382931264455,1098.0
+"Professional, Scientific, and Technical Services",3162.2776601683795,529.0
+"Professional, Scientific, and Technical Services",3548.133892335753,307.0
+"Professional, Scientific, and Technical Services",3981.0717055349733,1103.0
+"Professional, Scientific, and Technical Services",4466.835921509631,2253.0
+"Professional, Scientific, and Technical Services",5011.872336272725,530.0
+"Professional, Scientific, and Technical Services",5623.413251903491,1493.0
+"Professional, Scientific, and Technical Services",6309.57344480193,1183.0
+"Professional, Scientific, and Technical Services",7079.457843841381,746.0
+"Professional, Scientific, and Technical Services",7943.282347242814,1706.0
+"Professional, Scientific, and Technical Services",8912.509381337459,1070.0
+"Professional, Scientific, and Technical Services",10000.0,3293.0
+"Professional, Scientific, and Technical Services",11220.18454301963,2562.0
+"Professional, Scientific, and Technical Services",12589.254117941662,1694.0
+"Professional, Scientific, and Technical Services",14125.375446227554,2792.0
+"Professional, Scientific, and Technical Services",15848.93192461114,1885.0
+"Professional, Scientific, and Technical Services",17782.794100389227,2388.0
+"Professional, Scientific, and Technical Services",19952.62314968879,5589.0
+"Professional, Scientific, and Technical Services",22387.21138568338,5876.0
+"Professional, Scientific, and Technical Services",25118.864315095823,3425.0
+"Professional, Scientific, and Technical Services",28183.82931264455,7066.0
+"Professional, Scientific, and Technical Services",31622.776601683792,6607.0
+"Professional, Scientific, and Technical Services",35481.33892335753,4559.0
+"Professional, Scientific, and Technical Services",39810.71705534969,8659.0
+"Professional, Scientific, and Technical Services",44668.359215096345,11995.0
+"Professional, Scientific, and Technical Services",50118.72336272725,6215.0
+"Professional, Scientific, and Technical Services",56234.13251903491,8883.0
+"Professional, Scientific, and Technical Services",63095.7344480193,9554.0
+"Professional, Scientific, and Technical Services",70794.57843841374,7604.0
+"Professional, Scientific, and Technical Services",79432.82347242821,9516.0
+"Professional, Scientific, and Technical Services",89125.0938133746,7742.0
+"Professional, Scientific, and Technical Services",100000.0,11449.0
+"Professional, Scientific, and Technical Services",112201.84543019629,7976.0
+"Professional, Scientific, and Technical Services",125892.54117941661,6548.0
+"Professional, Scientific, and Technical Services",141253.75446227554,6217.0
+"Professional, Scientific, and Technical Services",158489.3192461114,4696.0
+"Professional, Scientific, and Technical Services",177827.94100389228,3416.0
+"Professional, Scientific, and Technical Services",199526.2314968879,4899.0
+"Professional, Scientific, and Technical Services",223872.11385683378,3274.0
+"Professional, Scientific, and Technical Services",251188.6431509582,1029.0
+"Professional, Scientific, and Technical Services",281838.2931264455,1539.0
+"Professional, Scientific, and Technical Services",316227.7660168379,696.0
+"Professional, Scientific, and Technical Services",354813.3892335753,318.0
+"Professional, Scientific, and Technical Services",398107.1705534969,528.0
+"Professional, Scientific, and Technical Services",446683.5921509635,713.0
+"Professional, Scientific, and Technical Services",501187.2336272725,1048.0
+"Professional, Scientific, and Technical Services",562341.3251903491,1159.0
+"Professional, Scientific, and Technical Services",630957.344480193,621.0
+"Professional, Scientific, and Technical Services",707945.7843841374,552.0
+Wholesale Trade,1995.2623149688789,13.0
+Wholesale Trade,2238.72113856834,84.0
+Wholesale Trade,2511.88643150958,40.0
+Wholesale Trade,2818.382931264455,133.0
+Wholesale Trade,3162.2776601683795,74.0
+Wholesale Trade,3548.133892335753,63.0
+Wholesale Trade,3981.0717055349733,145.0
+Wholesale Trade,4466.835921509631,312.0
+Wholesale Trade,5011.872336272725,87.0
+Wholesale Trade,5623.413251903491,215.0
+Wholesale Trade,6309.57344480193,168.0
+Wholesale Trade,7079.457843841381,121.0
+Wholesale Trade,7943.282347242814,262.0
+Wholesale Trade,8912.509381337459,183.0
+Wholesale Trade,10000.0,526.0
+Wholesale Trade,11220.18454301963,383.0
+Wholesale Trade,12589.254117941662,278.0
+Wholesale Trade,14125.375446227554,427.0
+Wholesale Trade,15848.93192461114,300.0
+Wholesale Trade,17782.794100389227,398.0
+Wholesale Trade,19952.62314968879,998.0
+Wholesale Trade,22387.21138568338,1158.0
+Wholesale Trade,25118.864315095823,720.0
+Wholesale Trade,28183.82931264455,1581.0
+Wholesale Trade,31622.776601683792,1574.0
+Wholesale Trade,35481.33892335753,1347.0
+Wholesale Trade,39810.71705534969,2316.0
+Wholesale Trade,44668.359215096345,3170.0
+Wholesale Trade,50118.72336272725,1657.0
+Wholesale Trade,56234.13251903491,2118.0
+Wholesale Trade,63095.7344480193,2057.0
+Wholesale Trade,70794.57843841374,1476.0
+Wholesale Trade,79432.82347242821,1703.0
+Wholesale Trade,89125.0938133746,1162.0
+Wholesale Trade,100000.0,1679.0
+Wholesale Trade,112201.84543019629,1084.0
+Wholesale Trade,125892.54117941661,724.0
+Wholesale Trade,141253.75446227554,758.0
+Wholesale Trade,158489.3192461114,475.0
+Wholesale Trade,177827.94100389228,354.0
+Wholesale Trade,199526.2314968879,584.0
+Wholesale Trade,223872.11385683378,387.0
+Wholesale Trade,251188.6431509582,115.0
+Wholesale Trade,281838.2931264455,168.0
+Wholesale Trade,316227.7660168379,50.0
+Wholesale Trade,354813.3892335753,20.0
+Wholesale Trade,398107.1705534969,60.0
+Wholesale Trade,446683.5921509635,137.0
+Wholesale Trade,501187.2336272725,134.0
+Wholesale Trade,562341.3251903491,111.0
+Wholesale Trade,630957.344480193,46.0
+Wholesale Trade,707945.7843841374,47.0
+Manufacturing,1995.2623149688789,58.0
+Manufacturing,2238.72113856834,351.0
+Manufacturing,2511.88643150958,143.0
+Manufacturing,2818.382931264455,561.0
+Manufacturing,3162.2776601683795,264.0
+Manufacturing,3548.133892335753,197.0
+Manufacturing,3981.0717055349733,605.0
+Manufacturing,4466.835921509631,1430.0
+Manufacturing,5011.872336272725,327.0
+Manufacturing,5623.413251903491,910.0
+Manufacturing,6309.57344480193,786.0
+Manufacturing,7079.457843841381,523.0
+Manufacturing,7943.282347242814,1139.0
+Manufacturing,8912.509381337459,748.0
+Manufacturing,10000.0,2052.0
+Manufacturing,11220.18454301963,1448.0
+Manufacturing,12589.254117941662,1157.0
+Manufacturing,14125.375446227554,1838.0
+Manufacturing,15848.93192461114,1310.0
+Manufacturing,17782.794100389227,1599.0
+Manufacturing,19952.62314968879,4149.0
+Manufacturing,22387.21138568338,4933.0
+Manufacturing,25118.864315095823,3467.0
+Manufacturing,28183.82931264455,7519.0
+Manufacturing,31622.776601683792,8307.0
+Manufacturing,35481.33892335753,6268.0
+Manufacturing,39810.71705534969,11476.0
+Manufacturing,44668.359215096345,15490.0
+Manufacturing,50118.72336272725,7765.0
+Manufacturing,56234.13251903491,9873.0
+Manufacturing,63095.7344480193,9718.0
+Manufacturing,70794.57843841374,7051.0
+Manufacturing,79432.82347242821,8511.0
+Manufacturing,89125.0938133746,6238.0
+Manufacturing,100000.0,8530.0
+Manufacturing,112201.84543019629,5217.0
+Manufacturing,125892.54117941661,4232.0
+Manufacturing,141253.75446227554,3775.0
+Manufacturing,158489.3192461114,2650.0
+Manufacturing,177827.94100389228,1853.0
+Manufacturing,199526.2314968879,2426.0
+Manufacturing,223872.11385683378,1590.0
+Manufacturing,251188.6431509582,514.0
+Manufacturing,281838.2931264455,616.0
+Manufacturing,316227.7660168379,284.0
+Manufacturing,354813.3892335753,110.0
+Manufacturing,398107.1705534969,225.0
+Manufacturing,446683.5921509635,485.0
+Manufacturing,501187.2336272725,475.0
+Manufacturing,562341.3251903491,321.0
+Manufacturing,630957.344480193,254.0
+Manufacturing,707945.7843841374,138.0
+Health Care and Social Assistance,1995.2623149688789,73.0
+Health Care and Social Assistance,2238.72113856834,462.0
+Health Care and Social Assistance,2511.88643150958,240.0
+Health Care and Social Assistance,2818.382931264455,842.0
+Health Care and Social Assistance,3162.2776601683795,421.0
+Health Care and Social Assistance,3548.133892335753,319.0
+Health Care and Social Assistance,3981.0717055349733,982.0
+Health Care and Social Assistance,4466.835921509631,2018.0
+Health Care and Social Assistance,5011.872336272725,543.0
+Health Care and Social Assistance,5623.413251903491,1444.0
+Health Care and Social Assistance,6309.57344480193,1015.0
+Health Care and Social Assistance,7079.457843841381,744.0
+Health Care and Social Assistance,7943.282347242814,1557.0
+Health Care and Social Assistance,8912.509381337459,1112.0
+Health Care and Social Assistance,10000.0,3151.0
+Health Care and Social Assistance,11220.18454301963,2452.0
+Health Care and Social Assistance,12589.254117941662,1984.0
+Health Care and Social Assistance,14125.375446227554,2856.0
+Health Care and Social Assistance,15848.93192461114,2172.0
+Health Care and Social Assistance,17782.794100389227,2643.0
+Health Care and Social Assistance,19952.62314968879,6493.0
+Health Care and Social Assistance,22387.21138568338,7262.0
+Health Care and Social Assistance,25118.864315095823,4718.0
+Health Care and Social Assistance,28183.82931264455,9452.0
+Health Care and Social Assistance,31622.776601683792,9901.0
+Health Care and Social Assistance,35481.33892335753,6875.0
+Health Care and Social Assistance,39810.71705534969,11606.0
+Health Care and Social Assistance,44668.359215096345,14791.0
+Health Care and Social Assistance,50118.72336272725,7696.0
+Health Care and Social Assistance,56234.13251903491,10305.0
+Health Care and Social Assistance,63095.7344480193,10617.0
+Health Care and Social Assistance,70794.57843841374,7738.0
+Health Care and Social Assistance,79432.82347242821,9462.0
+Health Care and Social Assistance,89125.0938133746,6544.0
+Health Care and Social Assistance,100000.0,8161.0
+Health Care and Social Assistance,112201.84543019629,4803.0
+Health Care and Social Assistance,125892.54117941661,3296.0
+Health Care and Social Assistance,141253.75446227554,2572.0
+Health Care and Social Assistance,158489.3192461114,1685.0
+Health Care and Social Assistance,177827.94100389228,1298.0
+Health Care and Social Assistance,199526.2314968879,2024.0
+Health Care and Social Assistance,223872.11385683378,1561.0
+Health Care and Social Assistance,251188.6431509582,616.0
+Health Care and Social Assistance,281838.2931264455,775.0
+Health Care and Social Assistance,316227.7660168379,361.0
+Health Care and Social Assistance,354813.3892335753,209.0
+Health Care and Social Assistance,398107.1705534969,555.0
+Health Care and Social Assistance,446683.5921509635,1040.0
+Health Care and Social Assistance,501187.2336272725,1016.0
+Health Care and Social Assistance,562341.3251903491,714.0
+Health Care and Social Assistance,630957.344480193,255.0
+Health Care and Social Assistance,707945.7843841374,289.0
+Administrative and Support and Waste Management and Remediation Services,1995.2623149688789,41.0
+Administrative and Support and Waste Management and Remediation Services,2238.72113856834,196.0
+Administrative and Support and Waste Management and Remediation Services,2511.88643150958,80.0
+Administrative and Support and Waste Management and Remediation Services,2818.382931264455,319.0
+Administrative and Support and Waste Management and Remediation Services,3162.2776601683795,161.0
+Administrative and Support and Waste Management and Remediation Services,3548.133892335753,139.0
+Administrative and Support and Waste Management and Remediation Services,3981.0717055349733,306.0
+Administrative and Support and Waste Management and Remediation Services,4466.835921509631,599.0
+Administrative and Support and Waste Management and Remediation Services,5011.872336272725,207.0
+Administrative and Support and Waste Management and Remediation Services,5623.413251903491,436.0
+Administrative and Support and Waste Management and Remediation Services,6309.57344480193,352.0
+Administrative and Support and Waste Management and Remediation Services,7079.457843841381,273.0
+Administrative and Support and Waste Management and Remediation Services,7943.282347242814,434.0
+Administrative and Support and Waste Management and Remediation Services,8912.509381337459,339.0
+Administrative and Support and Waste Management and Remediation Services,10000.0,814.0
+Administrative and Support and Waste Management and Remediation Services,11220.18454301963,671.0
+Administrative and Support and Waste Management and Remediation Services,12589.254117941662,480.0
+Administrative and Support and Waste Management and Remediation Services,14125.375446227554,630.0
+Administrative and Support and Waste Management and Remediation Services,15848.93192461114,592.0
+Administrative and Support and Waste Management and Remediation Services,17782.794100389227,670.0
+Administrative and Support and Waste Management and Remediation Services,19952.62314968879,1353.0
+Administrative and Support and Waste Management and Remediation Services,22387.21138568338,1636.0
+Administrative and Support and Waste Management and Remediation Services,25118.864315095823,1142.0
+Administrative and Support and Waste Management and Remediation Services,28183.82931264455,2512.0
+Administrative and Support and Waste Management and Remediation Services,31622.776601683792,2852.0
+Administrative and Support and Waste Management and Remediation Services,35481.33892335753,2676.0
+Administrative and Support and Waste Management and Remediation Services,39810.71705534969,4961.0
+Administrative and Support and Waste Management and Remediation Services,44668.359215096345,6950.0
+Administrative and Support and Waste Management and Remediation Services,50118.72336272725,4476.0
+Administrative and Support and Waste Management and Remediation Services,56234.13251903491,5572.0
+Administrative and Support and Waste Management and Remediation Services,63095.7344480193,5750.0
+Administrative and Support and Waste Management and Remediation Services,70794.57843841374,4612.0
+Administrative and Support and Waste Management and Remediation Services,79432.82347242821,5581.0
+Administrative and Support and Waste Management and Remediation Services,89125.0938133746,4502.0
+Administrative and Support and Waste Management and Remediation Services,100000.0,5765.0
+Administrative and Support and Waste Management and Remediation Services,112201.84543019629,3756.0
+Administrative and Support and Waste Management and Remediation Services,125892.54117941661,2920.0
+Administrative and Support and Waste Management and Remediation Services,141253.75446227554,2033.0
+Administrative and Support and Waste Management and Remediation Services,158489.3192461114,1616.0
+Administrative and Support and Waste Management and Remediation Services,177827.94100389228,709.0
+Administrative and Support and Waste Management and Remediation Services,199526.2314968879,559.0
+Administrative and Support and Waste Management and Remediation Services,223872.11385683378,252.0
+Administrative and Support and Waste Management and Remediation Services,251188.6431509582,76.0
+Administrative and Support and Waste Management and Remediation Services,281838.2931264455,62.0
+Administrative and Support and Waste Management and Remediation Services,316227.7660168379,24.0
+Administrative and Support and Waste Management and Remediation Services,354813.3892335753,17.0
+Administrative and Support and Waste Management and Remediation Services,398107.1705534969,32.0
+Administrative and Support and Waste Management and Remediation Services,446683.5921509635,42.0
+Administrative and Support and Waste Management and Remediation Services,501187.2336272725,41.0
+Administrative and Support and Waste Management and Remediation Services,562341.3251903491,37.0
+Administrative and Support and Waste Management and Remediation Services,630957.344480193,20.0
+Administrative and Support and Waste Management and Remediation Services,707945.7843841374,18.0
+Public Administration,1995.2623149688789,3.0
+Public Administration,2238.72113856834,31.0
+Public Administration,2511.88643150958,11.0
+Public Administration,2818.382931264455,25.0
+Public Administration,3162.2776601683795,10.0
+Public Administration,3548.133892335753,8.0
+Public Administration,3981.0717055349733,35.0
+Public Administration,4466.835921509631,82.0
+Public Administration,5011.872336272725,25.0
+Public Administration,5623.413251903491,79.0
+Public Administration,6309.57344480193,61.0
+Public Administration,7079.457843841381,62.0
+Public Administration,7943.282347242814,64.0
+Public Administration,8912.509381337459,68.0
+Public Administration,10000.0,177.0
+Public Administration,11220.18454301963,118.0
+Public Administration,12589.254117941662,119.0
+Public Administration,14125.375446227554,193.0
+Public Administration,15848.93192461114,183.0
+Public Administration,17782.794100389227,336.0
+Public Administration,19952.62314968879,1121.0
+Public Administration,22387.21138568338,1744.0
+Public Administration,25118.864315095823,899.0
+Public Administration,28183.82931264455,890.0
+Public Administration,31622.776601683792,679.0
+Public Administration,35481.33892335753,558.0
+Public Administration,39810.71705534969,772.0
+Public Administration,44668.359215096345,1150.0
+Public Administration,50118.72336272725,546.0
+Public Administration,56234.13251903491,858.0
+Public Administration,63095.7344480193,810.0
+Public Administration,70794.57843841374,541.0
+Public Administration,79432.82347242821,589.0
+Public Administration,89125.0938133746,432.0
+Public Administration,100000.0,516.0
+Public Administration,112201.84543019629,360.0
+Public Administration,125892.54117941661,214.0
+Public Administration,141253.75446227554,171.0
+Public Administration,158489.3192461114,81.0
+Public Administration,177827.94100389228,50.0
+Public Administration,199526.2314968879,26.0
+Public Administration,223872.11385683378,19.0
+Public Administration,251188.6431509582,3.0
+Public Administration,281838.2931264455,5.0
+Public Administration,316227.7660168379,2.0
+Public Administration,398107.1705534969,1.0
+Public Administration,446683.5921509635,1.0
+Public Administration,501187.2336272725,6.0
+Public Administration,562341.3251903491,6.0
+Public Administration,630957.344480193,11.0
+Construction,1995.2623149688789,43.0
+Construction,2238.72113856834,279.0
+Construction,2511.88643150958,111.0
+Construction,2818.382931264455,444.0
+Construction,3162.2776601683795,198.0
+Construction,3548.133892335753,141.0
+Construction,3981.0717055349733,525.0
+Construction,4466.835921509631,1015.0
+Construction,5011.872336272725,231.0
+Construction,5623.413251903491,720.0
+Construction,6309.57344480193,522.0
+Construction,7079.457843841381,381.0
+Construction,7943.282347242814,690.0
+Construction,8912.509381337459,509.0
+Construction,10000.0,1610.0
+Construction,11220.18454301963,1232.0
+Construction,12589.254117941662,832.0
+Construction,14125.375446227554,1516.0
+Construction,15848.93192461114,953.0
+Construction,17782.794100389227,1258.0
+Construction,19952.62314968879,3375.0
+Construction,22387.21138568338,3745.0
+Construction,25118.864315095823,2014.0
+Construction,28183.82931264455,5201.0
+Construction,31622.776601683792,4758.0
+Construction,35481.33892335753,3349.0
+Construction,39810.71705534969,6903.0
+Construction,44668.359215096345,9761.0
+Construction,50118.72336272725,4660.0
+Construction,56234.13251903491,6147.0
+Construction,63095.7344480193,5905.0
+Construction,70794.57843841374,3996.0
+Construction,79432.82347242821,5140.0
+Construction,89125.0938133746,3330.0
+Construction,100000.0,4505.0
+Construction,112201.84543019629,2348.0
+Construction,125892.54117941661,1446.0
+Construction,141253.75446227554,1368.0
+Construction,158489.3192461114,712.0
+Construction,177827.94100389228,449.0
+Construction,199526.2314968879,697.0
+Construction,223872.11385683378,431.0
+Construction,251188.6431509582,124.0
+Construction,281838.2931264455,185.0
+Construction,316227.7660168379,67.0
+Construction,354813.3892335753,30.0
+Construction,398107.1705534969,64.0
+Construction,446683.5921509635,153.0
+Construction,501187.2336272725,212.0
+Construction,562341.3251903491,165.0
+Construction,630957.344480193,49.0
+Construction,707945.7843841374,36.0
+Transportation and Warehousing,1995.2623149688789,42.0
+Transportation and Warehousing,2238.72113856834,280.0
+Transportation and Warehousing,2511.88643150958,133.0
+Transportation and Warehousing,2818.382931264455,466.0
+Transportation and Warehousing,3162.2776601683795,226.0
+Transportation and Warehousing,3548.133892335753,180.0
+Transportation and Warehousing,3981.0717055349733,497.0
+Transportation and Warehousing,4466.835921509631,1062.0
+Transportation and Warehousing,5011.872336272725,245.0
+Transportation and Warehousing,5623.413251903491,621.0
+Transportation and Warehousing,6309.57344480193,503.0
+Transportation and Warehousing,7079.457843841381,331.0
+Transportation and Warehousing,7943.282347242814,763.0
+Transportation and Warehousing,8912.509381337459,522.0
+Transportation and Warehousing,10000.0,1440.0
+Transportation and Warehousing,11220.18454301963,1233.0
+Transportation and Warehousing,12589.254117941662,824.0
+Transportation and Warehousing,14125.375446227554,1522.0
+Transportation and Warehousing,15848.93192461114,912.0
+Transportation and Warehousing,17782.794100389227,1184.0
+Transportation and Warehousing,19952.62314968879,2713.0
+Transportation and Warehousing,22387.21138568338,3107.0
+Transportation and Warehousing,25118.864315095823,1808.0
+Transportation and Warehousing,28183.82931264455,3904.0
+Transportation and Warehousing,31622.776601683792,3799.0
+Transportation and Warehousing,35481.33892335753,2517.0
+Transportation and Warehousing,39810.71705534969,4827.0
+Transportation and Warehousing,44668.359215096345,6702.0
+Transportation and Warehousing,50118.72336272725,3269.0
+Transportation and Warehousing,56234.13251903491,4473.0
+Transportation and Warehousing,63095.7344480193,4863.0
+Transportation and Warehousing,70794.57843841374,3215.0
+Transportation and Warehousing,79432.82347242821,3552.0
+Transportation and Warehousing,89125.0938133746,2304.0
+Transportation and Warehousing,100000.0,2673.0
+Transportation and Warehousing,112201.84543019629,1344.0
+Transportation and Warehousing,125892.54117941661,816.0
+Transportation and Warehousing,141253.75446227554,673.0
+Transportation and Warehousing,158489.3192461114,413.0
+Transportation and Warehousing,177827.94100389228,315.0
+Transportation and Warehousing,199526.2314968879,481.0
+Transportation and Warehousing,223872.11385683378,334.0
+Transportation and Warehousing,251188.6431509582,110.0
+Transportation and Warehousing,281838.2931264455,156.0
+Transportation and Warehousing,316227.7660168379,38.0
+Transportation and Warehousing,354813.3892335753,20.0
+Transportation and Warehousing,398107.1705534969,39.0
+Transportation and Warehousing,446683.5921509635,120.0
+Transportation and Warehousing,501187.2336272725,129.0
+Transportation and Warehousing,562341.3251903491,101.0
+Transportation and Warehousing,630957.344480193,34.0
+Transportation and Warehousing,707945.7843841374,28.0
+Educational Services,1995.2623149688789,190.0
+Educational Services,2238.72113856834,1122.0
+Educational Services,2511.88643150958,443.0
+Educational Services,2818.382931264455,1788.0
+Educational Services,3162.2776601683795,907.0
+Educational Services,3548.133892335753,626.0
+Educational Services,3981.0717055349733,1858.0
+Educational Services,4466.835921509631,3132.0
+Educational Services,5011.872336272725,778.0
+Educational Services,5623.413251903491,2014.0
+Educational Services,6309.57344480193,1519.0
+Educational Services,7079.457843841381,964.0
+Educational Services,7943.282347242814,2065.0
+Educational Services,8912.509381337459,1399.0
+Educational Services,10000.0,3768.0
+Educational Services,11220.18454301963,2872.0
+Educational Services,12589.254117941662,2222.0
+Educational Services,14125.375446227554,3099.0
+Educational Services,15848.93192461114,2514.0
+Educational Services,17782.794100389227,3107.0
+Educational Services,19952.62314968879,6110.0
+Educational Services,22387.21138568338,5682.0
+Educational Services,25118.864315095823,3715.0
+Educational Services,28183.82931264455,5893.0
+Educational Services,31622.776601683792,6128.0
+Educational Services,35481.33892335753,4933.0
+Educational Services,39810.71705534969,9360.0
+Educational Services,44668.359215096345,14159.0
+Educational Services,50118.72336272725,9764.0
+Educational Services,56234.13251903491,11291.0
+Educational Services,63095.7344480193,10680.0
+Educational Services,70794.57843841374,7504.0
+Educational Services,79432.82347242821,8095.0
+Educational Services,89125.0938133746,5867.0
+Educational Services,100000.0,6056.0
+Educational Services,112201.84543019629,2994.0
+Educational Services,125892.54117941661,1972.0
+Educational Services,141253.75446227554,1216.0
+Educational Services,158489.3192461114,877.0
+Educational Services,177827.94100389228,534.0
+Educational Services,199526.2314968879,652.0
+Educational Services,223872.11385683378,387.0
+Educational Services,251188.6431509582,150.0
+Educational Services,281838.2931264455,174.0
+Educational Services,316227.7660168379,85.0
+Educational Services,354813.3892335753,32.0
+Educational Services,398107.1705534969,80.0
+Educational Services,446683.5921509635,126.0
+Educational Services,501187.2336272725,158.0
+Educational Services,562341.3251903491,98.0
+Educational Services,630957.344480193,59.0
+Educational Services,707945.7843841374,72.0
+Retail Trade,1995.2623149688789,263.0
+Retail Trade,2238.72113856834,1583.0
+Retail Trade,2511.88643150958,614.0
+Retail Trade,2818.382931264455,2683.0
+Retail Trade,3162.2776601683795,1310.0
+Retail Trade,3548.133892335753,863.0
+Retail Trade,3981.0717055349733,2715.0
+Retail Trade,4466.835921509631,4831.0
+Retail Trade,5011.872336272725,1213.0
+Retail Trade,5623.413251903491,3194.0
+Retail Trade,6309.57344480193,2560.0
+Retail Trade,7079.457843841381,1646.0
+Retail Trade,7943.282347242814,3467.0
+Retail Trade,8912.509381337459,2670.0
+Retail Trade,10000.0,6546.0
+Retail Trade,11220.18454301963,5033.0
+Retail Trade,12589.254117941662,3972.0
+Retail Trade,14125.375446227554,5581.0
+Retail Trade,15848.93192461114,3883.0
+Retail Trade,17782.794100389227,4709.0
+Retail Trade,19952.62314968879,9564.0
+Retail Trade,22387.21138568338,9949.0
+Retail Trade,25118.864315095823,6134.0
+Retail Trade,28183.82931264455,10461.0
+Retail Trade,31622.776601683792,9692.0
+Retail Trade,35481.33892335753,6140.0
+Retail Trade,39810.71705534969,9119.0
+Retail Trade,44668.359215096345,10158.0
+Retail Trade,50118.72336272725,4762.0
+Retail Trade,56234.13251903491,5488.0
+Retail Trade,63095.7344480193,4803.0
+Retail Trade,70794.57843841374,3092.0
+Retail Trade,79432.82347242821,3722.0
+Retail Trade,89125.0938133746,2512.0
+Retail Trade,100000.0,3687.0
+Retail Trade,112201.84543019629,2299.0
+Retail Trade,125892.54117941661,1645.0
+Retail Trade,141253.75446227554,1510.0
+Retail Trade,158489.3192461114,966.0
+Retail Trade,177827.94100389228,710.0
+Retail Trade,199526.2314968879,1039.0
+Retail Trade,223872.11385683378,699.0
+Retail Trade,251188.6431509582,209.0
+Retail Trade,281838.2931264455,337.0
+Retail Trade,316227.7660168379,128.0
+Retail Trade,354813.3892335753,59.0
+Retail Trade,398107.1705534969,136.0
+Retail Trade,446683.5921509635,230.0
+Retail Trade,501187.2336272725,264.0
+Retail Trade,562341.3251903491,221.0
+Retail Trade,630957.344480193,99.0
+Retail Trade,707945.7843841374,89.0
+Management of Companies and Enterprises,1995.2623149688789,64.0
+Management of Companies and Enterprises,2238.72113856834,541.0
+Management of Companies and Enterprises,2511.88643150958,210.0
+Management of Companies and Enterprises,2818.382931264455,694.0
+Management of Companies and Enterprises,3162.2776601683795,349.0
+Management of Companies and Enterprises,3548.133892335753,320.0
+Management of Companies and Enterprises,3981.0717055349733,740.0
+Management of Companies and Enterprises,4466.835921509631,1517.0
+Management of Companies and Enterprises,5011.872336272725,423.0
+Management of Companies and Enterprises,5623.413251903491,1094.0
+Management of Companies and Enterprises,6309.57344480193,776.0
+Management of Companies and Enterprises,7079.457843841381,548.0
+Management of Companies and Enterprises,7943.282347242814,1027.0
+Management of Companies and Enterprises,8912.509381337459,843.0
+Management of Companies and Enterprises,10000.0,2086.0
+Management of Companies and Enterprises,11220.18454301963,1633.0
+Management of Companies and Enterprises,12589.254117941662,1282.0
+Management of Companies and Enterprises,14125.375446227554,1795.0
+Management of Companies and Enterprises,15848.93192461114,1277.0
+Management of Companies and Enterprises,17782.794100389227,1462.0
+Management of Companies and Enterprises,19952.62314968879,3287.0
+Management of Companies and Enterprises,22387.21138568338,3270.0
+Management of Companies and Enterprises,25118.864315095823,1869.0
+Management of Companies and Enterprises,28183.82931264455,3659.0
+Management of Companies and Enterprises,31622.776601683792,3270.0
+Management of Companies and Enterprises,35481.33892335753,2292.0
+Management of Companies and Enterprises,39810.71705534969,4086.0
+Management of Companies and Enterprises,44668.359215096345,5132.0
+Management of Companies and Enterprises,50118.72336272725,2535.0
+Management of Companies and Enterprises,56234.13251903491,3014.0
+Management of Companies and Enterprises,63095.7344480193,2728.0
+Management of Companies and Enterprises,70794.57843841374,1828.0
+Management of Companies and Enterprises,79432.82347242821,2007.0
+Management of Companies and Enterprises,89125.0938133746,1313.0
+Management of Companies and Enterprises,100000.0,1548.0
+Management of Companies and Enterprises,112201.84543019629,797.0
+Management of Companies and Enterprises,125892.54117941661,574.0
+Management of Companies and Enterprises,141253.75446227554,489.0
+Management of Companies and Enterprises,158489.3192461114,321.0
+Management of Companies and Enterprises,177827.94100389228,189.0
+Management of Companies and Enterprises,199526.2314968879,283.0
+Management of Companies and Enterprises,223872.11385683378,170.0
+Management of Companies and Enterprises,251188.6431509582,62.0
+Management of Companies and Enterprises,281838.2931264455,53.0
+Management of Companies and Enterprises,316227.7660168379,36.0
+Management of Companies and Enterprises,354813.3892335753,16.0
+Management of Companies and Enterprises,398107.1705534969,26.0
+Management of Companies and Enterprises,446683.5921509635,51.0
+Management of Companies and Enterprises,501187.2336272725,51.0
+Management of Companies and Enterprises,562341.3251903491,47.0
+Management of Companies and Enterprises,630957.344480193,10.0
+Management of Companies and Enterprises,707945.7843841374,22.0
+"Agriculture, Forestry, Fishing and Hunting",1995.2623149688789,18.0
+"Agriculture, Forestry, Fishing and Hunting",2238.72113856834,177.0
+"Agriculture, Forestry, Fishing and Hunting",2511.88643150958,63.0
+"Agriculture, Forestry, Fishing and Hunting",2818.382931264455,299.0
+"Agriculture, Forestry, Fishing and Hunting",3162.2776601683795,99.0
+"Agriculture, Forestry, Fishing and Hunting",3548.133892335753,76.0
+"Agriculture, Forestry, Fishing and Hunting",3981.0717055349733,252.0
+"Agriculture, Forestry, Fishing and Hunting",4466.835921509631,533.0
+"Agriculture, Forestry, Fishing and Hunting",5011.872336272725,98.0
+"Agriculture, Forestry, Fishing and Hunting",5623.413251903491,330.0
+"Agriculture, Forestry, Fishing and Hunting",6309.57344480193,245.0
+"Agriculture, Forestry, Fishing and Hunting",7079.457843841381,150.0
+"Agriculture, Forestry, Fishing and Hunting",7943.282347242814,293.0
+"Agriculture, Forestry, Fishing and Hunting",8912.509381337459,209.0
+"Agriculture, Forestry, Fishing and Hunting",10000.0,569.0
+"Agriculture, Forestry, Fishing and Hunting",11220.18454301963,503.0
+"Agriculture, Forestry, Fishing and Hunting",12589.254117941662,345.0
+"Agriculture, Forestry, Fishing and Hunting",14125.375446227554,484.0
+"Agriculture, Forestry, Fishing and Hunting",15848.93192461114,337.0
+"Agriculture, Forestry, Fishing and Hunting",17782.794100389227,464.0
+"Agriculture, Forestry, Fishing and Hunting",19952.62314968879,1172.0
+"Agriculture, Forestry, Fishing and Hunting",22387.21138568338,1210.0
+"Agriculture, Forestry, Fishing and Hunting",25118.864315095823,674.0
+"Agriculture, Forestry, Fishing and Hunting",28183.82931264455,1184.0
+"Agriculture, Forestry, Fishing and Hunting",31622.776601683792,1158.0
+"Agriculture, Forestry, Fishing and Hunting",35481.33892335753,808.0
+"Agriculture, Forestry, Fishing and Hunting",39810.71705534969,1218.0
+"Agriculture, Forestry, Fishing and Hunting",44668.359215096345,1533.0
+"Agriculture, Forestry, Fishing and Hunting",50118.72336272725,701.0
+"Agriculture, Forestry, Fishing and Hunting",56234.13251903491,868.0
+"Agriculture, Forestry, Fishing and Hunting",63095.7344480193,693.0
+"Agriculture, Forestry, Fishing and Hunting",70794.57843841374,485.0
+"Agriculture, Forestry, Fishing and Hunting",79432.82347242821,459.0
+"Agriculture, Forestry, Fishing and Hunting",89125.0938133746,325.0
+"Agriculture, Forestry, Fishing and Hunting",100000.0,424.0
+"Agriculture, Forestry, Fishing and Hunting",112201.84543019629,167.0
+"Agriculture, Forestry, Fishing and Hunting",125892.54117941661,154.0
+"Agriculture, Forestry, Fishing and Hunting",141253.75446227554,136.0
+"Agriculture, Forestry, Fishing and Hunting",158489.3192461114,69.0
+"Agriculture, Forestry, Fishing and Hunting",177827.94100389228,48.0
+"Agriculture, Forestry, Fishing and Hunting",199526.2314968879,77.0
+"Agriculture, Forestry, Fishing and Hunting",223872.11385683378,63.0
+"Agriculture, Forestry, Fishing and Hunting",251188.6431509582,18.0
+"Agriculture, Forestry, Fishing and Hunting",281838.2931264455,20.0
+"Agriculture, Forestry, Fishing and Hunting",316227.7660168379,3.0
+"Agriculture, Forestry, Fishing and Hunting",354813.3892335753,7.0
+"Agriculture, Forestry, Fishing and Hunting",398107.1705534969,17.0
+"Agriculture, Forestry, Fishing and Hunting",446683.5921509635,45.0
+"Agriculture, Forestry, Fishing and Hunting",501187.2336272725,15.0
+"Agriculture, Forestry, Fishing and Hunting",562341.3251903491,20.0
+"Agriculture, Forestry, Fishing and Hunting",630957.344480193,7.0
+Services,1995.2623149688789,47.0
+Services,2238.72113856834,325.0
+Services,2511.88643150958,146.0
+Services,2818.382931264455,449.0
+Services,3162.2776601683795,262.0
+Services,3548.133892335753,237.0
+Services,3981.0717055349733,493.0
+Services,4466.835921509631,808.0
+Services,5011.872336272725,221.0
+Services,5623.413251903491,634.0
+Services,6309.57344480193,501.0
+Services,7079.457843841381,338.0
+Services,7943.282347242814,632.0
+Services,8912.509381337459,542.0
+Services,10000.0,1233.0
+Services,11220.18454301963,1021.0
+Services,12589.254117941662,836.0
+Services,14125.375446227554,1100.0
+Services,15848.93192461114,824.0
+Services,17782.794100389227,1017.0
+Services,19952.62314968879,2109.0
+Services,22387.21138568338,2097.0
+Services,25118.864315095823,1347.0
+Services,28183.82931264455,2045.0
+Services,31622.776601683792,1873.0
+Services,35481.33892335753,1482.0
+Services,39810.71705534969,2146.0
+Services,44668.359215096345,2426.0
+Services,50118.72336272725,1223.0
+Services,56234.13251903491,1355.0
+Services,63095.7344480193,1106.0
+Services,70794.57843841374,659.0
+Services,79432.82347242821,665.0
+Services,89125.0938133746,391.0
+Services,100000.0,443.0
+Services,112201.84543019629,252.0
+Services,125892.54117941661,160.0
+Services,141253.75446227554,107.0
+Services,158489.3192461114,68.0
+Services,177827.94100389228,47.0
+Services,199526.2314968879,65.0
+Services,223872.11385683378,33.0
+Services,251188.6431509582,15.0
+Services,281838.2931264455,19.0
+Services,316227.7660168379,14.0
+Services,354813.3892335753,2.0
+Services,398107.1705534969,6.0
+Services,446683.5921509635,7.0
+Services,501187.2336272725,17.0
+Services,562341.3251903491,12.0
+Services,630957.344480193,2.0
+Services,707945.7843841374,5.0
+"Arts, Entertainment, and Recreation",1995.2623149688789,359.0
+"Arts, Entertainment, and Recreation",2238.72113856834,2477.0
+"Arts, Entertainment, and Recreation",2511.88643150958,848.0
+"Arts, Entertainment, and Recreation",2818.382931264455,4233.0
+"Arts, Entertainment, and Recreation",3162.2776601683795,1853.0
+"Arts, Entertainment, and Recreation",3548.133892335753,1162.0
+"Arts, Entertainment, and Recreation",3981.0717055349733,3753.0
+"Arts, Entertainment, and Recreation",4466.835921509631,6162.0
+"Arts, Entertainment, and Recreation",5011.872336272725,1393.0
+"Arts, Entertainment, and Recreation",5623.413251903491,3680.0
+"Arts, Entertainment, and Recreation",6309.57344480193,2960.0
+"Arts, Entertainment, and Recreation",7079.457843841381,1760.0
+"Arts, Entertainment, and Recreation",7943.282347242814,3686.0
+"Arts, Entertainment, and Recreation",8912.509381337459,2572.0
+"Arts, Entertainment, and Recreation",10000.0,6563.0
+"Arts, Entertainment, and Recreation",11220.18454301963,4791.0
+"Arts, Entertainment, and Recreation",12589.254117941662,3248.0
+"Arts, Entertainment, and Recreation",14125.375446227554,4876.0
+"Arts, Entertainment, and Recreation",15848.93192461114,3237.0
+"Arts, Entertainment, and Recreation",17782.794100389227,3816.0
+"Arts, Entertainment, and Recreation",19952.62314968879,8169.0
+"Arts, Entertainment, and Recreation",22387.21138568338,7358.0
+"Arts, Entertainment, and Recreation",25118.864315095823,4126.0
+"Arts, Entertainment, and Recreation",28183.82931264455,6803.0
+"Arts, Entertainment, and Recreation",31622.776601683792,5285.0
+"Arts, Entertainment, and Recreation",35481.33892335753,3270.0
+"Arts, Entertainment, and Recreation",39810.71705534969,5290.0
+"Arts, Entertainment, and Recreation",44668.359215096345,5794.0
+"Arts, Entertainment, and Recreation",50118.72336272725,2564.0
+"Arts, Entertainment, and Recreation",56234.13251903491,3174.0
+"Arts, Entertainment, and Recreation",63095.7344480193,2708.0
+"Arts, Entertainment, and Recreation",70794.57843841374,1641.0
+"Arts, Entertainment, and Recreation",79432.82347242821,1761.0
+"Arts, Entertainment, and Recreation",89125.0938133746,1113.0
+"Arts, Entertainment, and Recreation",100000.0,1480.0
+"Arts, Entertainment, and Recreation",112201.84543019629,822.0
+"Arts, Entertainment, and Recreation",125892.54117941661,523.0
+"Arts, Entertainment, and Recreation",141253.75446227554,517.0
+"Arts, Entertainment, and Recreation",158489.3192461114,307.0
+"Arts, Entertainment, and Recreation",177827.94100389228,195.0
+"Arts, Entertainment, and Recreation",199526.2314968879,288.0
+"Arts, Entertainment, and Recreation",223872.11385683378,215.0
+"Arts, Entertainment, and Recreation",251188.6431509582,72.0
+"Arts, Entertainment, and Recreation",281838.2931264455,103.0
+"Arts, Entertainment, and Recreation",316227.7660168379,45.0
+"Arts, Entertainment, and Recreation",354813.3892335753,27.0
+"Arts, Entertainment, and Recreation",398107.1705534969,50.0
+"Arts, Entertainment, and Recreation",446683.5921509635,94.0
+"Arts, Entertainment, and Recreation",501187.2336272725,96.0
+"Arts, Entertainment, and Recreation",562341.3251903491,91.0
+"Arts, Entertainment, and Recreation",630957.344480193,54.0
+"Arts, Entertainment, and Recreation",707945.7843841374,40.0

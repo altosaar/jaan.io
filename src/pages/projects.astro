@@ -1,0 +1,106 @@
+---
+// /projects — the index of project sets.
+//
+// The Jekyll site served /projects/ as five external links (Flickr, CANImmunize,
+// Useful Science, the One Fact Foundation, and an unpublished Couchometer
+// entry). Those are still to port; see README Phase 4 §1. What is here now is
+// the set that is not an external link at all — the visualizations, which live
+// on this site.
+//
+// Same list treatment as /articles: mark, headline, one line. See
+// src/pages/articles.astro for why the entries are spaced the way they are.
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import { VISUALIZATIONS } from "../data/visualizations";
+
+const projects = [
+  {
+    href: "/visualizations",
+    title: "Visualizations",
+    description:
+      "Interactive views of large public datasets — healthcare claims, census microdata, city property records, hospital vitals. Every one runs the query in your browser against the real data, not a picture of it.",
+    meta: `${VISUALIZATIONS.length} visualizations`,
+  },
+];
+---
+
+<Base
+  title="Projects"
+  description="Things built rather than written: interactive visualizations of large public datasets, and the organizations behind them."
+>
+  <Section as="header" top="section" bottom="block">
+    <h1 class="projects-title">Projects</h1>
+  </Section>
+
+  <Section bottom="gap">
+    <ul class="projects" role="list">
+      {
+        projects.map((project) => (
+          <li class="project">
+            <a href={project.href} class="project__link">
+              <h2 class="project__title">{project.title}</h2>
+            </a>
+            <p class="project__desc">{project.description}</p>
+            <p class="project__meta">{project.meta}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+</Base>
+
+<style>
+  .projects-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-h1);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  .projects {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: var(--reading-w);
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+  }
+
+  .project__link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .project__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .project__link:hover .project__title,
+  .project__link:focus-visible .project__title {
+    color: var(--accent);
+  }
+
+  .project__desc {
+    margin-top: 1.25rem;
+    font-size: var(--fs-body);
+    line-height: 1.6;
+    max-width: var(--reading-w-tight);
+  }
+
+  .project__meta {
+    margin-top: 0.75rem;
+    font-family: var(--font-chrome);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+</style>

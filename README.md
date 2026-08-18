@@ -18,6 +18,11 @@ npm run build    # → dist/
 npm run preview  # serves dist/ on localhost:4322
 ```
 
+`npm run dev` and `npm run build` both build the `/visualizations` charts first
+(see §7 and `viz/README.md`); `npm run viz` forces a rebuild after editing one.
+Three of the seven read their data from R2, so until that bucket exists they
+need `npm run viz:local` once to run against local copies.
+
 There is no test framework by design. These four are the tests, and CI runs
 all of them:
 
@@ -59,10 +64,13 @@ Nine of the ten real articles are ported and verified. What remains:
 - [ ] **`/blog/`** — the article index, live today. This site calls it
       `/articles`, so `/blog/` needs a 301 (see §2). Decide whether `/blog`
       should also keep working as an alias rather than only redirecting.
-- [ ] **`/projects/`** — five entries, four published. Each is an external
-      link in Jekyll, not a page: a thumbnail and a blurb pointing straight
-      out to Flickr, CANImmunize, Useful Science and the One Fact Foundation.
-      Nothing to build but the index.
+- [ ] **`/projects/`** — the index now exists and carries one entry,
+      Visualizations (see §7). Still to port: the four published external
+      entries from the Jekyll tree, which are links rather than pages — a
+      thumbnail and a blurb pointing straight out to Flickr, CANImmunize,
+      Useful Science and the One Fact Foundation. Their copy is in
+      `jaan.io-old/_posts/projects/`. `npm run audit` flags /projects as a thin
+      page at 53 words until they land.
 - [ ] **`/papers/`** — the publication list, driven by 14 entries in
       `jaan.io-old/_papers/`. `output: false` there, so there are no
       per-paper pages — the index links to the PDFs in §4.
@@ -166,6 +174,45 @@ Run these against the Pages preview URL before touching DNS, and again after.
       `npm run audit` fails the build if they drift.
 - [ ] Keyboard pass over the carousel: Tab in, arrows, Home/End, and confirm
       off-screen slides are not focusable. No script tests this.
+
+## 7. /visualizations — the R2 bucket
+
+The seven Observable pages from `../jaan.li` are ported and live under
+`/visualizations/…`. They are not a regression risk — `jaan.li` is not
+resolving, so none of these URLs are live today and none need a redirect — but
+**three of them do not work until an R2 bucket exists.**
+
+The charts are built by the Observable Framework project in `viz/` into
+`public/visualizations/` by `scripts/build-visualizations.mjs`, which
+`npm run build` runs **before** `astro build`. Building into `public/` rather
+than `dist/` is what makes them work under `astro dev` as well. Full detail is
+in `viz/README.md`.
+
+- [ ] **Create the `jaan-io-data` R2 bucket, attach `data.jaan.io`, set its
+      CORS policy, and upload the three large datasets.** Commands and the CORS
+      JSON are in `viz/README.md`. Until this is done, New York real estate,
+      ACS → New York area, and ACS → income by race show their error state; the
+      other four pages are self-contained and work now. To run all seven
+      locally in the meantime: `npm run viz:local && npm run dev`.
+- [ ] Confirm the New York map paints in a real browser. It is verified at the
+      network layer — the PMTiles archive answers with `206 Partial Content`
+      and the Protomaps style, sprites and fonts all return 200 — but headless
+      Chrome renders WebGL through software GL and produces a blank canvas, so
+      nothing automated can check the last step.
+- [ ] `public/_viz-data/` (created by `npm run viz:local`) is **local-only**.
+      Every file in it is over the Pages 25 MiB limit. It is gitignored and
+      `npm run build` never stages it, but do not deploy a tree that has it.
+
+Two things worth knowing about how this is wired, because both are load-bearing
+and neither is obvious:
+
+- DuckDB-wasm's two binaries (40 MB and 36 MB) are **rewritten to jsDelivr and
+  deleted from the tree** at merge time. They are over the Pages per-file limit
+  and cannot ship. The merge script fails the build if anything else is.
+- The loader in `src/layouts/Viz.astro` is `is:inline` deliberately. A
+  Vite-processed script rewrites every dynamic import into `__vitePreload(…,
+__VITE_PRELOAD__)`, and since these modules are not Vite's, the placeholder is
+  never substituted and every chart page throws on load.
 
 ## Do not commit
 

@@ -1,0 +1,109 @@
+---
+// Was jaan.li/american-community-survey/ — the index of that set, and itself a
+// page with two charts on it.
+//
+// URL note: this emits american-community-survey.html, and the three pages
+// below it live in the american-community-survey/ directory beside it. A file
+// and a directory of the same name coexist fine; Cloudflare Pages serves
+// /visualizations/american-community-survey from the .html, and the site's
+// trailing-slash rule sends the slashed form here in one hop.
+import Viz from "../../layouts/Viz.astro";
+import VizEmbed from "../../components/VizEmbed.astro";
+import { VISUALIZATIONS } from "../../data/visualizations";
+
+// The other three ACS pages, listed at the foot of this one.
+const siblings = VISUALIZATIONS.filter(
+  (v) => v.slug.startsWith("american-community-survey/") && v.slug !== "american-community-survey",
+);
+---
+
+<Viz
+  title="American Community Survey"
+  description="Two distributions from the 2022 survey: annual income by sector of employment, and monthly rent by region of the United States."
+  eyebrow="Visualizations"
+  eyebrowHref="/visualizations"
+>
+  <p class="viz-note">
+    A testbed for showing the Census Bureau's American Community Survey as something you can
+    interrogate rather than something you read a summary of. There are thousands of variables and
+    millions of people's and households' datapoints in it; these two are a start.
+  </p>
+
+  <h2 class="viz-h2">People earn very different amounts depending on the sector they work in</h2>
+  <p class="viz-note">
+    Annual income reported in the 2022 survey, binned on a log scale and stacked by sector of
+    employment. Sectors are ordered by mean income.
+  </p>
+  <VizEmbed module="acs-2022" export="IncomeBySector" minHeight={520} />
+
+  <h2 class="viz-h2">Households in different regions pay very different rent</h2>
+  <p class="viz-note">
+    Monthly rent reported by households in the 2022 survey, by region of the United States.
+  </p>
+  <VizEmbed module="acs-2022" export="RentByRegion" minHeight={520} />
+
+  <h2 class="viz-h2">The rest of this set</h2>
+  <ul class="viz-siblings">
+    {
+      siblings.map((v) => (
+        <li>
+          <a href={`/visualizations/${v.slug}`}>{v.title}</a> — <span>{v.scale}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <p class="viz-note">
+    This page reënvisions the display of public data for the public good, and is part of an
+    experiment in exploring urban non-private spaces with my partner. The Census Bureau notes that
+    government agencies use these statistics to allocate over $675 billion each year back to
+    communities, and that businesses use the estimates for strategic decisions; insurance companies,
+    health systems and real estate developers use them too. If you have ideas for other variables
+    worth looking at, or better ways to show these millions of datapoints, say so.
+  </p>
+
+  <Fragment slot="sources">
+    <ul>
+      <li>
+        Data: <a href="https://www.census.gov/programs-surveys/acs/data.html" rel="noopener"
+          >American Community Survey</a
+        >, U.S. Census Bureau, 2022 public use microdata sample.
+      </li>
+      <li>
+        Transforms: <a
+          href="https://github.com/jaanli/exploring_american_community_survey_data/blob/main/american_community_survey/models/public_use_microdata_sample/figures/income-histogram-with-sector.sql"
+          rel="noopener">income-histogram-with-sector.sql</a
+        > and <a
+          href="https://github.com/jaanli/exploring_american_community_survey_data/blob/main/american_community_survey/models/public_use_microdata_sample/figures/household-histogram-with-region.sql"
+          rel="noopener">household-histogram-with-region.sql</a
+        >.
+      </li>
+      <li>
+        Pipeline: <a href="https://github.com/jaanli/american-community-survey/" rel="noopener"
+          >jaanli/american-community-survey</a
+        > — fork it to build your own from the <a
+          href="https://github.com/jaanli/exploring_american_community_survey_data/tree/main?tab=readme-ov-file#types-of-data-available-for-every-person-who-responded-to-the-american-community-survey"
+          rel="noopener">thousands of available variables</a
+        >.
+      </li>
+    </ul>
+  </Fragment>
+</Viz>
+
+<style is:global>
+  .viz-siblings {
+    list-style: none;
+    margin-top: 1rem;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    font-size: var(--fs-base);
+    max-width: var(--reading-w-tight);
+  }
+
+  .viz-siblings span {
+    color: var(--text-muted);
+    font-size: 0.85em;
+  }
+</style>

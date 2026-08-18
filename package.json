@@ -3,8 +3,8 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "node scripts/build-visualizations.mjs --if-missing && astro dev",
+    "build": "node scripts/build-visualizations.mjs && astro build",
     "photos": "node scripts/prep-photos.mjs",
     "preview": "astro preview",
     "check": "astro check",
@@ -15,7 +15,10 @@
     "deploy": "wrangler pages deploy dist --project-name=jaan-io --branch=main",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "git config core.hooksPath .githooks || true"
+    "prepare": "git config core.hooksPath .githooks || true",
+    "viz": "node scripts/build-visualizations.mjs",
+    "viz:dev": "npm --prefix viz run dev",
+    "viz:local": "node scripts/stage-viz-data.mjs"
   },
   "dependencies": {
     "astro": "^7.2.2",

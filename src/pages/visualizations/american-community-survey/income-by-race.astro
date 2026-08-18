@@ -1,0 +1,44 @@
+---
+// Was jaan.li/american-community-survey/income-by-race.
+import Viz from "../../../layouts/Viz.astro";
+import VizEmbed from "../../../components/VizEmbed.astro";
+---
+
+<Viz
+  title="New York incomes by area and race"
+  description="The same New York microdata areas and years as the sector view, split by self-reported race instead."
+  eyebrow="American Community Survey"
+  eyebrowHref="/visualizations/american-community-survey"
+>
+  <h2 class="viz-h2">Neighbourhood income distributions vary across time, space, and race</h2>
+  <p class="viz-note">
+    15 million people's answers to the 2005–2022 surveys, for the public use microdata areas that
+    overlap the New York–Newark–Jersey City core-based statistical area as drawn in 2020, grouped by
+    the race each respondent reported for themselves.
+  </p>
+  <p class="viz-note">
+    The categories are the Census Bureau's own, including the ones that overlap — "American Indian
+    or Alaska Native" appears alongside separate "American Indian" and "Alaska Native" entries
+    because the survey has carried all three over this period. They are shown as collected rather
+    than merged.
+  </p>
+
+  <VizEmbed module="acs-new-york" export="IncomeByRaceNewYork" minHeight={620} />
+
+  <Fragment slot="sources">
+    <ul>
+      <li>
+        Data: <a href="https://www.census.gov/programs-surveys/acs/data.html" rel="noopener"
+          >American Community Survey</a
+        >, U.S. Census Bureau, 2005–2022 public use microdata samples, inflation-adjusted.
+      </li>
+      <li>
+        Transform: <a
+          href="https://github.com/jaanli/exploring_american_community_survey_data/blob/f54a1fa6d4b6ed91e3d08815a2f7322b37622855/american_community_survey/models/public_use_microdata_sample/figures/income-histogram-with-sector-historical-with-race-inflation-adjusted-industry-mapped-newyork-newark-cbsa.sql"
+          rel="noopener"
+          >income-histogram-with-sector-historical-with-race-…-newyork-newark-cbsa.sql</a
+        >.
+      </li>
+    </ul>
+  </Fragment>
+</Viz>

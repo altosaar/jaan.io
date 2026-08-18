@@ -1,0 +1,208 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Styling for the embedded Observable charts.
+
+   The modules in viz/ ship no CSS. On a Framework page they would inherit that
+   project's theme — the slate palette, its own type stack, its `.card` chrome.
+   None of that comes along with an exported module, which is the point: the
+   figures land as bare SVG and bare form controls and pick up jaan.io's tokens
+   instead.
+
+   What has to be said explicitly is the handful of things Observable Plot and
+   Observable Inputs read from CSS rather than from their own options:
+     • Plot's tooltips paint on var(--plot-background), which defaults to white
+       and would be a white slab on a black page.
+     • Plot inherits `color` and `font-family` from the element it is appended
+       to, so the axes and legends follow --text and --font-body for free —
+       provided nothing between here and there resets them.
+     • Observable Inputs render plain <label>/<input>/<select> under class names
+       with no styles attached, so they get styled here from scratch.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.viz-embed {
+  /* Plot reads these two. --plot-background is the tooltip and swatch plate;
+     leaving it at its white default is the single most visible thing that goes
+     wrong when a chart built for a light theme is dropped onto a dark one. */
+  --plot-background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+
+  margin-block: var(--space-block);
+  /* Charts are the widest thing on these pages and are not prose, so they take
+     the full column rather than the reading measure. */
+  width: 100%;
+}
+
+/* The Mosaic cross-filter is laid out at a fixed width (see viz/src/charts/
+   glucose.js for why it cannot simply be re-rendered narrower). Give it its own
+   scroller so the page body never scrolls sideways. */
+.viz-embed--scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.viz-embed__status {
+  color: var(--text-muted);
+  font-size: var(--fs-base);
+  padding-block: 2rem;
+}
+
+.viz-embed__status--error {
+  color: var(--select);
+}
+
+/* Plot wraps its output in <figure>, which carries a UA margin. */
+.viz-embed figure {
+  margin: 0;
+  max-width: 100%;
+}
+
+/* NOT `overflow: visible` on the svg. Several of these charts pin their x
+   domain deliberately — the ACS ones fix it at $5k–$500k so the distribution
+   can be compared across years and areas — and the data runs past both ends.
+   The SVG viewport is what clips those out-of-domain bars; make it visible and
+   they draw outside the axis, in the page margin, as if they were part of the
+   chart. */
+
+/* Plot's swatch legend ships its own scoped rules, including a 10px system
+   font. One class of extra specificity is enough to take it back. */
+.viz-embed [class*="-swatches"] {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+/* ── Controls ──────────────────────────────────────────────────────────────
+   The year slider and area picker, plus the large readout beside each that
+   names the current value. The readout is the reason the number input is
+   removed from Inputs.range in the chart modules: the value is stated once, in
+   the page's own display face, at a size you can read from across the room.  */
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1rem 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.viz-control {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  /* Long PUMA names ("New Jersey — Hudson County (South) …") must be allowed to
+     shrink rather than pushing the row past the column. */
+  min-width: 0;
+  max-width: 100%;
+}
+
+.viz-readout {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  /* Keeps the slider from stepping left and right as the year's glyph widths
+     change under a drag. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Observable Inputs emit <form><label>…<input></form>. */
+.viz-control form {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.viz-control label {
+  color: var(--text-muted);
+  font-family: var(--font-chrome);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.viz-control select {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 0.4rem 0.6rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  max-width: min(28rem, 60vw);
+}
+
+.viz-control input[type="range"] {
+  accent-color: var(--accent);
+  width: 150px;
+  max-width: 40vw;
+}
+
+.viz-control :is(select, input):focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ── The MapPLUTO popup ────────────────────────────────────────────────────
+   A property in the New York map carries ~90 MapPLUTO columns and the popup
+   lists all of them, so it needs a height cap and its own scroller. */
+
+.viz--map {
+  width: 100%;
+}
+
+.maplibregl-popup-content {
+  background: var(--surface);
+  color: var(--text);
+  max-height: 22rem;
+  overflow-y: auto;
+  font-family: var(--font-body);
+}
+
+.maplibregl-popup-content .viz-popup {
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.viz-popup td {
+  padding: 0.05rem 0.5rem 0.05rem 0;
+  vertical-align: top;
+}
+
+.viz-popup td:first-child {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: var(--surface);
+  border-bottom-color: var(--surface);
+}
+
+/* ── Page furniture ────────────────────────────────────────────────────────
+   Subheadings and captions written into the Viz layout's default slot. They
+   cannot be styled from that layout's scoped <style> — Astro's scoping hash
+   lands on the layout's own markup, not on what a page passes into it — so
+   they live here, alongside the chart styles they sit between. */
+
+.viz-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  max-width: var(--reading-w-tight);
+  margin-top: var(--space-block);
+}
+
+.viz-note {
+  margin-top: 1rem;
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: var(--reading-w-tight);
+}

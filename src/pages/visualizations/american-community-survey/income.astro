@@ -1,0 +1,39 @@
+---
+// Was jaan.li/american-community-survey/income.
+import Viz from "../../../layouts/Viz.astro";
+import VizEmbed from "../../../components/VizEmbed.astro";
+---
+
+<Viz
+  title="Two decades of American incomes"
+  description="How much 38 million people reported earning in the 2000–2022 American Community Surveys, by sector of employment, scrubbed year by year."
+  eyebrow="American Community Survey"
+  eyebrowHref="/visualizations/american-community-survey"
+>
+  <h2 class="viz-h2">The sectors where people earn most have shifted over two decades</h2>
+  <p class="viz-note">
+    Drag the year. The x-axis and the sector colours are pinned across every year, so what moves is
+    the distribution itself rather than the frame around it. Sectors are ranked by mean income in
+    2022 and that ranking is held fixed — otherwise the chart would recolour under your hand and the
+    shift would be impossible to see.
+  </p>
+
+  <VizEmbed module="acs-income" export="IncomeBySectorHistorical" minHeight={560} />
+
+  <Fragment slot="sources">
+    <ul>
+      <li>
+        Data: <a href="https://www.census.gov/programs-surveys/acs/data.html" rel="noopener"
+          >American Community Survey</a
+        >, U.S. Census Bureau, 2000–2022 public use microdata samples, inflation-adjusted.
+      </li>
+      <li>
+        Transform: <a
+          href="https://github.com/jaanli/exploring_american_community_survey_data/blob/main/american_community_survey/models/public_use_microdata_sample/figures/income-histogram-with-sector-historical-inflation-adjusted-industry-mapped.sql"
+          rel="noopener"
+          >income-histogram-with-sector-historical-inflation-adjusted-industry-mapped.sql</a
+        >.
+      </li>
+    </ul>
+  </Fragment>
+</Viz>

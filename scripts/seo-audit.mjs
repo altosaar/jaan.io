@@ -318,6 +318,11 @@ for (const page of htmlFiles) {
   // fragment part (pathToFile already strips #, so /about#team resolves fine).
   for (const m of body.matchAll(/href="([^"]+)"/g)) {
     const h = decode(m[1]);
+    // A data: URI is not a link — nothing is being navigated to and there is
+    // nothing to resolve. The /visualizations marks carry two of them, on the
+    // <image> elements inside the inlined SVG rasters, and this check reported
+    // both as broken internal links.
+    if (h.startsWith("data:")) continue;
     if (/^(https?:|mailto:|tel:)/.test(h)) {
       if (/\/\/(www\.)?(example\.(org|com|net)|localhost|127\.0\.0\.1)/i.test(h))
         err(page, `Placeholder external link shipped: ${h}`);
