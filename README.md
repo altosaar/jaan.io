@@ -221,6 +221,15 @@ and migrated; the Turnstile widget (managed mode, `jaan-io.pages.dev` and
 Pages project for production and preview; `PUBLIC_TURNSTILE_SITE_KEY` as a repo
 variable.
 
+The widget renders with `appearance="interaction-only"`, so it draws nothing
+unless a visitor actually has to click something, and the form waits for its
+token rather than posting an empty one (see NewsletterSignup.astro). Switching
+it to **Invisible** mode is a dashboard setting on the same site key and needs
+no code change — but it removes the checkbox fallback, leaving a visitor who
+cannot pass silently with no way through, and Cloudflare makes it a condition
+that the site's privacy policy reference their Turnstile Privacy Addendum,
+which means writing one first.
+
 Still open, and neither blocks the form from working:
 
 1. **An end-to-end test against the real widget.** The testing keys cannot

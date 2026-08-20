@@ -52,6 +52,19 @@ const PAIRS = [
   { fg: "--accent", bg: "--bg", min: 3, what: "Accent used as an icon/indicator colour" },
   { fg: "--focus-ring-color", bg: "--bg", min: 3, what: "Keyboard focus ring (WCAG 2.4.13)" },
   { fg: "--focus-ring-color", bg: "--surface", min: 3, what: "Focus ring over a raised surface" },
+  {
+    fg: "--text",
+    bg: "--card",
+    min: 4.5,
+    what: "Signup card: heading and status line",
+  },
+  { fg: "--text-muted", bg: "--card", min: 4.5, what: "Microcopy under the signup form" },
+  {
+    fg: "--text",
+    bg: "--field",
+    min: 4.5,
+    what: "A typed address, its label, and the white focus ring drawn inside the field",
+  },
 ];
 
 // Tokens that must NEVER be used as a foreground colour. Listing one here says
@@ -60,6 +73,8 @@ const PAIRS = [
 const BACKGROUND_ONLY = [
   { token: "--surface", note: "backgrounds only — 1.44:1 on --bg is the original bug" },
   { token: "--line", note: "hairline dividers only; decorative, not a UI boundary" },
+  { token: "--card", note: "the signup card's plate; text on it is checked above" },
+  { token: "--field", note: "a form field's fill; text on it is checked above" },
 ];
 
 // ------------------------------------------------------------- plumbing ---

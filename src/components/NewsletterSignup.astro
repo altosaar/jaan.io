@@ -54,20 +54,42 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
 ---
 
 <section class="newsletter" aria-labelledby="newsletter-title">
-  <h2 id="newsletter-title" class="newsletter__title">Newsletter</h2>
+  {
+    /* THE BOX. Modelled on the Config login card: a dark plate on the black
+       page, with the form field sitting on it as a LIGHTER filled box — two
+       steps up the grey ramp (--bg → --card → --field), which is the whole
+       effect. The field carries its label inside it at the top rather than
+       above it, so the box stays one rectangle instead of a label and a
+       rectangle. See tokens.css for the two greys. */
+  }
+  <div class="newsletter__card">
+    {
+      /* The card's own heading is the section's heading — there is no separate
+         line above the box any more, so this is what aria-labelledby points at
+         and what names the section in the page outline. An <h2>, like the
+         article titles it sits under. */
+    }
+    <h2 id="newsletter-title" class="newsletter__title">Newsletter</h2>
 
-  <form class="newsletter__form" data-newsletter>
-    <label class="newsletter__label" for="newsletter-email">Email address</label>
-    <div class="newsletter__row">
-      <input
-        class="newsletter__input"
-        id="newsletter-email"
-        type="email"
-        name="email"
-        required
-        autocomplete="email"
-        placeholder="you@example.com"
-      />
+    <form class="newsletter__form" data-newsletter>
+      <div class="newsletter__field">
+        {
+          /* Still a real <label>, still always visible — it just lives on top
+             of the input's own top padding now. Which is the point of the
+             pattern: unlike a placeholder it does not vanish when someone
+             starts typing, so the field can be checked mid-fill. */
+        }
+        <label class="newsletter__label" for="newsletter-email">Email address</label>
+        <input
+          class="newsletter__input"
+          id="newsletter-email"
+          type="email"
+          name="email"
+          required
+          autocomplete="email"
+        />
+      </div>
+
       {
         /* Honeypot. Off-screen rather than display:none — a field that is not
            rendered at all is one a headless browser can see is not rendered, and
@@ -86,28 +108,55 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
           autocomplete="off"
         />
       </div>
-      <button class="cta-primary newsletter__submit" type="submit">Subscribe</button>
-    </div>
+
+      {
+        /* Managed mode: Turnstile decides whether to show a challenge at all.
+          Three attributes are what keep it out of the way:
+
+          appearance="interaction-only" — per Cloudflare's docs, "the widget
+            becomes visible only when visitor interaction is required". The
+            challenge still runs at page load and still writes its token; it
+            just draws nothing while it is passing, and its container measures
+            0px tall. This is the canonical way to get rid of the box without
+            giving up the checkbox as a fallback — where the dashboard's
+            Invisible widget MODE (a per-widget setting on the site key, not an
+            attribute) would leave a visitor Turnstile is unsure about with a
+            form that fails and no way to prove otherwise. Invisible mode also
+            carries a condition this site cannot meet yet: "you must reference
+            Cloudflare's Turnstile Privacy Addendum in your own privacy
+            policy", and there is no privacy policy.
+          size="flexible" — 100% of the container rather than a fixed 300px
+            card, so on the rare occasion it does appear it lines up with the
+            field and the button instead of sitting in the middle of the box.
+          theme="dark" — pinned rather than left on `auto`, which follows the
+            VISITOR's prefers-color-scheme; this site is dark for everyone, so
+            half the audience was getting a white widget in a dark card. */
+      }
+      <div
+        class="cf-turnstile newsletter__widget"
+        data-sitekey={siteKey}
+        data-theme="dark"
+        data-appearance="interaction-only"
+        data-size="flexible"
+      >
+      </div>
+
+      <button class="cta-primary newsletter__submit" type="submit">Sign up</button>
+    </form>
 
     {
-      /* Managed mode, default appearance: Turnstile decides whether to show a
-        challenge at all, and most visitors see a checkbox that resolves itself. */
+      /* role="status" is what makes the success and error lines reach a screen
+         reader: the region is in the DOM from the start and empty, so filling it
+         later is an announcement. Building the line after submit instead would
+         insert it silently. */
     }
-    <div class="cf-turnstile newsletter__widget" data-sitekey={siteKey}></div>
-  </form>
+    <p class="newsletter__status" role="status" aria-live="polite" data-newsletter-status></p>
 
-  {
-    /* role="status" is what makes the success and error lines reach a screen
-       reader: the region is in the DOM from the start and empty, so filling it
-       later is an announcement. Building the line after submit instead would
-       insert it silently. */
-  }
-  <p class="newsletter__status" role="status" aria-live="polite" data-newsletter-status></p>
-
-  <p class="newsletter__note">
-    Occasional emails, at most a few per year. Unsubscribe anytime.
+    <!-- <p class="newsletter__note">
+      <!-- Occasional emails, at most a few per year. Unsubscribe anytime. -->
     <!-- TODO: link privacy policy when it exists -->
-  </p>
+    <!-- </p> -->
+  </div>
 </section>
 
 <!-- Turnstile's loader. `is:inline` because this is a third-party URL that must
@@ -129,7 +178,41 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
     // for a bad address, a failed challenge and a malformed body alike, and
     // guessing which one it was in the browser would only ever be a guess.
     error: "Something went wrong — please try again.",
+    // Shown only in the seconds where there is no token yet. See waitForToken.
+    waiting: "One moment…",
   };
+
+  // Turnstile writes its token into a hidden input inside the form, whenever the
+  // challenge it started at page load finishes. Usually that is done long before
+  // anybody has finished typing an address — but not always, and the widget is
+  // invisible (appearance="interaction-only"), so a visitor who submits into
+  // that gap gets no hint that anything is pending. Posting a blank token would
+  // earn a 400 and "Something went wrong" for a signup that was fine.
+  //
+  // Polling rather than Turnstile's data-callback: the callback is looked up by
+  // name on `window`, which means exporting a global out of a bundled module for
+  // something a five-line loop does with no globals at all.
+  const TOKEN_WAIT_MS = 6000;
+  const TOKEN_POLL_MS = 100;
+
+  const tokenIn = (form: HTMLFormElement) =>
+    String(new FormData(form).get("cf-turnstile-response") ?? "");
+
+  async function waitForToken(form: HTMLFormElement, status?: HTMLElement | null) {
+    let token = tokenIn(form);
+    if (token) return token;
+
+    if (status) status.textContent = COPY.waiting;
+    const deadline = Date.now() + TOKEN_WAIT_MS;
+    while (!token && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, TOKEN_POLL_MS));
+      token = tokenIn(form);
+    }
+    // Empty at the deadline means the challenge is stuck or blocked. Falling
+    // through with it lets the one error path below do the reporting and the
+    // widget reset, rather than growing a second kind of failure here.
+    return token;
+  }
 
   for (const form of document.querySelectorAll<HTMLFormElement>("form[data-newsletter]")) {
     const status = form.parentElement?.querySelector<HTMLElement>("[data-newsletter-status]");
@@ -146,6 +229,10 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
       submit.disabled = true;
       if (status) status.textContent = "";
 
+      // Read after the wait, not from `data` above: the whole point is that the
+      // token may not have existed when that snapshot was taken.
+      const token = await waitForToken(form, status);
+
       let ok = false;
       try {
         const response = await fetch("/api/subscribe", {
@@ -153,8 +240,7 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: data.get("email"),
-            // Turnstile writes this field into the form itself.
-            token: data.get("cf-turnstile-response"),
+            token,
             website: data.get("website"),
           }),
         });
@@ -184,7 +270,9 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
 <style>
   /* Sized and offset like every other block on the site — see Section.astro,
      whose two lines these are. Not the component itself, because this section
-     also carries its own vertical rhythm and a max-width tied to the measure. */
+     also carries its own vertical rhythm and a max-width tied to the measure.
+     The card fills that measure, which is what lines its edges up with the
+     article list above it. */
   .newsletter {
     width: var(--site-w);
     margin-left: var(--site-ml);
@@ -193,65 +281,91 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
     margin-bottom: var(--space-block);
   }
 
+  /* Step one of the ramp: a plate that is lighter than the page and darker than
+     anything on it. Square corners, like everything else here (--hover-radius
+     is 0 by choice — see tokens.css). */
+  .newsletter__card {
+    background: var(--card);
+    padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 3vw, 1.875rem);
+  }
+
+  /* The reference sets this large and light; the size is worth copying, the
+     weight is not — 600 and -0.01em is what every other heading on this site
+     is, and the brief was this box in this site's voice. */
   .newsletter__title {
     font-family: var(--font-display);
-    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+    font-size: clamp(1.875rem, 3vw, 2.375rem);
     font-weight: 600;
     letter-spacing: -0.01em;
-    line-height: 1.2;
+    line-height: 1;
+    margin-bottom: clamp(1.5rem, 4vw, 2rem);
   }
 
-  /* The label is visible rather than .sr-only. A placeholder is not a label —
-     it disappears the moment someone types, which is exactly when a person
-     filling in a form on a phone wants to check what the field was for. */
+  /* Positioning context for the label that sits inside the input. */
+  .newsletter__field {
+    position: relative;
+  }
+
+  /* Parked in the input's top padding — see the note beside the markup. It stays
+     a plain <label for>, so clicking it still focuses the field. */
   .newsletter__label {
-    display: block;
-    margin-top: 1.25rem;
-    margin-bottom: 0.5rem;
-    font-size: var(--fs-base);
-    color: var(--text-muted);
+    position: absolute;
+    inset: 0.75rem 1rem auto;
+    font-size: 0.875rem;
+    line-height: 1.25;
+    color: var(--text);
   }
 
-  .newsletter__row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-
-  /* The site has no other input, so there is no existing idiom to inherit —
-     these are the first form styles in the codebase. Built out of the same
-     tokens as everything else: a --surface plate, a --line border, and the
-     global :focus-visible ring from base.css doing the focus state. */
+  /* Step two of the ramp, and the only place --field is used. No border and no
+     radius: the fill IS the edge, which is why the grey has to be a step above
+     the card rather than a shade of it.
+     The top padding is the label's room; without it the two would overlap.
+     No placeholder to go with it — an always-visible label makes one redundant,
+     and grey-on-grey placeholder text lands at 3.9:1, under the 4.5:1 floor the
+     rest of this palette holds to. */
   .newsletter__input {
-    flex: 1 1 16rem;
-    min-width: 0;
-    padding: 1.1rem 1.25rem;
+    width: 100%;
     /* inherit, for the same reason .cta-primary does it: a form control that is
        not told otherwise falls back to the UA font and reads as a foreign
        object dropped into the page. */
     font-family: inherit;
-    font-size: var(--fs-base);
+    font-size: var(--fs-body);
+    line-height: 1.35;
     color: var(--text);
-    background: var(--surface);
-    border: 1px solid var(--line);
+    background: var(--field);
+    border: 0;
     border-radius: var(--hover-radius);
-  }
+    padding: 2rem 1rem 0.5rem;
+    /* The hairline under the field, drawn inside it. Lighter than --line
+       because it sits on --field rather than on --bg — #3d3d3d on #424242 is
+       nothing at all. */
+    box-shadow: inset 0 -1px 0 0 rgba(255, 255, 255, 0.24);
 
-  .newsletter__input::placeholder {
-    color: var(--text-muted);
-  }
+    /* WHITE focus ring on this one control, not the site's green.
+       The green is the site's signal for "this is live" — a link lighting up,
+       a button about to be pressed. An empty text field is not that: nothing
+       happens when you focus it, you are just standing in it, and the ring is
+       telling you where the caret is rather than promising an action. White is
+       the same value as --btn-light, so the field and the button below it are
+       lit by one colour instead of two.
+       Redefining the token rather than writing a :focus-visible rule: the
+       global ring in base.css resolves --focus-ring-color against the focused
+       ELEMENT, so this changes the colour and leaves the width, the offset and
+       the when-to-show-it logic exactly as they are everywhere else. At 12.87:1
+       on --card (scripts/contrast-check.mjs) it clears the 3:1 that WCAG 2.4.13
+       asks of a focus indicator four times over — green gave 7.82:1.
 
-  /* .cta-primary is a block element sized for a stacked column of full-width
-     buttons; beside an input it has to shrink to its label. */
-  .newsletter__submit {
-    flex: 0 0 auto;
-    border: 1px solid var(--btn-light);
-    cursor: pointer;
-  }
-
-  .newsletter__submit:disabled {
-    cursor: default;
-    opacity: 0.6;
+       Drawn INSIDE the field, not around it. The site-wide +2px offset floats
+       the ring clear of whatever it is marking, which is right for a link or a
+       nav item sitting in open space — but this field is a filled box in a
+       column of filled boxes, so an outline 2px larger than it on every side
+       hung out past the button below and read as a second, bigger rectangle.
+       At -2px the outline is drawn just inside the border box: its outer edge
+       lands exactly on the field's edge, flush with the button's left and right
+       edges, and the ring reads as the box lighting up rather than as something
+       around it. */
+    --focus-ring-color: var(--text);
+    --focus-ring-offset: -2px;
   }
 
   /* Off-screen, not hidden — see the note beside the field. */
@@ -263,8 +377,55 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
     overflow: hidden;
   }
 
+  /* No margin, on purpose — and it cannot be made conditional. While the widget
+     is passing quietly its container is 0px tall but NOT empty (Turnstile
+     leaves a hidden <input> in it), so :empty does not match; and the iframe it
+     draws when a challenge IS required lives inside a shadow root, so
+     :has(iframe) cannot see it either. Measured both: a visible widget reports
+     65px tall and zero iframes to querySelectorAll.
+     Any margin here would therefore be a permanent gap between the field and
+     the button for everyone, spacing something almost nobody is shown. The
+     button's own margin does the spacing instead, and on the rare occasion a
+     challenge appears it sits flush under the field. */
   .newsletter__widget {
-    margin-top: 0.75rem;
+    margin: 0;
+  }
+
+  /* Full width under the field, as on the reference card — but sized to be the
+     SAME BUTTON as ARTICLES in the nav: same face, size, weight, tracking, and
+     the same 0.413rem above and below a line-height:1 line, which is what makes
+     the two exactly the same height (measured: 35.62px each).
+     The values are restated rather than shared with .nav-btn in chrome.css,
+     because that rule is inseparable from the bar it lives in — accent fill,
+     inline-flex, sitting in a fixed 50%-width row. Only the type and the
+     vertical padding are wanted here. The pair is worth re-measuring if
+     chrome.css ever moves.
+     --font-chrome deliberately, which is the one place content borrows the
+     chrome's voice (see the role tokens in tokens.css): the ask was for this to
+     read as the same control as the one in the bar, and the face is most of
+     what makes it read that way.
+     .cta-primary supplies the rest — the light fill, the black label, and the
+     accent hover — so this rule only overrides what has to differ from a
+     mobile-menu-sized CTA. */
+  .newsletter__submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 2rem;
+    padding: 0.413rem 0.963rem;
+    font-family: var(--font-chrome);
+    font-size: var(--fs-md);
+    font-weight: 350;
+    letter-spacing: 0;
+    line-height: 1;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .newsletter__submit:disabled {
+    cursor: default;
+    opacity: 0.6;
   }
 
   /* Empty until something has happened, so it must not reserve space or leave a
