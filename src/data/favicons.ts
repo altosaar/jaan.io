@@ -20,6 +20,7 @@ export const FAVICON_GLYPHS = [
   "dsc06247",
   "dsc07196-3504",
   "dsc09673-3504",
+  "chef",
   "sophie-and-david-copy",
   "sophie-and-david",
 ] as const;
