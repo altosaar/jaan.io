@@ -41,6 +41,20 @@
 // this replaced was making, just paid at a moment instead of a width. The
 // listener fires on focus too, so a keyboard reveal is not left with the still.
 //
+// A NEW PORTRAIT EVERY TIME IT COMES OUT. The file is fetched once and kept as
+// text; each reveal gets its own blob built from it with a fresh offset, so the
+// mark is never twice the same face and never picks up mid-dissolve where it
+// left off. The rebuild is triggered by the track finishing its collapse — a
+// `transitionend` for `width` that lands on zero — and not by the hover that
+// follows it. That ordering is the point: swapping an <img>'s src replaces what
+// it is showing, and doing that on the way OUT would change the face in front of
+// someone. Done on the way in, it happens behind the wordmark with a full second
+// of hidden time before anyone sees the result, decode included.
+//
+// Re-entering mid-retreat therefore keeps the face it had, because the collapse
+// never finished. That is the honest reading of it: the mark did not go away, so
+// it did not come back.
+//
 // WHAT REDUCED MOTION AND NO-JS GET: whatever the <img> already has, which is
 // public/nav-still.svg — the composite of every portrait, at nav weight. This
 // script checks for `prefers-reduced-motion` and leaves it alone, so a visitor
@@ -61,9 +75,22 @@ import { MORPH_FRAME_OFFSETS } from "../data/nav-morph.ts";
  * the difference between fetching now and fetching on hover. Two places, both
  * commented, both pointing at SITE.features.navMorph.
  *
- * `u` guards the upgrade so it runs once: pointerenter and focus are both wired
- * up, a visitor can easily do both, and two fetches would mean two blob URLs
- * with only one of them ever revoked.
+ * `t` is the fetched file, kept so a reveal costs a string join rather than a
+ * request; `f` guards the fetch so pointerenter and focus — which one visitor
+ * can easily trigger together — cannot start two of them.
+ *
+ * `p` is the blob URL currently on screen, revoked only once its REPLACEMENT has
+ * loaded. Revoking on swap instead would pull the bytes out from under an image
+ * the browser has not finished decoding.
+ *
+ * `c` is the portrait showing now, and the next pick is drawn uniformly from the
+ * OTHER ones. Plain `Math.random()` hands back the same index about one reveal
+ * in twenty, and the one thing a re-cast must never look like is not having
+ * happened: the mark slides away and returns on the same face, and the feature
+ * reads as broken rather than unlucky. Drawing from n-1 and stepping over the
+ * current index keeps every other portrait equally likely — this is not the
+ * favicon's full-cycle stride, because a reveal is a moment rather than a
+ * rotation and nobody is owed a turn.
  *
  * Every capability it needs is tested first, and the fetch has a `catch`: on a
  * browser without Blob URLs, or an offline second visit, the nav keeps the still
@@ -74,16 +101,28 @@ export const NAV_MORPH_SCRIPT = ((offsets: readonly number[]) =>
   `if(!window.matchMedia||!window.fetch||!window.URL||!URL.createObjectURL||!window.Blob)return;` +
   `if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;` +
   `var i=document.querySelector("img.nav-morph");if(!i)return;` +
-  `var o=${JSON.stringify(offsets)},u=false;` +
-  `function g(){` +
-  `if(u)return;u=true;` +
-  `var b='begin="-'+o[Math.floor(Math.random()*o.length)]+'s"';` +
-  `fetch("/nav-morph.svg").then(function(r){return r.text()}).then(function(t){` +
-  `var l=URL.createObjectURL(new Blob([t.split('begin="0s"').join(b)],{type:"image/svg+xml"}));` +
-  `i.addEventListener("load",function(){URL.revokeObjectURL(l)},{once:true});` +
-  `i.src=l` +
-  `}).catch(function(){})}` +
-  `if(matchMedia("(max-width: 1024px)").matches){g();return}` +
-  `var a=i.parentNode&&i.parentNode.parentNode;if(!a)return;` +
-  `a.addEventListener("pointerenter",g);a.addEventListener("focus",g,true)` +
+  `var o=${JSON.stringify(offsets)},t=null,f=false,p=null,c=-1;` +
+  // Build a fresh blob from the cached text, starting on a random portrait —
+  // any of them the first time, any but the current one after that.
+  `function s(){` +
+  `var k=Math.floor(Math.random()*(o.length-(c<0?0:1)));` +
+  `if(c>=0&&k>=c)k++;` +
+  `c=k;` +
+  `var b='begin="-'+o[k]+'s"',` +
+  `n=URL.createObjectURL(new Blob([t.split('begin="0s"').join(b)],{type:"image/svg+xml"})),` +
+  `q=p;p=n;` +
+  `i.addEventListener("load",function(){if(q)URL.revokeObjectURL(q)},{once:true});` +
+  `i.src=n}` +
+  // Fetch once, then hand off to s() for this and every later reveal.
+  `function e(){` +
+  `if(t||f)return;f=true;` +
+  `fetch("/nav-morph.svg").then(function(r){return r.text()}).then(function(x){t=x;s()})` +
+  `.catch(function(){f=false})}` +
+  `if(matchMedia("(max-width: 1024px)").matches){e();return}` +
+  `var m=i.parentNode,a=m&&m.parentNode;if(!a)return;` +
+  `a.addEventListener("pointerenter",e);a.addEventListener("focus",e,true);` +
+  // The track has finished collapsing: out of sight, so re-cast it.
+  `m.addEventListener("transitionend",function(v){` +
+  `if(t&&v.target===m&&v.propertyName==="width"&&!parseFloat(getComputedStyle(m).width))s()` +
+  `})` +
   `})()`)(MORPH_FRAME_OFFSETS);

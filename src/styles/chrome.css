@@ -273,6 +273,19 @@
      as the distance it travels, and in the width the track opens to — and those
      three must agree or the mark stops flush with the text or overshoots. */
   --mark-gap: 0.5rem;
+
+  /* How long the mark takes to come out, and the same again to go back.
+     Deliberately much slower than --dur-slide (0.35s), which is the site's
+     interface tempo — chrome hiding, the hamburger crossing. This is not
+     interface. Nothing is waiting on it, hovering a name is not a request for
+     anything, and at a second the movement is slow enough to read as the mark
+     drifting out rather than snapping. It is also long enough that the morph
+     underneath visibly IS a face rather than a shape that appeared.
+
+     Its own property rather than a token in tokens.css: one element uses it,
+     and promoting it would invite something else to share a number that is
+     tuned to this movement alone. */
+  --mark-slide: 1s;
   display: inline-flex;
   align-items: center;
   text-decoration: none;
@@ -350,13 +363,13 @@
     display: block;
     order: 2;
     width: 0;
-    transition: width var(--dur-slide) var(--ease-standard);
+    transition: width var(--mark-slide) var(--ease-standard);
   }
 
   .nav-home.has-mark .nav-morph {
     margin-left: var(--mark-gap);
     transform: translateX(calc(-100% - var(--mark-gap)));
-    transition: transform var(--dur-slide) var(--ease-standard);
+    transition: transform var(--mark-slide) var(--ease-standard);
   }
 
   .nav-home.has-mark:hover .nav-mark,
