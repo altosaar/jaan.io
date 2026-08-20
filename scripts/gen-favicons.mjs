@@ -507,19 +507,3 @@ writeFileSync(
     `</svg>\n`,
 );
 console.log(`wrote public/nav-still.svg (reduced-motion still, stroke-width ${NAV_STROKE})`);
-
-/**
- * An empty SVG, and the whole reason it exists is the <picture> in
- * SiteHeader.astro: there is no way to tell a <source> to select NOTHING, so
- * desktop selects this rather than downloading 186 KB of morph for an image
- * chrome.css hides.
- *
- * A file rather than the `data:` URI this started as. A srcset candidate list
- * is split on commas, and every data: URI contains one right after its media
- * type — so `data:image/svg+xml,%3Csvg…` parses as two candidates, neither of
- * them a URL. (`npm run audit` is what caught it, splitting srcset the same way
- * a browser does.) Ninety-odd bytes, cached after the first page, and
- * unambiguous.
- */
-writeFileSync("public/nav-blank.svg", `<svg xmlns="http://www.w3.org/2000/svg"/>\n`);
-console.log("wrote public/nav-blank.svg (desktop no-op — see the <picture> in SiteHeader.astro)");

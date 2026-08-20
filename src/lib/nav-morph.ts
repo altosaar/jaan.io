@@ -33,14 +33,23 @@
 // Function sitting in front of the asset — an invocation on every page view,
 // on a route `astro dev` does not serve. See src/lib/favicon.ts.
 //
+// WHEN IT RUNS. Below 1024px the mark IS the home link, on screen from the
+// first paint, so the upgrade happens immediately. Above it the mark is hidden
+// behind the wordmark until someone hovers (see the reveal in chrome.css), so
+// the fetch waits for that first hover — a desktop visitor who never points at
+// the name never spends the ~22 KB, which is the same bargain the <picture>
+// this replaced was making, just paid at a moment instead of a width. The
+// listener fires on focus too, so a keyboard reveal is not left with the still.
+//
 // WHAT REDUCED MOTION AND NO-JS GET: whatever the <img> already has, which is
 // public/nav-still.svg — the composite of every portrait, at nav weight. This
 // script checks for `prefers-reduced-motion` and leaves it alone, so a visitor
 // who asked not to see motion never downloads the morph at all. That check is
-// the reason the still is the markup default rather than a <source>: an outer
-// stylesheet cannot stop SMIL inside an <img>, so not upgrading is the only way
-// to honour the preference, and the file it declines to upgrade FROM has to be
-// the one that is already correct.
+// the reason the still is the markup default: an outer stylesheet cannot stop
+// SMIL inside an <img>, so not upgrading is the only way to honour the
+// preference, and the file it declines to upgrade FROM has to be the one that
+// is already correct. On desktop that visitor still gets the reveal — the mark
+// arrives instead of sliding, and it is the composite rather than the morph.
 
 import { MORPH_FRAME_OFFSETS } from "../data/nav-morph.ts";
 
@@ -48,10 +57,13 @@ import { MORPH_FRAME_OFFSETS } from "../data/nav-morph.ts";
  * The upgrade, as source for an `is:inline` <script> beside the <img>.
  *
  * The width test duplicates the `@media (max-width: 1024px)` block in
- * chrome.css that reveals the mark, and has to keep matching it: above that
- * width the mark is hidden and the morph must not be fetched. (The <picture>
- * beside this carries the same figure as its complement, 1025px. Three places,
- * all commented, all pointing at SITE.features.navMorph.)
+ * chrome.css that shows the mark outright, and has to keep matching it — it is
+ * the difference between fetching now and fetching on hover. Two places, both
+ * commented, both pointing at SITE.features.navMorph.
+ *
+ * `u` guards the upgrade so it runs once: pointerenter and focus are both wired
+ * up, a visitor can easily do both, and two fetches would mean two blob URLs
+ * with only one of them ever revoked.
  *
  * Every capability it needs is tested first, and the fetch has a `catch`: on a
  * browser without Blob URLs, or an offline second visit, the nav keeps the still
@@ -60,14 +72,18 @@ import { MORPH_FRAME_OFFSETS } from "../data/nav-morph.ts";
 export const NAV_MORPH_SCRIPT = ((offsets: readonly number[]) =>
   `(function(){` +
   `if(!window.matchMedia||!window.fetch||!window.URL||!URL.createObjectURL||!window.Blob)return;` +
-  `if(!matchMedia("(max-width: 1024px)").matches)return;` +
   `if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;` +
   `var i=document.querySelector("img.nav-morph");if(!i)return;` +
-  `var o=${JSON.stringify(offsets)},` +
-  `b='begin="-'+o[Math.floor(Math.random()*o.length)]+'s"';` +
+  `var o=${JSON.stringify(offsets)},u=false;` +
+  `function g(){` +
+  `if(u)return;u=true;` +
+  `var b='begin="-'+o[Math.floor(Math.random()*o.length)]+'s"';` +
   `fetch("/nav-morph.svg").then(function(r){return r.text()}).then(function(t){` +
-  `var u=URL.createObjectURL(new Blob([t.split('begin="0s"').join(b)],{type:"image/svg+xml"}));` +
-  `i.addEventListener("load",function(){URL.revokeObjectURL(u)},{once:true});` +
-  `i.src=u` +
-  `}).catch(function(){})` +
+  `var l=URL.createObjectURL(new Blob([t.split('begin="0s"').join(b)],{type:"image/svg+xml"}));` +
+  `i.addEventListener("load",function(){URL.revokeObjectURL(l)},{once:true});` +
+  `i.src=l` +
+  `}).catch(function(){})}` +
+  `if(matchMedia("(max-width: 1024px)").matches){g();return}` +
+  `var a=i.parentNode&&i.parentNode.parentNode;if(!a)return;` +
+  `a.addEventListener("pointerenter",g);a.addEventListener("focus",g,true)` +
   `})()`)(MORPH_FRAME_OFFSETS);

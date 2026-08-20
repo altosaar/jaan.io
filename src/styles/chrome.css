@@ -268,6 +268,11 @@
 }
 
 .nav-home {
+  /* Space between the wordmark and the mark when the mark is out. Named because
+     it appears three times in the desktop reveal below — as the mark's margin,
+     as the distance it travels, and in the width the track opens to — and those
+     three must agree or the mark stops flush with the text or overshoots. */
+  --mark-gap: 0.5rem;
   display: inline-flex;
   align-items: center;
   text-decoration: none;
@@ -290,20 +295,97 @@
   letter-spacing: 0.05rem;
 }
 
-/* The morphing portrait mark. HIDDEN BY DEFAULT and revealed only in the
-   max-width:1024px block below — the same block that collapses .nav-links into
-   the menu button, because this mark exists to fill the bar that collapse
-   empties. Rendered only when SITE.features.navMorph is on; that flag carries
-   the rest of the reasoning, and puts .has-mark on .nav-home so the rules that
-   depend on the mark EXISTING can say so. */
-.nav-morph {
+/* The morphing portrait mark, and the track that clips it.
+   Rendered only when SITE.features.navMorph is on; that flag carries the rest of
+   the reasoning, and puts .has-mark on .nav-home so the rules that depend on the
+   mark EXISTING can say so.
+
+   The mark does two different jobs either side of 1024px, and the track is what
+   lets one element do both. Below: it REPLACES the wordmark, and the track is
+   just its box. Above: it slides out from behind the wordmark on hover, and the
+   track is a zero-width clip that grows. Hidden here so that neither job is the
+   default — each media block turns on the one it wants. */
+.nav-mark {
   display: none;
+  flex: none;
+  overflow: hidden;
+  /* The track is an inline box around a block image; without this its line box
+     adds a few descender pixels of height and pushes the bar taller. */
+  line-height: 0;
+}
+
+.nav-morph {
+  display: block;
   /* Alone in the bar below 1024px, so it is sized against --nav-h (3.52rem)
      rather than against the wordmark it replaces: two thirds of the row, which
      leaves the same optical breathing room above and below as the menu button
-     opposite it. */
+     opposite it. Kept at that size on desktop so the two states are the same
+     object, seen in two places. */
   width: 2.25rem;
   height: 2.25rem;
+}
+
+/* ── Desktop: the mark hides behind the wordmark and slides out on hover ──────
+   Above 1024px the bar is already full — .nav-links is there and the wordmark
+   is the home link — so the mark has no standing job. It becomes a reward for
+   pointing at the name instead.
+
+   THE TWO ANIMATIONS ARE ONE MOVEMENT. The track's width goes 0 → full, which
+   is what keeps the idle bar unchanged and stops the mark reserving space it is
+   not using. The mark inside translates its own width (plus its gap) to the
+   left, so at rest it sits entirely outside the track and the track's
+   `overflow: hidden` swallows it. Growing the clip and sliding the mark through
+   it at the same duration reads as the mark emerging from under the wordmark's
+   right edge — which is the illusion, since nothing is actually layered.
+
+   `order` rather than DOM order: the mark comes FIRST in the markup because
+   below 1024px it is the whole link, and moving it in the source to suit
+   desktop would put a decorative image ahead of nothing at all on a phone.
+   .nav-home is already an inline-flex row, so one line reverses them here.
+
+   Hover AND focus-visible: the home link is keyboard-reachable, and a reveal
+   that only answers a mouse is a reward the keyboard cannot collect. */
+@media (min-width: 1025px) {
+  .nav-home.has-mark .nav-mark {
+    display: block;
+    order: 2;
+    width: 0;
+    transition: width var(--dur-slide) var(--ease-standard);
+  }
+
+  .nav-home.has-mark .nav-morph {
+    margin-left: var(--mark-gap);
+    transform: translateX(calc(-100% - var(--mark-gap)));
+    transition: transform var(--dur-slide) var(--ease-standard);
+  }
+
+  .nav-home.has-mark:hover .nav-mark,
+  .nav-home.has-mark:focus-visible .nav-mark {
+    width: calc(2.25rem + var(--mark-gap));
+  }
+
+  .nav-home.has-mark:hover .nav-morph,
+  .nav-home.has-mark:focus-visible .nav-morph {
+    transform: none;
+  }
+}
+
+/* The reveal still happens — it is how you see the mark at all on desktop — it
+   just arrives rather than travels. Both properties have to be named: the width
+   and the transform are two halves of one movement, and leaving either animated
+   would slide half a mark.
+
+   THE SELECTORS HERE MUST MATCH THE ONES ABOVE, not just target the same
+   elements. A media query contributes nothing to specificity, so the obvious
+   `.nav-mark { transition: none }` (0,1,0) loses outright to
+   `.nav-home.has-mark .nav-mark` (0,3,0) and the animation runs anyway —
+   silently, for exactly the people who asked for it not to. Same selectors,
+   later in the file, so the cascade decides it on order. */
+@media (prefers-reduced-motion: reduce) {
+  .nav-home.has-mark .nav-mark,
+  .nav-home.has-mark .nav-morph {
+    transition: none;
+  }
 }
 
 .nav-links {
@@ -786,10 +868,13 @@
   /* THE MARK APPEARS EXACTLY WHERE THE LINKS DISAPPEAR. Keep it in this block
      rather than giving it a breakpoint of its own: the two are one decision,
      and a second 1024 elsewhere in the file is a second place to forget.
-     SiteHeader.astro carries the matching (min-width: 1025px) <source> that
-     stops desktop downloading the file at all — that one does have to be
-     updated by hand if this number moves. */
-  .nav-morph {
+     src/lib/nav-morph.ts tests the same width to decide whether to load the
+     animation on sight or wait for a hover — that one does have to be updated
+     by hand if this number moves.
+
+     No transform and no track here: the mark is the home link at this width, so
+     it is simply shown. */
+  .nav-mark {
     display: block;
   }
 

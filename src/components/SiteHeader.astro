@@ -19,7 +19,8 @@ const { navMode = "static" } = Astro.props;
   <!-- Nav: logo left + links right (hidden in compact mode) -->
   <nav class="nav" id="main-nav" aria-label="Site navigation">
     {
-      /* A wordmark, plus — on phone widths only — the morphing portrait mark.
+      /* A wordmark, plus the morphing portrait mark: it REPLACES the wordmark on
+        phone widths, and slides out from behind it on hover on desktop.
         SITE.features.navMorph is the switch; the reasoning is on it. */
     }
     <a
@@ -30,27 +31,25 @@ const { navMode = "static" } = Astro.props;
       {
         SITE.features.navMorph && (
           <>
-            <picture>
-              {/* DESKTOP — an empty SVG, because there is no way to say
-                  "download nothing" in a <picture>, and `display: none` on an
-                  <img> does not reliably stop the fetch. Without this line every
-                  desktop visitor pays for a mark that chrome.css hides. 1025px is
-                  1024px+1: it must be the exact complement of the
-                  @media (max-width: 1024px) block in chrome.css, or some width
-                  gets both rules or neither. */}
-              <source media="(min-width: 1025px)" srcset="/nav-blank.svg" />
-              {/* The STILL composite is the markup default, and the morph is an
-                  upgrade the script beside this applies — see src/lib/nav-morph.ts,
-                  which explains why. Short version: the script has to fetch and
-                  rewrite the morph anyway to start it on a random face, and
-                  declining to do that is also how reduced motion is honoured,
-                  since no stylesheet can reach SMIL inside an <img>. So this src
-                  is what a visitor keeps with JS off, with reduced motion on, or
-                  if the fetch fails. /nav-still.svg rather than /favicon.svg —
-                  that one is blue under a light scheme and would sit at ~2.5:1 on
-                  this black bar; see the note in scripts/gen-favicons.mjs. */}
+            {/* The mark lives in a TRACK, not loose in the link. Below 1024px the
+                track is simply the mark's box; above it the track is a clip with
+                an animating width, which is what lets the mark slide out from
+                behind the wordmark on hover and back under it on leave. Doing
+                the clipping with a wrapper rather than a clip-path keeps the
+                idle state at zero width, so nothing reserves space in the bar
+                for a mark that is not showing. chrome.css has both halves.
+
+                /nav-still.svg, the composite at nav weight, is the src in the
+                markup on every width — so the reveal always has a face in it
+                immediately, and a visitor with JS off or reduced motion on keeps
+                that one. The script below upgrades it to the animated morph,
+                started on a random portrait: straight away on phone widths where
+                the mark is the home link, and on first hover on desktop, so the
+                ~22 KB is only spent by someone who actually went looking for it.
+                See src/lib/nav-morph.ts. */}
+            <span class="nav-mark">
               <img class="nav-morph" src="/nav-still.svg" alt="" width="36" height="36" />
-            </picture>
+            </span>
             <script is:inline set:html={NAV_MORPH_SCRIPT} />
           </>
         )

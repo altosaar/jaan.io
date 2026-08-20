@@ -207,12 +207,18 @@ export const SITE = {
      * button (src/styles/chrome.css) and the bar goes nearly empty — that is
      * where a mark has room and a job. On desktop the bar is already full.
      *
+     * ON DESKTOP it is a hover reward rather than a fixture: above 1024px the
+     * bar is already full, so the mark waits behind the wordmark and slides
+     * out to its right when the name is hovered or focused, sliding back
+     * under it on leave. The morph itself is not even fetched until that
+     * first hover.
+     *
      * The 1024px figure lives in three places that must agree: the @media
-     * block in chrome.css that reveals it, the desktop <source> in
-     * SiteHeader.astro that keeps desktop from downloading it (as 1025px, its
-     * complement), and the width test in src/lib/nav-morph.ts that decides
-     * whether to fetch the morph at all. All three carry a comment pointing
-     * here and at each other.
+     * block in chrome.css that shows the mark outright, the
+     * (min-width: 1025px) block just below it that builds the hover reveal,
+     * and the width test in src/lib/nav-morph.ts that decides whether to fetch
+     * the morph on sight or wait for a pointer. All three carry a comment
+     * pointing here and at each other.
      */
     navMorph: true,
   },
