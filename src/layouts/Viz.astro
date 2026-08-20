@@ -7,6 +7,7 @@
 // rather than as an iframe onto a different website.
 import Base from "../layouts/Base.astro";
 import Section from "../components/Section.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
 import "../styles/viz.css";
 
 interface Props {
@@ -68,6 +69,13 @@ const { title, description, eyebrow, eyebrowHref } = Astro.props;
   <Section bottom="gap">
     <p class="viz-back"><a href="/visualizations">← All visualizations</a></p>
   </Section>
+
+  {
+    /* Last on the page, below the way back out — the same position it holds at
+       the end of a post. Here rather than in each of the eight pages that use
+       this layout, which is the point of the layout. */
+  }
+  <NewsletterSignup />
 
   {
     /* Mounts every <VizEmbed> on the page. One loader per page, not per embed —

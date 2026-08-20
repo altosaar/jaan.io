@@ -11,6 +11,7 @@
 // src/pages/articles.astro for why the entries are spaced the way they are.
 import Base from "../layouts/Base.astro";
 import Section from "../components/Section.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
 import { VISUALIZATIONS } from "../data/visualizations";
 
 const projects = [
@@ -47,6 +48,8 @@ const projects = [
       }
     </ul>
   </Section>
+
+  <NewsletterSignup />
 </Base>
 
 <style>

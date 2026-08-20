@@ -13,6 +13,7 @@
 import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import Toc from "../components/Toc.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
 import { getCollection, render } from "astro:content";
 import type { GetStaticPaths } from "astro";
 // KaTeX's stylesheet is imported here, not in Base.astro, so it only ships on
@@ -56,4 +57,20 @@ const { Content, headings } = await render(post);
     </p>
     <Content />
   </Prose>
+
+  {
+    /* After the article, never before it — the same reasoning as on /articles:
+       someone who has read to the end has already decided whether the writing
+       is for them, and a form in front of the piece asks before it shows.
+       It sizes itself with the same three lines as <Prose> (width: --site-w,
+       margin-left: --site-ml, max-width: --reading-w), so the box hangs off the
+       article's own left edge and ends where its text column ends.
+
+       This is what puts Turnstile's loader — the one third-party script on the
+       site — on every post page rather than on the two pages that carried the
+       form before. That is the cost of the form being here at all; nothing
+       else about a post page changes, and the widget itself draws nothing (see
+       the note beside it in NewsletterSignup.astro). */
+  }
+  <NewsletterSignup />
 </Base>
