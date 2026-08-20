@@ -156,6 +156,16 @@ function readGlyph(path) {
  * resolves against the browser's theme. Stroke comes from CSS rather than a
  * `stroke` attribute, because a presentation attribute would win over the rule
  * and the dark case would silently never apply.
+ *
+ * SAFARI DOES NOT READ THAT MEDIA QUERY. WebKit bug 199134, open since 2019 and
+ * still NEW as of June 2026: Safari renders the base rule and ignores the
+ * override, so a Safari visitor in dark mode gets #0030DE on a dark tab strip —
+ * about 2.5:1, the exact smudge INK_DARK exists to prevent. Which is why every
+ * glyph is ALSO written out in a single-colour dark variant next to it, and why
+ * the picker in src/lib/favicon.ts chooses between them itself rather than
+ * trusting the browser to. The media query stays anyway: it costs sixty bytes,
+ * it makes each file correct on its own, and it is what Chrome and Firefox use
+ * if the picker ever fails to run after the link is in place.
  */
 const toFavicon = ({ viewBox, paths }) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" role="img" aria-label="portrait glyph">` +
@@ -165,6 +175,25 @@ const toFavicon = ({ viewBox, paths }) =>
   `</style>` +
   paths.map((d) => `<path d="${d}"/>`).join("") +
   `</svg>\n`;
+
+/**
+ * The same glyph, unconditionally in the dark-scheme colour.
+ *
+ * No media query at all — this file IS the answer to "the browser is in dark
+ * mode", chosen by the picker rather than resolved by the renderer. A query
+ * here would be a second opinion on a decision already made, and would get it
+ * wrong in exactly the browser this file exists for.
+ */
+const toFaviconDark = ({ viewBox, paths }) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" role="img" aria-label="portrait glyph">` +
+  `<style>` +
+  `path{fill:none;stroke:${INK_DARK};stroke-width:${STROKE};stroke-linecap:round;stroke-linejoin:round}` +
+  `</style>` +
+  paths.map((d) => `<path d="${d}"/>`).join("") +
+  `</svg>\n`;
+
+/** The suffix the dark variant is written and requested under. */
+const DARK_SUFFIX = "-dark";
 
 /**
  * The same drawing with every value as a presentation attribute, for sharp.
@@ -210,14 +239,27 @@ for (const file of readdirSync(glyphDir)
   .sort()) {
   const slug = slugify(file);
   if (slugs.includes(slug)) throw new Error(`${file}: slug "${slug}" collides with another glyph`);
-  writeFileSync(join("public/favicons", `${slug}.svg`), toFavicon(readGlyph(join(glyphDir, file))));
+  // A portrait actually named "…-dark" would write over another portrait's dark
+  // variant, and the two would quietly swap places depending on readdir order.
+  if (slug.endsWith(DARK_SUFFIX)) {
+    throw new Error(
+      `${file}: a slug may not end in "${DARK_SUFFIX}" — that suffix is reserved for the ` +
+        `dark-scheme variant this script writes beside every glyph. Rename the source file.`,
+    );
+  }
+  const glyph = readGlyph(join(glyphDir, file));
+  writeFileSync(join("public/favicons", `${slug}.svg`), toFavicon(glyph));
+  writeFileSync(join("public/favicons", `${slug}${DARK_SUFFIX}.svg`), toFaviconDark(glyph));
   slugs.push(slug);
 }
 if (!slugs.length) throw new Error(`${glyphDir}: no glyphs`);
 
 const added = slugs.filter((s) => !previous.includes(s));
 const removed = previous.filter((s) => !slugs.includes(s));
-console.log(`wrote public/favicons/ — ${slugs.length} portraits at stroke-width ${STROKE}`);
+console.log(
+  `wrote public/favicons/ — ${slugs.length} portraits \u00d7 2 schemes ` +
+    `(${INK} light, ${INK_DARK} dark) at stroke-width ${STROKE}`,
+);
 for (const s of added) console.log(`  + ${s}`);
 for (const s of removed) console.log(`  - ${s}`);
 if (previous.length && !added.length && !removed.length) console.log("  (same set as before)");

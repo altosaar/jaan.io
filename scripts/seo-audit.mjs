@@ -536,6 +536,70 @@ for (const page of htmlFiles) {
     err(page, "Indexable page missing from sitemap.");
 }
 
+// ------------------------------------------------------- favicon variants ---
+// Estonian blue on light chrome, white on dark. Both must be true in SAFARI,
+// which is the whole reason this check is worth having: Safari ignores
+// `@media (prefers-color-scheme: dark)` inside an SVG favicon (WebKit bug
+// 199134, open since 2019), so the page cannot delegate the choice to the
+// renderer. scripts/gen-favicons.mjs writes each portrait twice — `<slug>.svg`
+// in blue and `<slug>-dark.svg` in white — and src/lib/favicon.ts reads the
+// preference itself and points at one of them.
+//
+// That arrangement has two halves that can drift apart silently, and drift the
+// wrong way is invisible to everyone not in dark mode: a dark variant that is
+// not actually white, or a picker that stops asking for it. Check both. The
+// colours are repeated here on purpose — a gate that imports its expectations
+// from the thing it is gating cannot fail.
+{
+  const INK = "#0030DE";
+  const INK_DARK = "#ffffff";
+  const icons = fileSet.has("favicons")
+    ? []
+    : [...fileSet].filter((f) => f.startsWith("favicons/") && f.endsWith(".svg"));
+
+  if (!icons.length) {
+    err("(site)", "No favicons/*.svg in dist — the daily rotation has nothing to point at.");
+  } else {
+    for (const f of icons) {
+      const svg = readFileSync(join(dist, f), "utf8");
+      const style = svg.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? "";
+      const base = style.match(/^path\{[^}]*stroke:(#[0-9A-Fa-f]{3,8})/)?.[1];
+      const darkRule = style.match(
+        /prefers-color-scheme:\s*dark\)\s*\{path\{stroke:(#[0-9A-Fa-f]{3,8})/,
+      )?.[1];
+      const isDark = /-dark\.svg$/.test(f);
+
+      if (base?.toLowerCase() !== (isDark ? INK_DARK : INK).toLowerCase())
+        err(f, `Favicon stroke is ${base} — expected ${isDark ? INK_DARK : INK}.`);
+      // A `stroke` presentation attribute beats the stylesheet, so a glyph
+      // carrying one is frozen in whatever colour it was born with.
+      if (/<path[^>]*\sstroke=/.test(svg))
+        err(f, "Favicon <path> carries a stroke attribute, which overrides the stylesheet.");
+      if (isDark && darkRule)
+        err(
+          f,
+          "Dark favicon carries a prefers-color-scheme rule; it is chosen by the picker and must be one colour.",
+        );
+      if (!isDark && darkRule?.toLowerCase() !== INK_DARK.toLowerCase())
+        err(
+          f,
+          `Light favicon's dark-scheme rule is ${darkRule ?? "missing"} — expected ${INK_DARK}.`,
+        );
+      // Every light glyph needs the twin the picker will ask for in dark mode.
+      if (!isDark && !fileSet.has(f.replace(/\.svg$/, "-dark.svg")))
+        err(f, "No -dark variant — a dark-mode visitor would get a 404 and no icon at all.");
+    }
+
+    // …and the picker has to actually ask for it.
+    const picker = read("index.html");
+    if (!/"-dark"/.test(picker) || !/prefers-color-scheme:\s*dark/.test(picker))
+      err(
+        "index.html",
+        "The inline favicon picker no longer chooses a -dark variant. Safari ignores the media query inside the SVG, so dark mode would fall back to Estonian blue on a dark tab strip.",
+      );
+  }
+}
+
 // ------------------------------------------------------ share image (OG) ---
 // One portrait, identical on every page. src/layouts/Base.astro renders it from
 // src/lib/og.ts into <head> unconditionally and exposes no prop for it, so this
