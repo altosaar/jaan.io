@@ -16,8 +16,18 @@ import type { PagesFunction } from "@cloudflare/workers-types";
 interface Env {
   DB: D1Database;
   TURNSTILE_SECRET: string;
-  /** Optional. Unset locally and in preview; alerting is simply skipped. */
+  /**
+   * An ntfy topic URL — https://ntfy.sh/<topic>. Optional: unset locally, and
+   * alerting is simply skipped. The topic name IS the access control on
+   * ntfy.sh, which is why the whole URL is a secret and not a constant here.
+   */
   ALERT_WEBHOOK?: string;
+  /**
+   * ntfy account token. Optional, and it buys exactly one thing: email. ntfy.sh
+   * refuses anonymous email forwarding (abuse), so without a token an alert is
+   * a push notification only — which nobody sees if the phone is face-down.
+   */
+  ALERT_NTFY_TOKEN?: string;
 }
 
 /** Every response is JSON and must never be cached — including the 400s. */
@@ -58,7 +68,8 @@ async function verifyTurnstile(secret: string, token: unknown): Promise<boolean>
 }
 
 /**
- * Fire-and-forget alert on an unexpected failure. Two rules:
+ * Fire-and-forget alert on an unexpected failure, published to an ntfy topic
+ * that fans out to a phone push and an email. Two rules:
  *   1. It must never delay or break the response — the caller hands this to
  *      ctx.waitUntil and never awaits it.
  *   2. The message must never contain the submitted address or any part of the
@@ -68,14 +79,30 @@ async function verifyTurnstile(secret: string, token: unknown): Promise<boolean>
 function alert(env: Env, error: unknown): Promise<unknown> {
   if (!env.ALERT_WEBHOOK) return Promise.resolve();
   const message = error instanceof Error ? error.message : String(error);
+
+  // ntfy's plain-text publish: the body is the message, everything else is a
+  // header. The error text stays in the BODY on purpose — header values are
+  // ASCII-only, and a stack message carrying a smart quote would make the
+  // request itself invalid.
+  const headers: Record<string, string> = {
+    "Content-Type": "text/plain",
+    Title: "jaan.io newsletter",
+    Priority: "high",
+    Tags: "rotating_light",
+  };
+  // `Email: yes` sends to the account's primary VERIFIED address, so the
+  // address itself never appears in this public repo. It is gated on the token
+  // because ntfy.sh rejects anonymous email outright (error 40053) — and that
+  // rejection fails the whole publish, taking the push notification with it.
+  if (env.ALERT_NTFY_TOKEN) {
+    headers.Authorization = `Bearer ${env.ALERT_NTFY_TOKEN}`;
+    headers.Email = "yes";
+  }
+
   return fetch(env.ALERT_WEBHOOK, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    // Discord-shaped, which is also what Slack's and Mattermost's incoming
-    // webhooks accept via their compatibility endpoints.
-    body: JSON.stringify({
-      content: `[jaan.io newsletter] subscribe error: ${message.slice(0, 500)}`,
-    }),
+    headers,
+    body: `subscribe error: ${message.slice(0, 500)}`,
   }).catch(() => {
     // An alert that cannot be delivered is not itself an incident worth
     // escalating — and rethrowing here would take down the request.

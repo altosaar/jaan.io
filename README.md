@@ -95,11 +95,39 @@ Three things about that are deliberate and would each look like an oversight:
 | `DB`                        | D1 binding                 | `wrangler.toml`, production + `[env.preview]`                    | both functions |
 | `TURNSTILE_SECRET`          | encrypted secret           | `wrangler pages secret put`, production + preview                | subscribe      |
 | `ALERT_WEBHOOK`             | encrypted secret, optional | same; unset means alerting is skipped                            | subscribe      |
+| `ALERT_NTFY_TOKEN`          | encrypted secret, optional | same; without it alerts are push-only                            | subscribe      |
 | `PUBLIC_TURNSTILE_SITE_KEY` | public build-time var      | `PUBLIC_TURNSTILE_SITE_KEY` repo variable for CI; `.env` locally | the form       |
 
 The site key is public by design — it ships in the HTML. The secret and the
 webhook URL are Cloudflare secrets and are never in this repo; `.dev.vars` holds
 the local copies and is gitignored.
+
+### Alerting
+
+An unexpected failure in `subscribe` publishes to an [ntfy](https://ntfy.sh)
+topic, which fans out to a phone push **and** an email. The message is the error
+text and nothing else — never a submitted address, never any part of a request
+body. An alert channel is not somewhere subscriber data may end up, and an alert
+about a malformed submission is exactly where one would otherwise leak.
+
+Two secrets, and the split matters:
+
+- **`ALERT_WEBHOOK`** is the whole topic URL, `https://ntfy.sh/<topic>`. On the
+  public ntfy.sh server **the topic name is the only access control** — anyone
+  who learns it can read every alert and publish fakes — so the URL is a secret
+  rather than a constant in this file, and the topic is one this project shares
+  with nothing else.
+- **`ALERT_NTFY_TOKEN`** is an ntfy account token, and it buys exactly one
+  thing: email. ntfy.sh refuses anonymous email forwarding, so without a token
+  an alert is a push notification only. With it, the request carries
+  `Email: yes`, which routes to the account's primary **verified** address — so
+  no email address appears in this repo either. Free-tier ntfy allows 5 alert
+  emails a day, which is the right order of magnitude for something that should
+  fire approximately never.
+
+To watch alerts on a phone: install the ntfy app and add the topic from the
+`ALERT_WEBHOOK` secret. To rotate the topic, mint a new one and re-`put` the
+secret — nothing else references it.
 
 Because this Pages project is Direct Upload, **CI is the only build**, so the
 site key comes from a GitHub repository variable rather than a Cloudflare build
@@ -129,8 +157,9 @@ by hand:
 NEWSLETTER_REJECT=1 npm run test:newsletter
 
 # 9 — an unexpected failure alerts once, and says nothing about who submitted.
-#     Point ALERT_WEBHOOK at a throwaway receiver, rename the `DB` binding in
-#     wrangler.toml, restart, post once: expect 500, one message, no address.
+#     Point ALERT_WEBHOOK at a throwaway local receiver (NOT the real topic),
+#     rename the `DB` binding in wrangler.toml, restart, post once: expect 500,
+#     one message, and no address anywhere in it.
 ```
 
 ### Reading and exporting the list
@@ -157,16 +186,13 @@ requests a day. If a cap is ever hit, D1 queries fail until 00:00 UTC and
 
 Done: both D1 databases (`jaan-newsletter`, `jaan-newsletter-preview`) created
 and migrated; the Turnstile widget (managed mode, `jaan-io.pages.dev` and
-`jaan.io`); `TURNSTILE_SECRET` on the Pages project for production and preview;
-`PUBLIC_TURNSTILE_SITE_KEY` as a repo variable.
+`jaan.io`); `TURNSTILE_SECRET`, `ALERT_WEBHOOK` and `ALERT_NTFY_TOKEN` on the
+Pages project for production and preview; `PUBLIC_TURNSTILE_SITE_KEY` as a repo
+variable.
 
 Still open, and neither blocks the form from working:
 
-1. **`ALERT_WEBHOOK`** — create a webhook (a Discord channel's Integrations →
-   Webhooks gives a URL that accepts the payload as-is) and set it:
-   `npx wrangler pages secret put ALERT_WEBHOOK --project-name jaan-io`, then
-   again with `--env preview`. Until then, an unexpected 500 is silent.
-2. **An end-to-end test against the real widget.** The testing keys cannot
+1. **An end-to-end test against the real widget.** The testing keys cannot
    exercise the actual Turnstile challenge, and no browser has driven this form
    yet — only the endpoint has been tested. Deploy a preview and submit it once:
 
@@ -181,7 +207,7 @@ Still open, and neither blocks the form from working:
 --env preview --command "SELECT * FROM subscribers"`. (CI only ever deploys
    `main`, so preview deployments are a manual step.)
 
-3. **The uptime monitor** — point a free monitor (UptimeRobot or similar) at
+2. **The uptime monitor** — point a free monitor (UptimeRobot or similar) at
    `https://jaan-io.pages.dev/api/health`, 5-minute interval, alert to email.
    This is the layer that catches a broken deploy or a missing binding, which
    the in-code alerting cannot see. Use the slash-less URL: `_redirects` ends
