@@ -74,15 +74,23 @@ jobs:
           echo "status=down" >> "$GITHUB_OUTPUT"
           echo "last=$code" >> "$GITHUB_OUTPUT"
 
+      # ASSIGNED AND @-MENTIONED ON PURPOSE, and this is the part that makes the
+      # difference between an alert and a log entry. Watching a repo produces
+      # "all activity" notifications, which GitHub's default email preference
+      # does NOT send — they land in the web inbox and nowhere else, which is
+      # how the first version of this went unnoticed. An assignment and a
+      # mention are "participating" notifications, which are emailed by default
+      # and survive the owner unwatching the repo later.
       - name: Open or update the notice
         if: steps.probe.outputs.status == 'down'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           LAST: ${{ steps.probe.outputs.last }}
         run: |
-          body="\`$HEALTH_URL\` answered **HTTP $LAST** three times in a row, so
+          body="@$OWNER — \`$HEALTH_URL\` answered **HTTP $LAST** three times in a row, so
           **the newsletter signup form is probably not collecting anything.** The
           rest of the site is static and is unaffected.
 
@@ -103,7 +111,7 @@ jobs:
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --body "$body"
           else
-            gh issue create --title "$TITLE" --body "$body"
+            gh issue create --title "$TITLE" --body "$body" --assignee "$OWNER"
           fi
 
       # Self-resetting. Without this the notice stays open after a five-minute
@@ -113,9 +121,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           existing=$(gh issue list --state open --search "in:title $TITLE" --json number --jq '.[0].number')
           if [ -n "$existing" ]; then
-            gh issue close "$existing" --comment "Recovered — \`$HEALTH_URL\` is answering 200 again. $RUN_URL"
+            gh issue close "$existing" --comment "@$OWNER — recovered. \`$HEALTH_URL\` is answering 200 again. $RUN_URL"
           fi
