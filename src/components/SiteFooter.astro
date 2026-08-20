@@ -28,8 +28,9 @@ const year = new Date().getFullYear();
       <p class="footer-copyright">&copy; {SITE.footer.copyright} {year}</p>
       {SITE.footer.madeWith && <p class="footer-made">{SITE.footer.madeWith}</p>}
       {
-        /* Credit for the logo artwork. Rendered on every page because the mark
-           it credits is in the header of every page. */
+        /* Credit for the mark, when the mark is borrowed. Currently null —
+           the favicons are this site's own portrait glyphs, so there is
+           nothing to attribute. See SITE.footer.credit. */
         SITE.footer.credit && (
           <p class="footer-credit">
             {SITE.footer.credit.prefix}{" "}

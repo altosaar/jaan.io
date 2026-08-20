@@ -8,6 +8,7 @@ import MobileMenu from "../components/MobileMenu.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import { getImage } from "astro:assets";
 import { featured, OG_SIZE } from "../lib/og";
+import { FAVICON_PICKER } from "../lib/favicon";
 import { SITE } from "../site.config";
 
 // Render this build's randomly-featured testimonial into a high-res square share
@@ -34,10 +35,10 @@ interface Props {
    * SITE.social / SITE.footer are all deliberately left intact so turning it
    * back on is a one-word change here.
    *
-   * NOTE while it is off: SITE.footer.credit (the "Logo: Nuna Parr, Dancing
-   * Bear" attribution) renders nowhere, so the favicon artwork is currently
-   * uncredited site-wide. The social links are unaffected — /about/ carries its
-   * own, and SITE.schema.sameAs still emits them as JSON-LD.
+   * Nothing here needs crediting: the favicons are now this site's own portrait
+   * glyphs (scripts/gen-favicons.mjs), so SITE.footer.credit is null and the
+   * block that rendered it is inert. The social links are unaffected — /about/
+   * carries its own, and SITE.schema.sameAs still emits them as JSON-LD.
    */
   footer?: boolean;
   /**
@@ -112,9 +113,30 @@ const orgSchema = {
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {
+      /* THE TAB CARRIES A DIFFERENT PORTRAIT EVERY DAY.
+         public/favicons/ holds one line-drawn face per portrait; this script
+         picks today's and appends the <link> itself. The reasoning — why the
+         client picks rather than a Pages Function, and why the step through the
+         list is what it is — lives in src/lib/favicon.ts.
+
+         The composite face is declared in the <noscript> and NOWHERE ELSE. A
+         plain <link rel="icon"> here would be fetched and painted by every
+         browser before the script replaced it: one wasted request and a visible
+         flicker in the tab, on every page. */
+    }
+    {
+      /* Raster fallbacks, both the composite: a client too old for an SVG
+        favicon, and an iOS home screen where a daily change would read as a
+        bug rather than a rotation. Declared BEFORE the script so the glyph it
+        appends is the last icon in the document — browsers that resolve
+        competing <link rel="icon"> by document order then land on the SVG, and
+        a browser old enough to ignore it falls back to this PNG. */
+    }
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <script is:inline set:html={FAVICON_PICKER} />
+    <noscript><link rel="icon" href="/favicon.svg" type="image/svg+xml" /></noscript>
     <meta property="og:type" content="website" />
     <meta property="og:locale" content={SITE.locale} />
     <meta property="og:site_name" content={SITE.name} />

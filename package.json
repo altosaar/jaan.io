@@ -13,7 +13,7 @@
     "test:newsletter": "node scripts/newsletter-check.mjs",
     "pages:dev": "wrangler pages dev",
     "fonts:check": "node scripts/fonts-check.mjs",
-    "gen:logo": "node scripts/gen-logo.mjs",
+    "gen:favicons": "node scripts/gen-favicons.mjs",
     "deploy": "wrangler pages deploy dist --project-name=jaan-io --branch=main",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

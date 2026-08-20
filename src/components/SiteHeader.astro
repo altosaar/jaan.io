@@ -17,7 +17,7 @@ const { navMode = "static" } = Astro.props;
 <header class={`site-chrome ${navMode === "ticker" ? "compact" : "static-nav"}`} id="site-chrome">
   <!-- Nav: logo left + links right (hidden in compact mode) -->
   <nav class="nav" id="main-nav" aria-label="Site navigation">
-    {/* A wordmark and nothing else. The bear mark appears only as the favicon. */}
+    {/* A wordmark and nothing else. The portrait glyphs appear only as favicons. */}
     <a href="/" class="nav-home" aria-label={`${SITE.name} — home`}>
       <span class="nav-wordmark">{SITE.name}</span>
     </a>

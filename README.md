@@ -43,6 +43,13 @@ before touching anything under `functions/`.
 `~/Pictures/_jaan.io-picpicks` (see `src/data/gallery.ts`). `npm run deploy`
 pushes `dist/` to Cloudflare Pages.
 
+`npm run gen:favicons` rebuilds the favicons from `../composite-portraits/out`
+(the `faceglyph` pipeline). The tab carries a different portrait glyph each day,
+picked client-side from `public/favicons/` — the how and why are in
+`src/lib/favicon.ts`, the file-by-file output in `scripts/gen-favicons.mjs`.
+Re-run it after adding a portrait to the pipeline; it rewrites
+`src/data/favicons.ts`, so commit that alongside the SVGs.
+
 ## Where things live
 
 |                                      |                                         |
