@@ -79,7 +79,7 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
              pattern: unlike a placeholder it does not vanish when someone
              starts typing, so the field can be checked mid-fill. */
         }
-        <label class="newsletter__label" for="newsletter-email">Email address</label>
+        <label class="newsletter__label" for="newsletter-email">Email</label>
         <input
           class="newsletter__input"
           id="newsletter-email"
@@ -268,15 +268,32 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
 </script>
 
 <style>
-  /* Sized and offset like every other block on the site — see Section.astro,
-     whose two lines these are. Not the component itself, because this section
-     also carries its own vertical rhythm and a max-width tied to the measure.
-     The card fills that measure, which is what lines its edges up with the
-     article list above it. */
+  /* Offset like every other block on the site — see Section.astro, whose two
+     first lines these are — but deliberately NOT as wide. The card is a form,
+     not prose: at the full 850px measure a single email field ran the whole
+     width of the article list above it and read as another section of the page
+     rather than as one control. 60% of the measure (850 → 510px) is the width
+     it is meant to be.
+     The cap is on max-width rather than on width, so the 60% applies where
+     there is a measure to take 60% OF. Below ~543px viewport the column itself
+     is already narrower than 510px, and the box goes back to filling it; a
+     phone would otherwise get a 220px-wide form.
+
+     CENTRED, which is what auto margins do here and what --site-ml can no
+     longer do. That token is `calc(50% - var(--site-w) / 2)` — it centres a
+     block that is actually --site-w wide, and every OTHER block on the site is.
+     This one is capped at 510px, so the offset went on computing from the full
+     850px column and left the box pinned to the column's left edge. Auto
+     margins centre the box the column actually has.
+     It is centred on the PAGE, not just in its column, on every page that
+     mounts it: each one puts it inside main.is-centered, which is itself
+     symmetric about the viewport centre (measured: main 295→1145 on /articles,
+     /about, /projects, /visualizations, a visualization page and an article —
+     card 465→975, midpoint 720 of 1440 on all six). */
   .newsletter {
     width: var(--site-w);
-    margin-left: var(--site-ml);
-    max-width: var(--reading-w);
+    margin-inline: auto;
+    max-width: calc(var(--reading-w) * 0.6);
     padding-top: var(--space-section);
     margin-bottom: var(--space-block);
   }
@@ -286,19 +303,34 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
      is 0 by choice — see tokens.css). */
   .newsletter__card {
     background: var(--card);
-    padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 3vw, 1.875rem);
+    /* Vertical padding is the biggest single thing setting the box's height, so
+       it takes most of the trim; the horizontal padding is untouched, because
+       the box is narrower now and its inner margins are the one thing keeping
+       the field off the edge. The two are deliberately unequal as a result —
+       20px above and below against 30px either side — which is the usual shape
+       for a card that is wider than it is tall. */
+    padding: clamp(1rem, 3vw, 1.25rem) clamp(1rem, 3vw, 1.875rem);
   }
 
-  /* The reference sets this large and light; the size is worth copying, the
-     weight is not — 600 and -0.01em is what every other heading on this site
-     is, and the brief was this box in this site's voice. */
+  /* --fs-md, which is the SAME SIZE as the SIGN UP label below it — the two
+     are the only pieces of type in the box, and at 38px against 22.4px they
+     were two sizes doing the work of one. Matching them leaves the box with a
+     single text size and lets the weight and the face carry the heading, which
+     is all a two-word title needs.
+     The reference card sets this line large; that is a card with a paragraph
+     under it. This one has a field.
+     Face, weight and tracking are the site's heading voice as before, so it
+     still reads as an <h2> rather than as a second button. */
   .newsletter__title {
     font-family: var(--font-display);
-    font-size: clamp(1.875rem, 3vw, 2.375rem);
+    font-size: var(--fs-md);
     font-weight: 600;
     letter-spacing: -0.01em;
     line-height: 1;
-    margin-bottom: clamp(1.5rem, 4vw, 2rem);
+    /* Tightened with the type — 2rem was the gap a 38px line needed — and then
+       again with the box. Flat rather than fluid: at 14px it is already below
+       the bottom of the range the clamp used to cover. */
+    margin-bottom: 0.875rem;
   }
 
   /* Positioning context for the label that sits inside the input. */
@@ -412,7 +444,9 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
     align-items: center;
     justify-content: center;
     width: 100%;
-    margin-top: 2rem;
+    /* The field/button gap, trimmed with the rest of the box's vertical
+       spacing — see the note on the title. */
+    margin-top: 1rem;
     padding: 0.413rem 0.963rem;
     font-family: var(--font-chrome);
     font-size: var(--fs-md);
