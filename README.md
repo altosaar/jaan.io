@@ -50,6 +50,11 @@ picked client-side from `public/favicons/` — the how and why are in
 Re-run it after adding a portrait to the pipeline; it rewrites
 `src/data/favicons.ts`, so commit that alongside the SVGs.
 
+The same script emits `public/nav-morph.svg`, the animated mark that stands in
+for the wordmark in the nav below 1024px. It is a **test**: `SITE.features
+.navMorph = false` removes it and brings the wordmark back, and nothing else
+needs touching.
+
 ## Where things live
 
 |                                      |                                         |

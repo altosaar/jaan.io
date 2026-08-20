@@ -17,8 +17,41 @@ const { navMode = "static" } = Astro.props;
 <header class={`site-chrome ${navMode === "ticker" ? "compact" : "static-nav"}`} id="site-chrome">
   <!-- Nav: logo left + links right (hidden in compact mode) -->
   <nav class="nav" id="main-nav" aria-label="Site navigation">
-    {/* A wordmark and nothing else. The portrait glyphs appear only as favicons. */}
-    <a href="/" class="nav-home" aria-label={`${SITE.name} — home`}>
+    {
+      /* A wordmark, plus — on phone widths only — the morphing portrait mark.
+        SITE.features.navMorph is the switch; the reasoning is on it. */
+    }
+    <a
+      href="/"
+      class:list={["nav-home", SITE.features.navMorph && "has-mark"]}
+      aria-label={`${SITE.name} — home`}
+    >
+      {
+        SITE.features.navMorph && (
+          <picture>
+            {/* First match wins, so these read as a priority list.
+
+                DESKTOP — an empty SVG, because there is no way to say "download
+                nothing" in a <picture>, and `display: none` on an <img> does not
+                reliably stop the fetch. Without this line every desktop visitor
+                pays ~19 KB for a mark that chrome.css hides. 1025px is 1024px+1:
+                it must be the exact complement of the @media (max-width: 1024px)
+                block in chrome.css, or some width gets both rules or neither. */}
+            <source media="(min-width: 1025px)" srcset="/nav-blank.svg" />
+            {/* REDUCED MOTION — the still composite instead. This has to be done
+                by swapping the FILE: the animation is SMIL inside an <img>,
+                which no outer stylesheet can reach, so there is no
+                `animation: none` to write. Selecting a different source is the
+                only lever, and it has the side benefit that the morph is never
+                downloaded by someone who asked not to see motion. /nav-still.svg
+                rather than /favicon.svg — that one is blue under a light scheme
+                and would sit at ~2.5:1 on this black bar; see the note on it in
+                scripts/gen-favicons.mjs. */}
+            <source media="(prefers-reduced-motion: reduce)" srcset="/nav-still.svg" />
+            <img class="nav-morph" src="/nav-morph.svg" alt="" width="36" height="36" />
+          </picture>
+        )
+      }
       <span class="nav-wordmark">{SITE.name}</span>
     </a>
     <div class="nav-links">

@@ -290,6 +290,22 @@
   letter-spacing: 0.05rem;
 }
 
+/* The morphing portrait mark. HIDDEN BY DEFAULT and revealed only in the
+   max-width:1024px block below — the same block that collapses .nav-links into
+   the menu button, because this mark exists to fill the bar that collapse
+   empties. Rendered only when SITE.features.navMorph is on; that flag carries
+   the rest of the reasoning, and puts .has-mark on .nav-home so the rules that
+   depend on the mark EXISTING can say so. */
+.nav-morph {
+  display: none;
+  /* Alone in the bar below 1024px, so it is sized against --nav-h (3.52rem)
+     rather than against the wordmark it replaces: two thirds of the row, which
+     leaves the same optical breathing room above and below as the menu button
+     opposite it. */
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
 .nav-links {
   display: flex;
   align-items: center;
@@ -746,12 +762,35 @@
 }
 
 @media (max-width: 1024px) {
-  /* The wordmark stays visible here. It used to be hidden below 1024px because
-     the logo mark carried the home link on its own; with the mark gone, hiding
-     it would leave .nav-home an empty box — an invisible link occupying the top
-     left of every page on every phone. */
   .nav-links {
     display: none;
+  }
+
+  /* THE MARK REPLACES THE WORDMARK — it does not join it. Below 1024px the
+     home link is the mark alone.
+
+     .has-mark IS LOAD-BEARING, not decoration. It is only present when
+     SITE.features.navMorph is on, and this rule must not fire without it:
+     hiding the wordmark with no mark to take its place would leave .nav-home an
+     empty box — an invisible link occupying the top left of every page on every
+     phone. That is exactly what happened when the old logo mark was retired,
+     and why the wordmark was unhidden here in the first place. Keyed this way,
+     flipping the flag off restores the wordmark in the same move.
+
+     The link keeps its name either way: .nav-home carries aria-label="… —
+     home", so nothing here changes what a screen reader announces. */
+  .nav-home.has-mark .nav-wordmark {
+    display: none;
+  }
+
+  /* THE MARK APPEARS EXACTLY WHERE THE LINKS DISAPPEAR. Keep it in this block
+     rather than giving it a breakpoint of its own: the two are one decision,
+     and a second 1024 elsewhere in the file is a second place to forget.
+     SiteHeader.astro carries the matching (min-width: 1025px) <source> that
+     stops desktop downloading the file at all — that one does have to be
+     updated by hand if this number moves. */
+  .nav-morph {
+    display: block;
   }
 
   /* In compact mode the button is sticky (in-flow) so it participates in
