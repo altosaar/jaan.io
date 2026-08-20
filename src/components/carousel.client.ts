@@ -20,8 +20,28 @@ document.querySelectorAll<HTMLElement>("[data-carousel]").forEach((section) => {
   if (!viewport || slides.length === 0) return;
   const N = slides.length;
 
+  // Where a slide has to sit, in px from the viewport's left edge, for the slide's
+  // own horizontal centre to land exactly on the horizontal centre of the screen.
+  // Embla calls this once per snap, so EVERY resting position of the strip —
+  // arrows, arrow keys, swipe, drag — is one photo bisected by the middle of the
+  // window.
+  //
+  // A function rather than align: "center", because the viewport is not the
+  // screen. It starts at the content's left edge and bleeds off the right (see
+  // .embla__viewport in Carousel.astro), and even full-bleed it is 100vw, which
+  // includes a classic scrollbar; Embla's own "center" centres inside that box, so
+  // the photo would sit half a gutter — or half a scrollbar — left of centre.
+  // documentElement.clientWidth is the width actually shown, scrollbar excluded.
+  //
+  // Re-evaluated on every init and reInit, which is what makes it survive the
+  // images loading (slide widths change), a window resize and a phone rotating.
+  const centreOnScreen = (_viewportSize: number, slideSize: number) =>
+    document.documentElement.clientWidth / 2 -
+    viewport.getBoundingClientRect().left -
+    slideSize / 2;
+
   const embla = EmblaCarousel(viewport, {
-    align: "start",
+    align: centreOnScreen,
     containScroll: false,
     loop: true,
     slidesToScroll: 1,
@@ -162,17 +182,22 @@ document.querySelectorAll<HTMLElement>("[data-carousel]").forEach((section) => {
       .replaceAll("{total}", String(N));
   }
 
+  // Move the highlight onto the slide an arrow move landed on. Desktop: an
+  // extra-smooth crossfade. Mobile: match the swipe feel (advance instant, back
+  // smooth) — a long crossfade there leaves the old highlight lingering during the
+  // fade, which reads as a stuck/double highlight.
+  function commitArrowHighlight(idx: number) {
+    if (isTouch) setHighlightSpeed();
+    else setHighlightDuration(HL_DURATION.arrow);
+    setActive(idx);
+    arrowNav = false;
+  }
+
   embla.on("select", () => {
     updateCounter();
     const idx = embla.selectedScrollSnap();
     if (arrowNav) {
-      // Desktop: an extra-smooth crossfade. Mobile: match the swipe feel (advance
-      // instant, back smooth) — a long crossfade there leaves the old highlight
-      // lingering during the fade, which reads as a stuck/double highlight.
-      if (isTouch) setHighlightSpeed();
-      else setHighlightDuration(HL_DURATION.arrow);
-      setActive(idx);
-      arrowNav = false;
+      commitArrowHighlight(idx);
     } else if (isTouch) {
       setHighlightSpeed(); // swipe: advance instant, back smooth
       setActive(idx);
@@ -185,20 +210,28 @@ document.querySelectorAll<HTMLElement>("[data-carousel]").forEach((section) => {
   // ── Arrow buttons ────────────────────────────────
   // Flag the move as arrow-driven (so `select` commits its highlight) and record the
   // direction: next = advance (instant), prev = back (smooth).
-  function goPrev() {
-    arrowNav = true;
-    swipeDir = -1;
-    embla.scrollPrev();
+  //
+  // One step is one photo on from the HIGHLIGHTED one, which on desktop is not
+  // always the centred one — hover moves the highlight without moving the track.
+  // Stepping from the track instead would answer "next" with the photo after
+  // whatever happens to be centred, dragging the highlight backwards past the one
+  // being looked at. This way every arrow press does the one thing: the photo after
+  // the one you are on, centred.
+  function step(dir: 1 | -1) {
+    const from = activeIndex >= 0 ? activeIndex : embla.selectedScrollSnap();
+    goTo((from + dir + N) % N, dir);
   }
-  function goNext() {
+  const goPrev = () => step(-1);
+  const goNext = () => step(1);
+
+  function goTo(index: number, dir?: 1 | -1) {
     arrowNav = true;
-    swipeDir = 1;
-    embla.scrollNext();
-  }
-  function goTo(index: number) {
-    arrowNav = true;
-    swipeDir = index > embla.selectedScrollSnap() ? 1 : -1;
-    embla.scrollTo(index);
+    swipeDir = dir ?? (index > embla.selectedScrollSnap() ? 1 : -1);
+    // Already the centred slide — the highlight was sitting one step off-centre
+    // after a hover. scrollTo would be a no-op and `select` would never fire, so
+    // commit the highlight here rather than leave it on the previous photo.
+    if (index === embla.selectedScrollSnap()) commitArrowHighlight(index);
+    else embla.scrollTo(index); // loop mode takes the shorter way round
   }
   section.querySelector("[data-dir=prev]")?.addEventListener("click", goPrev);
   section.querySelector("[data-dir=next]")?.addEventListener("click", goNext);

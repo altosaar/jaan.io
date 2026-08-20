@@ -193,7 +193,14 @@ const placeholders = await Promise.all(items.map((item) => lqip(item.img)));
                   data-index={index}
                   aria-roledescription="slide"
                   aria-label={slidePosition(index)}
-                  style={item.focusPosition ? `--pos:${item.focusPosition}` : undefined}
+                  style={[
+                    // The photo's true aspect ratio, so the slide is exactly as wide
+                    // as it will ever be from the first layout — see --ar in the CSS.
+                    `--ar:${item.img.width}/${item.img.height}`,
+                    item.focusPosition && `--pos:${item.focusPosition}`,
+                  ]
+                    .filter(Boolean)
+                    .join(";")}
                 >
                   <div class="card__media">
                     {/* `title` carries the same string as `alt`, so hovering a
@@ -527,6 +534,17 @@ const placeholders = await Promise.all(items.map((item) => lqip(item.img)));
   [data-variant="natural"] .card__media img {
     height: 100%;
     width: auto;
+    /* The source photo's ratio, from the slide (see --ar in the markup). Without
+       it the width comes from the img's own intrinsic ratio, which CHANGES as the
+       photo decodes: until then the browser uses the width/height attributes,
+       whose height is a rounded integer, and after it the exact ratio of whichever
+       srcset rung the device picked — a reflow of up to a pixel, per slide, at an
+       unpredictable moment (these load lazily, so some land long after `load`).
+       That is invisible as a layout shift and very visible as a centring error:
+       the carousel measures every slide once, and a slide that quietly resizes
+       afterwards is a slide it parks a pixel off centre for the rest of the page's
+       life. Pinning the ratio in CSS makes the first layout the final one. */
+    aspect-ratio: var(--ar);
   }
 
   /* SQUARE: fixed side, centered cover crop */
