@@ -20,6 +20,16 @@ node_modules/
 .env
 .env.*
 !.env.example
+# Wrangler's local secrets file for `wrangler pages dev` — holds the Turnstile
+# secret and, if one is configured, the alert webhook URL.
+.dev.vars
+
+# Newsletter subscriber data. The local D1 database `wrangler pages dev` creates
+# lives under .wrangler/ (already ignored above); these two cover the ways a
+# copy escapes it — a stray SQLite file, and `wrangler d1 export`'s output.
+# Subscriber email addresses must never reach this public repo.
+*.sqlite*
+dump*.sql
 
 # macOS
 .DS_Store

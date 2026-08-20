@@ -13,6 +13,7 @@ goes away and does not come back.
 
 ```sh
 npm install
+cp .env.example .env  # a Turnstile testing key; the build refuses to run without one
 npm run dev      # localhost:4321
 npm run build    # → dist/
 npm run preview  # serves dist/ on localhost:4322
@@ -23,15 +24,20 @@ npm run preview  # serves dist/ on localhost:4322
 Three of the seven read their data from R2, so until that bucket exists they
 need `npm run viz:local` once to run against local copies.
 
-There is no test framework by design. These four are the tests, and CI runs
-all of them:
+There is no test framework by design. These are the tests, and CI runs all but
+the last one:
 
 ```sh
-npm run check    # astro check — TypeScript, strict
-npm run a11y     # contrast-check.mjs against tokens.css
-npm run audit    # seo-audit.mjs over dist/ — titles, descriptions, canonicals
+npm run check            # astro check over src/, tsc over functions/ — strict
+npm run a11y             # contrast-check.mjs against tokens.css
+npm run audit            # seo-audit.mjs over dist/ — titles, descriptions, canonicals
 npm run format:check
+npm run test:newsletter  # posts to a running `npm run pages:dev` — see Newsletter
 ```
+
+`test:newsletter` is the odd one out: it needs a live Functions runtime and a
+local D1, which the other four do not, so it stays out of CI and is run by hand
+before touching anything under `functions/`.
 
 `npm run photos` re-syncs `src/assets/gallery/` from
 `~/Pictures/_jaan.io-picpicks` (see `src/data/gallery.ts`). `npm run deploy`
@@ -39,14 +45,156 @@ pushes `dist/` to Cloudflare Pages.
 
 ## Where things live
 
-|                                      |                          |
-| ------------------------------------ | ------------------------ |
-| Name, nav, social, feature switches  | `src/site.config.ts`     |
-| Colours, type, spacing               | `src/styles/tokens.css`  |
-| Blog posts — **filename is the URL** | `src/content/posts/*.md` |
-| Long-form page content               | `src/content/pages/*.md` |
-| Gallery photos + alt text            | `src/data/gallery.ts`    |
-| Trailing-slash and legacy redirects  | `public/_redirects`      |
+|                                      |                                         |
+| ------------------------------------ | --------------------------------------- |
+| Name, nav, social, feature switches  | `src/site.config.ts`                    |
+| Colours, type, spacing               | `src/styles/tokens.css`                 |
+| Blog posts — **filename is the URL** | `src/content/posts/*.md`                |
+| Long-form page content               | `src/content/pages/*.md`                |
+| Gallery photos + alt text            | `src/data/gallery.ts`                   |
+| Trailing-slash and legacy redirects  | `public/_redirects`                     |
+| Newsletter form                      | `src/components/NewsletterSignup.astro` |
+| Newsletter endpoints + D1 bindings   | `functions/api/`, `wrangler.toml`       |
+
+## Newsletter
+
+Stage 1 is **collection only**. Nothing is ever sent to a subscriber, there is
+no confirmation email and no unsubscribe page, because there is nothing yet to
+unsubscribe from. What exists is the smallest thing that can start a list
+without losing the addresses that arrive before there is anything to send them.
+
+```
+the form (src/components/NewsletterSignup.astro, on /about and /articles)
+  │  POST /api/subscribe — same origin, JSON
+  ▼
+functions/api/subscribe.ts — honeypot → normalise + validate → verify the
+  Turnstile token server-side → INSERT OR IGNORE into D1 → 200 {"ok":true}
+  └─ unexpected error → fire ALERT_WEBHOOK without blocking → 500
+
+functions/api/health.ts — SELECT 1 against D1 → 200 / 503,
+  polled every 5 minutes by an external uptime monitor
+```
+
+Three things about that are deliberate and would each look like an oversight:
+
+- **The 200 is identical for a new address and one already on the list.** A
+  different answer would turn the form into a membership oracle for anyone with
+  a list of addresses to try.
+- **No CORS headers anywhere.** The form is same-origin; a cross-origin caller
+  is supposed to fail.
+- **No IP address is stored, and none is sent to Turnstile** (its `remoteip`
+  field is left out on purpose). The table holds an address and two timestamps
+  and nothing else — no IPs, no user agents, no analytics. For the same reason,
+  an alert message never contains a submitted address or any part of a request
+  body: the alert channel is not somewhere subscriber data may end up.
+
+### Configuration
+
+| Name                        | Kind                       | Where it is set                                                  | Read by        |
+| --------------------------- | -------------------------- | ---------------------------------------------------------------- | -------------- |
+| `DB`                        | D1 binding                 | `wrangler.toml`, production + `[env.preview]`                    | both functions |
+| `TURNSTILE_SECRET`          | encrypted secret           | `wrangler pages secret put`, production + preview                | subscribe      |
+| `ALERT_WEBHOOK`             | encrypted secret, optional | same; unset means alerting is skipped                            | subscribe      |
+| `PUBLIC_TURNSTILE_SITE_KEY` | public build-time var      | `PUBLIC_TURNSTILE_SITE_KEY` repo variable for CI; `.env` locally | the form       |
+
+The site key is public by design — it ships in the HTML. The secret and the
+webhook URL are Cloudflare secrets and are never in this repo; `.dev.vars` holds
+the local copies and is gitignored.
+
+Because this Pages project is Direct Upload, **CI is the only build**, so the
+site key comes from a GitHub repository variable rather than a Cloudflare build
+setting. Deploying a hand-built `dist/` would ship whatever is in the local
+`.env` — a testing key — so `NewsletterSignup.astro` warns on a local build
+carrying one and fails a CI build outright.
+
+### Working on it locally
+
+```sh
+npx wrangler d1 migrations apply jaan-newsletter --local  # once
+npm run build
+npm run pages:dev        # wrangler pages dev — serves dist/ AND functions/
+npm run test:newsletter  # in another shell
+```
+
+`npm run dev` alone will not do: `astro dev` knows nothing about `functions/`,
+so the form renders and every submission 404s. Rebuild before re-testing —
+`pages:dev` serves `dist/`, not `src/`.
+
+Two of the ten acceptance cases need a differently-configured server and are run
+by hand:
+
+```sh
+# 5 — a failing challenge is rejected. Swap TURNSTILE_SECRET in .dev.vars for
+#     Turnstile's always-fails testing secret (2x0000…AA), restart pages:dev:
+NEWSLETTER_REJECT=1 npm run test:newsletter
+
+# 9 — an unexpected failure alerts once, and says nothing about who submitted.
+#     Point ALERT_WEBHOOK at a throwaway receiver, rename the `DB` binding in
+#     wrangler.toml, restart, post once: expect 500, one message, no address.
+```
+
+### Reading and exporting the list
+
+```sh
+npx wrangler d1 execute jaan-newsletter --remote \
+  --command "SELECT email, created_at FROM subscribers WHERE status='active'"
+
+npx wrangler d1 execute jaan-newsletter --remote \
+  --command "SELECT count(*) FROM subscribers"
+
+npx wrangler d1 export jaan-newsletter --remote --output dump.sql
+```
+
+The export is subscriber data. `dump*.sql` and `*.sqlite*` are gitignored, and
+this repo is public — see _Do not commit_ at the bottom of this file.
+
+Quotas are not a concern at this scale: D1's free tier is ~100k row-writes and
+5M row-reads a day, and Pages Functions share the Workers free tier of 100k
+requests a day. If a cap is ever hit, D1 queries fail until 00:00 UTC and
+`/api/health` goes red, which is what the uptime monitor is for.
+
+### What is already set up, and what is left
+
+Done: both D1 databases (`jaan-newsletter`, `jaan-newsletter-preview`) created
+and migrated; the Turnstile widget (managed mode, `jaan-io.pages.dev` and
+`jaan.io`); `TURNSTILE_SECRET` on the Pages project for production and preview;
+`PUBLIC_TURNSTILE_SITE_KEY` as a repo variable.
+
+Still open, and neither blocks the form from working:
+
+1. **`ALERT_WEBHOOK`** — create a webhook (a Discord channel's Integrations →
+   Webhooks gives a URL that accepts the payload as-is) and set it:
+   `npx wrangler pages secret put ALERT_WEBHOOK --project-name jaan-io`, then
+   again with `--env preview`. Until then, an unexpected 500 is silent.
+2. **An end-to-end test against the real widget.** The testing keys cannot
+   exercise the actual Turnstile challenge, and no browser has driven this form
+   yet — only the endpoint has been tested. Deploy a preview and submit it once:
+
+   ```sh
+   npm run build && npx wrangler pages deploy dist --project-name=jaan-io --branch=test
+   ```
+
+   Any branch that is not `main` makes it a preview deployment, and wrangler
+   picks the `[env.preview]` bindings from `wrangler.toml` automatically — so the
+   address lands in `jaan-newsletter-preview` and never touches the real list.
+   Confirm it with `npx wrangler d1 execute jaan-newsletter-preview --remote
+--env preview --command "SELECT * FROM subscribers"`. (CI only ever deploys
+   `main`, so preview deployments are a manual step.)
+
+3. **The uptime monitor** — point a free monitor (UptimeRobot or similar) at
+   `https://jaan-io.pages.dev/api/health`, 5-minute interval, alert to email.
+   This is the layer that catches a broken deploy or a missing binding, which
+   the in-code alerting cannot see. Use the slash-less URL: `_redirects` ends
+   with a `/*/ → /:splat` catch-all, so a trailing slash costs a 301.
+
+### Stage 2, when there is something to send
+
+The table is already shaped for it, so no migration is needed on a table that
+will by then hold real addresses: `status` has `pending` / `unsubscribed` /
+`bounced` waiting for it, `confirmed_at` + `confirm_token` carry double opt-in,
+and every row already has an `unsubscribe_token` for one-click unsubscribe
+links. What is missing is all of the sending: a provider, an outbox, and a
+compliance footer.
 
 ---
 
@@ -295,3 +443,7 @@ so a production build cannot carry it, and re-running `viz:local` restores it.
 `jaan.io-old/.env` holds live AWS keys. It stays out of this repo and out of
 any transcript. Secrets go in via `wrangler secret put` or the Pages
 dashboard — never as a command-line argument.
+
+The same goes for anything carrying a subscriber's address: `.dev.vars`, and any
+`wrangler d1 export` output. This repo is public, and a git history is not
+something a mailing list can be removed from.

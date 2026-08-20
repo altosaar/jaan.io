@@ -8,6 +8,7 @@
 // Phase 4. The individual POST urls are unchanged and must stay that way.
 import Base from "../layouts/Base.astro";
 import Section from "../components/Section.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
 import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 
@@ -52,6 +53,13 @@ const posts = (await getCollection("posts")).sort(
       }
     </ul>
   </Section>
+
+  {
+    /* At the end of the list rather than above it. Someone who has read to the
+       bottom of the index has already decided whether the writing is for them;
+       a form in front of the headlines would be asking before showing. */
+  }
+  <NewsletterSignup />
 </Base>
 
 <style>

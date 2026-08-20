@@ -9,6 +9,7 @@ import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import Toc from "../components/Toc.astro";
 import PortraitBlink from "../components/PortraitBlink.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
 import portraitOpen from "../assets/portrait-open.webp";
 import portraitClosed from "../assets/portrait-closed.webp";
 import { SITE } from "../site.config";
@@ -58,6 +59,15 @@ const { Content } = await render(page);
       <Content />
     </Prose>
   </div>
+
+  {
+    /* Below the bio, not inside it: .about is centred on the viewport and sized
+       to one screen, so anything added to it would push the portrait off-centre.
+       Here it is the thing you find by scrolling past the page you came for,
+       which is the right prominence for it — /about/ is already where someone
+       who wants to keep in touch arrives (see the contact rail above). */
+  }
+  <NewsletterSignup />
 </Base>
 
 <style>

@@ -1,0 +1,285 @@
+---
+// The newsletter signup form — the only <form> on the site, and the only place
+// it makes a third-party request.
+//
+// WHAT HAPPENS WHEN IT IS SUBMITTED: the script below POSTs JSON to
+// /api/subscribe (functions/api/subscribe.ts), which verifies the Turnstile
+// token and writes one row to D1. Nothing is ever sent to the address. There is
+// no confirmation mail and no unsubscribe link yet, because there is nothing to
+// unsubscribe FROM — see the Newsletter section of README.md for where that
+// line is drawn and what stage 2 would add.
+//
+// THE ONE THIRD-PARTY SCRIPT ON THE SITE. Everything else here is self-hosted
+// on purpose (fonts are local, KaTeX renders at build time — see the comment in
+// astro.config.mjs). Turnstile is the exception, and it is a considered one: a
+// public form with no bot check collects garbage from day one, and the
+// alternative to loading challenges.cloudflare.com is a form that cannot be
+// trusted. It loads only on pages that actually mount this component.
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+
+// Fail the build rather than ship a form that cannot be submitted. Without a
+// site key the widget renders nothing, no cf-turnstile-response is produced,
+// and every submission is rejected with a 400 by a server that is working
+// perfectly — a failure that looks like nothing at all from the outside. CI
+// supplies this from the PUBLIC_TURNSTILE_SITE_KEY repository variable and
+// local builds from .env; see .env.example.
+if (!siteKey) {
+  throw new Error(
+    "[NewsletterSignup] PUBLIC_TURNSTILE_SITE_KEY is not set. Copy .env.example to .env (see README, Newsletter).",
+  );
+}
+
+// Turnstile's published testing keys, which pass or block unconditionally. They
+// belong in a local .env and nowhere else — a build carrying one is a form
+// anybody can post to, and the site key is baked into the HTML at build time,
+// so the mistake is only visible by reading the deployed page's source.
+//
+// A LOCAL build gets a warning, because building locally to look at something
+// is normal. A CI build throws: CI is the only thing that deploys (see
+// .github/workflows/ci.yml), so that is the exact moment a testing key would
+// stop being harmless.
+const TESTING_SITE_KEYS = [
+  "1x00000000000000000000AA", // visible, always passes
+  "1x00000000000000000000BB", // invisible, always passes
+  "2x00000000000000000000AB", // visible, always blocks
+  "2x00000000000000000000BB", // invisible, always blocks
+  "3x00000000000000000000FF", // forces an interactive challenge
+];
+if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
+  const message =
+    "[NewsletterSignup] built with a Turnstile TESTING site key — this form has no bot protection.";
+  if (process.env.CI) throw new Error(message);
+  console.warn(`${message} Fine locally; CI refuses to build it.`);
+}
+---
+
+<section class="newsletter" aria-labelledby="newsletter-title">
+  <h2 id="newsletter-title" class="newsletter__title">Newsletter</h2>
+
+  <form class="newsletter__form" data-newsletter>
+    <label class="newsletter__label" for="newsletter-email">Email address</label>
+    <div class="newsletter__row">
+      <input
+        class="newsletter__input"
+        id="newsletter-email"
+        type="email"
+        name="email"
+        required
+        autocomplete="email"
+        placeholder="you@example.com"
+      />
+      {
+        /* Honeypot. Off-screen rather than display:none — a field that is not
+           rendered at all is one a headless browser can see is not rendered, and
+           some autofillers skip it too. aria-hidden + tabindex="-1" keep it away
+           from screen readers and the tab order, so the only thing that fills it
+           is something reading the DOM and filling every input it finds. The
+           server answers those with a 200 and writes nothing. */
+      }
+      <div class="newsletter__hp" aria-hidden="true">
+        <label for="newsletter-website">Website</label>
+        <input
+          id="newsletter-website"
+          type="text"
+          name="website"
+          tabindex="-1"
+          autocomplete="off"
+        />
+      </div>
+      <button class="cta-primary newsletter__submit" type="submit">Subscribe</button>
+    </div>
+
+    {
+      /* Managed mode, default appearance: Turnstile decides whether to show a
+        challenge at all, and most visitors see a checkbox that resolves itself. */
+    }
+    <div class="cf-turnstile newsletter__widget" data-sitekey={siteKey}></div>
+  </form>
+
+  {
+    /* role="status" is what makes the success and error lines reach a screen
+       reader: the region is in the DOM from the start and empty, so filling it
+       later is an announcement. Building the line after submit instead would
+       insert it silently. */
+  }
+  <p class="newsletter__status" role="status" aria-live="polite" data-newsletter-status></p>
+
+  <p class="newsletter__note">
+    Occasional emails, at most a few per year. Unsubscribe anytime.
+    <!-- TODO: link privacy policy when it exists -->
+  </p>
+</section>
+
+<!-- Turnstile's loader. `is:inline` because this is a third-party URL that must
+     be emitted verbatim and left alone by the bundler; async defer because
+     nothing on the page waits for it — the widget renders itself into the div
+     above whenever it arrives. -->
+<script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+
+<script>
+  // Turnstile installs itself on `window` once its loader arrives. Read at call
+  // time rather than captured up here: this module runs first, and at that
+  // moment the property does not exist yet.
+  const resetWidget = () =>
+    (window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset();
+
+  const COPY = {
+    success: "You're on the list.",
+    // Deliberately one message for every failure mode. The endpoint answers 400
+    // for a bad address, a failed challenge and a malformed body alike, and
+    // guessing which one it was in the browser would only ever be a guess.
+    error: "Something went wrong — please try again.",
+  };
+
+  for (const form of document.querySelectorAll<HTMLFormElement>("form[data-newsletter]")) {
+    const status = form.parentElement?.querySelector<HTMLElement>("[data-newsletter-status]");
+    const submit = form.querySelector<HTMLButtonElement>("button[type=submit]");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!submit || submit.disabled) return;
+
+      const data = new FormData(form);
+      // Locking the button is the whole double-submit guard: one Turnstile token
+      // is good for a single verification, so a second in-flight POST would fail
+      // server-side anyway and show an error for a signup that worked.
+      submit.disabled = true;
+      if (status) status.textContent = "";
+
+      let ok = false;
+      try {
+        const response = await fetch("/api/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: data.get("email"),
+            // Turnstile writes this field into the form itself.
+            token: data.get("cf-turnstile-response"),
+            website: data.get("website"),
+          }),
+        });
+        ok = response.ok;
+      } catch {
+        // Offline, or the request never left. Same message as any other failure.
+      }
+
+      if (ok) {
+        // The form goes away on success. Leaving it up invites a second
+        // submission that would silently do nothing (the row already exists),
+        // which reads as the first one having failed.
+        form.hidden = true;
+        if (status) status.textContent = COPY.success;
+        return;
+      }
+
+      if (status) status.textContent = COPY.error;
+      submit.disabled = false;
+      // A spent token cannot be reused, so the widget has to be re-armed before
+      // the visitor tries again — without this, every retry fails verification.
+      resetWidget();
+    });
+  }
+</script>
+
+<style>
+  /* Sized and offset like every other block on the site — see Section.astro,
+     whose two lines these are. Not the component itself, because this section
+     also carries its own vertical rhythm and a max-width tied to the measure. */
+  .newsletter {
+    width: var(--site-w);
+    margin-left: var(--site-ml);
+    max-width: var(--reading-w);
+    padding-top: var(--space-section);
+    margin-bottom: var(--space-block);
+  }
+
+  .newsletter__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  /* The label is visible rather than .sr-only. A placeholder is not a label —
+     it disappears the moment someone types, which is exactly when a person
+     filling in a form on a phone wants to check what the field was for. */
+  .newsletter__label {
+    display: block;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-size: var(--fs-base);
+    color: var(--text-muted);
+  }
+
+  .newsletter__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  /* The site has no other input, so there is no existing idiom to inherit —
+     these are the first form styles in the codebase. Built out of the same
+     tokens as everything else: a --surface plate, a --line border, and the
+     global :focus-visible ring from base.css doing the focus state. */
+  .newsletter__input {
+    flex: 1 1 16rem;
+    min-width: 0;
+    padding: 1.1rem 1.25rem;
+    /* inherit, for the same reason .cta-primary does it: a form control that is
+       not told otherwise falls back to the UA font and reads as a foreign
+       object dropped into the page. */
+    font-family: inherit;
+    font-size: var(--fs-base);
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--hover-radius);
+  }
+
+  .newsletter__input::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* .cta-primary is a block element sized for a stacked column of full-width
+     buttons; beside an input it has to shrink to its label. */
+  .newsletter__submit {
+    flex: 0 0 auto;
+    border: 1px solid var(--btn-light);
+    cursor: pointer;
+  }
+
+  .newsletter__submit:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  /* Off-screen, not hidden — see the note beside the field. */
+  .newsletter__hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .newsletter__widget {
+    margin-top: 0.75rem;
+  }
+
+  /* Empty until something has happened, so it must not reserve space or leave a
+     gap above the microcopy while it is blank. */
+  .newsletter__status:not(:empty) {
+    margin-top: 1rem;
+    font-size: var(--fs-base);
+    color: var(--text);
+  }
+
+  .newsletter__note {
+    margin-top: 1rem;
+    font-size: var(--fs-base);
+    line-height: 1.6;
+    color: var(--text-muted);
+    max-width: var(--reading-w-tight);
+  }
+</style>

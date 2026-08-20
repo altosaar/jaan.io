@@ -54,6 +54,9 @@ jobs:
       - name: Format check
         run: npm run format:check
 
+      # astro check over src/, then tsc over functions/ — the Pages Functions are
+      # typed against @cloudflare/workers-types under their own tsconfig, and a
+      # broken one must stop the deploy exactly like a broken page does.
       - name: Type check
         run: npm run check
 
@@ -67,7 +70,18 @@ jobs:
       - name: Font wiring check
         run: npm run fonts:check
 
+      # PUBLIC_TURNSTILE_SITE_KEY is a repository VARIABLE, not a secret: a
+      # Turnstile site key is public by design and is inlined into the HTML this
+      # step emits. It has to be here because this is the only build — a Direct
+      # Upload project has no Cloudflare-side build settings to put it in.
+      #
+      # If it is missing or holds one of Turnstile's testing keys, the build
+      # fails in NewsletterSignup.astro rather than deploying a signup form that
+      # silently rejects everyone (or accepts every bot). Set it with:
+      #   gh variable set PUBLIC_TURNSTILE_SITE_KEY --body <site key>
       - name: Build
+        env:
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
         run: npm run build
 
       - name: SEO / launch gate

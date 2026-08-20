@@ -1,0 +1,33 @@
+# Cloudflare Pages configuration.
+#
+# This project is DIRECT UPLOAD, not Git-connected: GitHub Actions builds the
+# site and `npm run deploy` hands dist/ to Cloudflare (see the header of
+# .github/workflows/ci.yml for why it can never be Git-connected). One
+# consequence matters here — when a Pages project has a Wrangler config file,
+# the bindings below REPLACE anything set in the dashboard. Adding a binding in
+# the dashboard and not here would appear to work and then vanish on the next
+# deploy. This file is the source of truth.
+#
+# The database_ids are identifiers, not credentials: they name a database that
+# is still reachable only by a caller holding an account token. The secrets that
+# do matter (TURNSTILE_SECRET, ALERT_WEBHOOK) are set with
+# `wrangler pages secret put` and never appear in this repo — see README §8.
+
+name = "jaan-io"                 # must match the Pages project (`wrangler pages project list`)
+pages_build_output_dir = "dist"
+compatibility_date = "2026-08-01"
+
+# Production — jaan-io.pages.dev, and jaan.io once DNS points here.
+[[d1_databases]]
+binding = "DB"
+database_name = "jaan-newsletter"
+database_id = "e00ef88b-efd5-4ca5-8c4c-75fd36f39461"
+
+# Preview deployments (every branch that is not `main`) get their OWN database.
+# Without this they would share the production one, and every end-to-end test of
+# the form would put a junk address on the real mailing list.
+[env.preview]
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "jaan-newsletter-preview"
+database_id = "be9a5fa0-9f19-45a0-a1c4-c1270060ac43"
