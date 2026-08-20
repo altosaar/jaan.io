@@ -43,17 +43,43 @@ before touching anything under `functions/`.
 `~/Pictures/_jaan.io-picpicks` (see `src/data/gallery.ts`). `npm run deploy`
 pushes `dist/` to Cloudflare Pages.
 
-`npm run gen:favicons` rebuilds the favicons from `../composite-portraits/out`
-(the `faceglyph` pipeline). The tab carries a different portrait glyph each day,
-picked client-side from `public/favicons/` — the how and why are in
-`src/lib/favicon.ts`, the file-by-file output in `scripts/gen-favicons.mjs`.
-Re-run it after adding a portrait to the pipeline; it rewrites
-`src/data/favicons.ts`, so commit that alongside the SVGs.
+### Portraits
 
-The same script emits `public/nav-morph.svg`, the animated mark that stands in
-for the wordmark in the nav below 1024px. It is a **test**: `SITE.features
-.navMorph = false` removes it and brings the wordmark back, and nothing else
-needs touching.
+Every mark on the site — the favicons, the nav mark, the touch icon — is
+generated from one directory of line drawings that the `faceglyph` pipeline
+(`../composite-portraits`) writes from a folder of photographs. The tab carries
+a different portrait each day and the nav mark dissolves through all of them;
+the how and why are in `src/lib/favicon.ts` and `src/lib/nav-morph.ts`, the
+file-by-file output in `scripts/gen-favicons.mjs`.
+
+After the pipeline runs again — a portrait added, one dropped, a weight retuned:
+
+```sh
+npm run gen:favicons        # or: npm run gen:favicons -- path/to/other/out
+npm run build && npm run audit
+git add -A public src/data
+```
+
+That is the whole procedure. The set is derived, so the script rebuilds all of
+it from whatever the source directory holds now, and prints what changed —
+
+```
+wrote public/favicons/ — 18 portraits at stroke-width 80
+  + sophie-and-david
+```
+
+— which is the check that it did what you expected before you commit. Read the
+source directory off the `reading …` line it starts with; the default is in
+`scripts/gen-favicons.mjs`. Everything it writes is committed, including
+`src/data/favicons.ts` and `src/data/nav-morph.ts`: CI has no copy of the
+pipeline, so this never runs during a build.
+
+It warns if `morph.svg` and `glyphs/` disagree on how many portraits there are.
+They come out of the same pipeline run, so that means one of them is stale — the
+nav mark would be missing a face the tab still shows.
+
+The nav mark itself is a **test**: `SITE.features.navMorph = false` removes it
+and brings the wordmark back, and nothing else needs touching.
 
 ## Where things live
 
