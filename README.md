@@ -70,6 +70,7 @@ the form (src/components/NewsletterSignup.astro, on /about and /articles)
 functions/api/subscribe.ts — honeypot → normalise + validate → verify the
   Turnstile token server-side → INSERT OR IGNORE into D1 → 200 {"ok":true}
   └─ unexpected error → fire ALERT_WEBHOOK without blocking → 500
+     (wired, but ntfy.sh rejects it from a Worker — see Alerting)
 
 functions/api/health.ts — SELECT 1 against D1 → 200 / 503,
   polled every 5 minutes by an external uptime monitor
@@ -94,40 +95,66 @@ Three things about that are deliberate and would each look like an oversight:
 | --------------------------- | -------------------------- | ---------------------------------------------------------------- | -------------- |
 | `DB`                        | D1 binding                 | `wrangler.toml`, production + `[env.preview]`                    | both functions |
 | `TURNSTILE_SECRET`          | encrypted secret           | `wrangler pages secret put`, production + preview                | subscribe      |
-| `ALERT_WEBHOOK`             | encrypted secret, optional | same; unset means alerting is skipped                            | subscribe      |
-| `ALERT_NTFY_TOKEN`          | encrypted secret, optional | same; without it alerts are push-only                            | subscribe      |
+| `ALERT_WEBHOOK`             | encrypted secret, optional | same; set, but see Alerting — not delivering                     | subscribe      |
+| `ALERT_NTFY_TOKEN`          | encrypted secret, optional | same; set, but see Alerting — not delivering                     | subscribe      |
 | `PUBLIC_TURNSTILE_SITE_KEY` | public build-time var      | `PUBLIC_TURNSTILE_SITE_KEY` repo variable for CI; `.env` locally | the form       |
 
 The site key is public by design — it ships in the HTML. The secret and the
 webhook URL are Cloudflare secrets and are never in this repo; `.dev.vars` holds
 the local copies and is gitignored.
 
-### Alerting
+### Alerting — built, wired, and NOT currently delivering
 
-An unexpected failure in `subscribe` publishes to an [ntfy](https://ntfy.sh)
-topic, which fans out to a phone push **and** an email. The message is the error
-text and nothing else — never a submitted address, never any part of a request
-body. An alert channel is not somewhere subscriber data may end up, and an alert
-about a malformed submission is exactly where one would otherwise leak.
+**Read this before trusting an alert to arrive, or before rebuilding this.** An
+unexpected failure in `subscribe` publishes to an [ntfy](https://ntfy.sh) topic,
+which is supposed to fan out to a phone push and an email. The code is correct
+and the secrets are set; ntfy.sh rejects the publish anyway:
 
-Two secrets, and the split matters:
+```
+429 {"code":42908,"error":"limit reached: daily message quota reached"}
+```
+
+Six attempts out of six from a deployed Function. The same publish, same token,
+same topic, from a laptop: `200`. The cause is in the ntfy account's own limits
+— `"basis": "ip"`. On the free tier ntfy meters per **source IP**, not per
+account; the token authenticates but does not change the basis. A Worker
+egresses from a shared Cloudflare IP pool whose daily quota strangers have
+already spent, so the rejection has nothing to do with this account's remaining
+messages. It blocks the push as well as the email: ntfy from a Worker is off,
+not degraded.
+
+The fix, if alerts are ever wanted, is one of:
+
+- an ntfy paid tier — the basis becomes `tier`, and everything here starts
+  working with no code change at all;
+- Cloudflare Email Sending from the Worker — no third-party quota, and both
+  `jaan.io` and `jaan.li` are already zones on this account;
+- a webhook that is not IP-metered (Discord, Telegram) — push, no email.
+
+What exists in the meantime:
 
 - **`ALERT_WEBHOOK`** is the whole topic URL, `https://ntfy.sh/<topic>`. On the
   public ntfy.sh server **the topic name is the only access control** — anyone
   who learns it can read every alert and publish fakes — so the URL is a secret
   rather than a constant in this file, and the topic is one this project shares
-  with nothing else.
+  with nothing else. A copy lives at `~/.config/ntfy/topic.jaan-io-newsletter`,
+  since a Cloudflare secret cannot be read back.
 - **`ALERT_NTFY_TOKEN`** is an ntfy account token, and it buys exactly one
   thing: email. ntfy.sh refuses anonymous email forwarding, so without a token
-  an alert is a push notification only. With it, the request carries
-  `Email: yes`, which routes to the account's primary **verified** address — so
-  no email address appears in this repo either. Free-tier ntfy allows 5 alert
-  emails a day, which is the right order of magnitude for something that should
-  fire approximately never.
+  an alert would be push-only. With it the request carries `Email: yes`, which
+  routes to the account's primary **verified** address — so no email address
+  appears in this repo either.
 
-To watch alerts on a phone: install the ntfy app and add the topic from the
-`ALERT_WEBHOOK` secret. To rotate the topic, mint a new one and re-`put` the
-secret — nothing else references it.
+Both secrets are left in place deliberately: a doomed `fetch` on an error path
+that should never run costs nothing, and it means an ntfy upgrade would need no
+deploy. Remove them with `npx wrangler pages secret delete ALERT_WEBHOOK
+--project-name jaan-io` (and `--env preview`) to make the handler skip alerting
+entirely, which is what it already does when the secret is unset.
+
+**So the real monitoring is the health endpoint below.** That is not a
+consolation prize — the external monitor is the layer that catches broken
+deploys, missing bindings, and D1 quota exhaustion, none of which an in-process
+alert can report anyway.
 
 Because this Pages project is Direct Upload, **CI is the only build**, so the
 site key comes from a GitHub repository variable rather than a Cloudflare build
