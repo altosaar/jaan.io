@@ -193,6 +193,30 @@ const titles = new Map(),
   descs = new Map();
 const missingAssets = new Set();
 const eventNodePages = new Set(); // pages that emitted an Event JSON-LD node
+const ogImages = new Map(); // page -> og:image URL, checked for agreement below
+
+/**
+ * Width and height straight out of a JPEG's SOF marker.
+ *
+ * Fifteen lines rather than an image library: this script is deliberately
+ * dependency-free so it can run as the last gate before deploy without an
+ * install step deciding whether the site ships. Markers are 0xFFC0-0xFFCF minus
+ * C4 (Huffman table), C8 (JPEG extensions) and CC (arithmetic coding) — the rest
+ * are all Start Of Frame variants, and every one of them lays out the same:
+ * length, precision, height, width.
+ */
+function jpegSize(buf) {
+  if (buf.readUInt16BE(0) !== 0xffd8) return null; // not a JPEG
+  let i = 2;
+  while (i < buf.length - 9) {
+    if (buf[i] !== 0xff) return null;
+    const marker = buf[i + 1];
+    if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker))
+      return { height: buf.readUInt16BE(i + 5), width: buf.readUInt16BE(i + 7) };
+    i += 2 + buf.readUInt16BE(i + 2);
+  }
+  return null;
+}
 
 function assetExists(u, page) {
   // Only verify same-host or root-relative references; externals are lychee's job.
@@ -270,6 +294,9 @@ for (const page of htmlFiles) {
     /<meta\s+(?:property|name)="(?:og:image|twitter:image)"\s+content="([^"]+)"/g,
   ))
     assetExists(decode(m[1]), page);
+
+  const ogImg = head.match(/<meta\s+property="og:image"\s+content="([^"]+)"/);
+  if (ogImg) ogImages.set(page, decode(ogImg[1]));
   for (const m of html.matchAll(/<(?:img|source|script|link)\b[^>]*?(?:src|href)="([^"]+)"/g)) {
     const v = decode(m[1]);
     if (/\.(css|js|mjs|png|jpe?g|webp|avif|gif|svg|ico|woff2?)(\?|$)/i.test(v))
@@ -507,6 +534,70 @@ for (const page of htmlFiles) {
   // Sitemap membership (indexable pages only)
   if (!inSitemap.has(page) && page !== "404.html" && !(rm && /noindex/i.test(rm[1])))
     err(page, "Indexable page missing from sitemap.");
+}
+
+// ------------------------------------------------------ share image (OG) ---
+// One portrait, identical on every page. src/layouts/Base.astro renders it from
+// src/lib/og.ts into <head> unconditionally and exposes no prop for it, so this
+// holds today by construction — the check is here so that adding a per-page
+// override later is a decision somebody makes on purpose. A link to any part of
+// the site should preview as the same face; a share card that varies by route
+// reads as a different site each time it is pasted.
+{
+  const distinct = new Set(ogImages.values());
+  if (distinct.size > 1) {
+    err(
+      "(site)",
+      `og:image differs across pages (${distinct.size} distinct). Every page should share one share card — see src/lib/og.ts. ` +
+        [...distinct]
+          .map((u) => `${u} on ${[...ogImages].filter(([, v]) => v === u).length} page(s)`)
+          .join("; "),
+    );
+  }
+
+  const [shared] = distinct;
+  if (shared) {
+    if (!/portrait-open/.test(shared))
+      err(
+        "(site)",
+        `og:image is not the portrait: ${shared} (expected a derivative of portrait-open).`,
+      );
+
+    const file = assetExists(shared, "(site)");
+    if (file) {
+      const bytes = statSync(join(dist, file)).size;
+      // Every platform that documents a ceiling puts it at 5 MB or more
+      // (Twitter/LinkedIn 5, Facebook 8). Over that the card silently does not
+      // render — no error anywhere, just a bare link.
+      if (bytes > 5 * 1024 * 1024)
+        err(
+          "(site)",
+          `og:image is ${(bytes / 1024 / 1024).toFixed(1)} MB — over the 5 MB most platforms accept.`,
+        );
+
+      // The declared size must be the real size. Astro's Sharp service resizes
+      // `withoutEnlargement`, so asking for a square larger than the source
+      // quietly yields a SMALLER file while og:image:width/height keep claiming
+      // the number that was asked for — and a crawler that trusts those
+      // dimensions lays out the card wrong. Read them back out of the JPEG.
+      const declared = ["width", "height"].map((k) => {
+        const m = read("index.html").match(
+          new RegExp(`<meta property="og:image:${k}" content="(\\d+)"`),
+        );
+        return m ? Number(m[1]) : null;
+      });
+      const actual = jpegSize(readFileSync(join(dist, file)));
+      if (actual && declared[0] && (actual.width !== declared[0] || actual.height !== declared[1]))
+        err(
+          "(site)",
+          `og:image is ${actual.width}\u00d7${actual.height} but declares ${declared[0]}\u00d7${declared[1]}. ` +
+            `OG_SIZE in src/lib/og.ts is probably larger than the source image.`,
+        );
+      // Facebook and LinkedIn both refuse to render anything under 200px.
+      if (actual && Math.min(actual.width, actual.height) < 200)
+        err("(site)", `og:image is ${actual.width}\u00d7${actual.height} — under the 200px floor.`);
+    }
+  }
 }
 
 // -------------------------------------------------- Event schema presence ---

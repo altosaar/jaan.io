@@ -7,12 +7,14 @@ import SiteHeader from "../components/SiteHeader.astro";
 import MobileMenu from "../components/MobileMenu.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import { getImage } from "astro:assets";
-import { featured, OG_SIZE } from "../lib/og";
+import { featured, OG_SIZE, OG_QUALITY } from "../lib/og";
 import { FAVICON_PICKER } from "../lib/favicon";
 import { SITE } from "../site.config";
 
-// Render this build's randomly-featured testimonial into a high-res square share
-// image (Sharp, build-time), and resolve it to an absolute URL for the meta tags.
+// The share image: one fixed portrait for the whole site, squared at build time
+// by Sharp and resolved to an absolute URL for the meta tags. Not a prop and not
+// per-page — see src/lib/og.ts for why it is the same face everywhere, and
+// astro.config.mjs for the encoder settings behind `format: "jpeg"`.
 const ogRendered = await getImage({
   src: featured.image,
   width: OG_SIZE,
@@ -20,7 +22,7 @@ const ogRendered = await getImage({
   fit: "cover",
   position: "attention",
   format: "jpeg",
-  quality: 80,
+  quality: OG_QUALITY,
 });
 const ogImageUrl = new URL(ogRendered.src, Astro.site).href;
 

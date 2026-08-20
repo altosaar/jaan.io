@@ -86,5 +86,30 @@ export default defineConfig({
   server: {
     host: true,
   },
-  image: { responsiveStyles: true },
+  image: {
+    responsiveStyles: true,
+    // Encoder settings for the built-in Sharp service. Astro only lets a
+    // component pass `quality` through getImage()/<Image>; everything else about
+    // the encode is set here, once, and spread into Sharp's options for that
+    // format (a per-call `quality` still wins over anything named here).
+    //
+    // The JPEG block exists for ONE image: the Open Graph share card, which is
+    // the only thing on the site Sharp emits as JPEG — the gallery is all WebP,
+    // and dist/images/*.jpg are copied verbatim out of public/. Both settings
+    // matter for a photograph of a face:
+    //
+    //   chromaSubsampling  Sharp defaults to 4:2:0, which stores colour at half
+    //                      resolution in both axes, and it does NOT switch off
+    //                      automatically at high quality. On this portrait —
+    //                      saturated florals against dark green — 4:2:0 smears
+    //                      the colour edges. Turning it off is worth about
+    //                      1.2 dB PSNR, more than the jump from quality 80 to 90.
+    //   mozjpeg            Better trellis quantisation: at a fixed quality it is
+    //                      both smaller and closer to the source than libjpeg.
+    //                      Slower, which is irrelevant for one image per build.
+    service: {
+      entrypoint: "astro/assets/services/sharp",
+      config: { jpeg: { chromaSubsampling: "4:4:4", mozjpeg: true } },
+    },
+  },
 });
