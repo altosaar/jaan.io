@@ -151,10 +151,14 @@ deploy. Remove them with `npx wrangler pages secret delete ALERT_WEBHOOK
 --project-name jaan-io` (and `--env preview`) to make the handler skip alerting
 entirely, which is what it already does when the secret is unset.
 
-**So the real monitoring is the health endpoint below.** That is not a
-consolation prize — the external monitor is the layer that catches broken
-deploys, missing bindings, and D1 quota exhaustion, none of which an in-process
-alert can report anyway.
+**So the real monitoring is the health endpoint.** That is not a consolation
+prize — polling it from outside is the layer that catches broken deploys,
+missing bindings, and D1 quota exhaustion, none of which an in-process alert can
+report anyway. `.github/workflows/health.yml` does that poll every 10 minutes
+and opens a GitHub issue when it goes red, which is what actually reaches an
+inbox; it closes the issue again on the next green run. The one thing it cannot
+report is GitHub itself being down, which is the argument for the third-party
+monitor still on the open list below.
 
 Because this Pages project is Direct Upload, **CI is the only build**, so the
 site key comes from a GitHub repository variable rather than a Cloudflare build
@@ -234,7 +238,7 @@ Still open, and neither blocks the form from working:
 --env preview --command "SELECT * FROM subscribers"`. (CI only ever deploys
    `main`, so preview deployments are a manual step.)
 
-2. **The uptime monitor** — point a free monitor (UptimeRobot or similar) at
+2. **A third-party uptime monitor** (optional second opinion) — point a free monitor (UptimeRobot or similar) at
    `https://jaan-io.pages.dev/api/health`, 5-minute interval, alert to email.
    This is the layer that catches a broken deploy or a missing binding, which
    the in-code alerting cannot see. Use the slash-less URL: `_redirects` ends
