@@ -18,7 +18,7 @@ If you have a physics background, I hope you will have a better sense of machine
 
 *If this article is confusing, falls short of these goals, or could be improved in any way please [email me](mailto:j@jaan.io), [@ me](https://twitter.com/thejaan), or [submit a pull request](https://github.com/altosaar/jaan.io/blob/master/_posts/blog/2017-08-11-how-does-physics-connect-machine-learning.md).*
 
-## The Ising model, a physics perspective
+# Modeling magnetic spins
 
 Consider a lattice of spins that point up or down:
 
@@ -64,9 +64,7 @@ We can reason about the magnetic field strength $H$ by imagining what happens if
 
 Now that we have defined the Ising model and its characteristics, let’s think about our goals. What questions can we answer about this Ising model? For example, if we observe the system, what state will it be in---what are the most likely spin configurations? What is the average magnetization?
 
-## The Boltzmann distribution
-
-Can we make our goals more precise and make math from words? To do this, we need to define a distribution over spin configurations. It is straightforward to derive the probability of finding the system in an equilibrium state [^1]:
+**The Boltzmann distribution.** Can we make our goals more precise and make math from words? To do this, we need to define a distribution over spin configurations. It is straightforward to derive the probability of finding the system in an equilibrium state [^1]:
 
 [^1]: [Derivation](http://www.physics.udel.edu/~glyde/PHYS813/Lectures/chapter_3.pdf)
 
@@ -74,7 +72,7 @@ $$
 p(s_1, s_2,...,s_N) = \frac{e^{-\beta E(s_1, s_2,...,s_N)}}{Z}
 $$
 
-This is the **Boltzmann distribution**. The numerator is called the Boltzmann factor for a particular configuration. This factor gives high or low weight to a specific state of the system according to the energy for that state.
+This is the Boltzmann distribution. The numerator is called the Boltzmann factor for a particular configuration. This factor gives high or low weight to a specific state of the system according to the energy for that state.
 
 We query the Boltzmann distribution at a specific configuration of spins to get the probability of finding the system in this state.
 
@@ -84,9 +82,7 @@ This distribution behaves intuitively: low energy states are more probable than 
 
 The parameter $\beta$ is proportional to the inverse temperature, $\beta = \frac{1}{k_BT}$ and is used for notational convenience. (Specifically, it includes the constant $k_B$ to make the probability density dimensionless.) Temperature affects the model by controlling how important the interactions are. If $T\rightarrow \infty$ we are at a high temperature, and the inverse temperature is small with $\beta \ll 1$, so the interaction strength $J$ is not important and has little effect. But at low temperatures, the inverse temperature is large, so interactions have a large effect on the system’s behavior.
 
-## The partition function
-
-The denominator $Z$ is of utmost importance. It ensures that the distribution integrates to $1$ and is thus a valid probability distribution. We need this normalization to calculate properties of the system. Calculating mean values and other moments can only be done with a probability mass function. The name of $Z$ is "**partition function**" or "normalizing constant". It is the sum of each state's Boltzmann factor:
+**The partition function.** The denominator $Z$ is of utmost importance. It ensures that the distribution integrates to $1$ and is thus a valid probability distribution. We need this normalization to calculate properties of the system. Calculating mean values and other moments can only be done with a probability mass function. The name of $Z$ is "**partition function**" or "normalizing constant". It is the sum of each state's Boltzmann factor:
 
 $$
 Z = \sum_{s_1=\pm1}\sum_{s_2=\pm1}...\sum_{s_N=\pm1}e^{-\beta E(s_1, s_2, ..., s_N)}
@@ -96,11 +92,9 @@ I explicitly wrote out the sum to illustrate why we can’t evaluate this distri
 
 [^2]: For a tiny system, e.g. with three spins, we have $8$ states and the sum is doable - but the system is uninteresting.
 
-## Using the Boltzmann distribution to calculate properties of the system
+**Calculating properties of the system.** We arrived at a probability distribution describing which states of the system are likely, however we were stumped by the intractable partition function. Let's temporarily assume we have infinite computation and *can* calculate the Boltzmann distribution's partition function. What are some interesting things we can learn about the system from it's Boltzmann distribution?
 
-We arrived at a probability distribution describing which states of the system are likely, however we were stumped by the intractable partition function. Let's temporarily assume we have infinite computation and *can* calculate the Boltzmann distribution's partition function. What are some interesting things we can learn about the system from it's Boltzmann distribution?
-
-This distribution lets us to calculate properties of the system as a whole by taking **expectations** (i.e. calculating observable quantities). For example, the magnetization $m$ is the average magnetization over all spins:
+This distribution lets us to calculate properties of the system as a whole by taking *expectations* (i.e. calculating observable quantities). For example, the magnetization $m$ is the average magnetization over all spins:
 
 $$
 m = \frac{1}{N} \langle  s_1 + s_1 + ... + s_N \rangle = \langle  s_i \rangle
@@ -116,9 +110,9 @@ These are global **phases** of the system, and they depend on temperature. If th
 
 Let's remember that we can't evaluate the partition function $Z$. This situation seems hopeless for answering interesting questions like calculating the magnetization. But thankfully, we may be able to simplify the problem by considering each spin independently and figuring out an approximation…
 
-## Mean-field theory in physics
+# Approximating Interactions
 
-Because we cannot evaluate the intractable sum required to calculate the partition function, we turn to **mean-field theory**. 
+Because we cannot evaluate the intractable sum required to calculate the partition function, we turn to **mean-field theory** to approximate the interactions between magnetic spins. 
 
 This is an approximation technique that can still let us answer questions about the system such as the average magnetization. We will study the dependence of the magnetization $m$ on temperature.
 
@@ -249,7 +243,7 @@ We set out to understand the behavior of this model at various temperatures, in 
 
 By considering a single spin and approximating the effects of other spins as an effective magnetic field, we were able to reduce the complexity of the problem. This allowed us to study phase transitions. However, our exposition felt a little hand-wavy, so let's dive into a rigorous foundation to justify our intuitions.
 
-## Deriving the variational free energy principle: the Gibbs-Bogoliubov-Feynman inequality
+# Deriving the variational principle
 
 Can we learn what tradeoffs we make when we make the assumption of 'ignoring fluctuations' of spins around their mean values? Specifically, how can we gauge the quality of results derived from our mean-field theory? 
 
@@ -305,15 +299,11 @@ $$
 
 For the next step, we need the definition of an expectation of a function $A$ with respect to the mean-field Boltzmann distribution:
 
- 
-
 $$
 \langle  A \rangle_{MF} =\sum_{s_1, s_2,...,s_N} \frac{A e^{-\beta E_{MF}}}{Z_{MF}}
 $$
 
- This means we can write the partition function of the system in terms of the mean-field partition function as:
-
- 
+This means we can write the partition function of the system in terms of the mean-field partition function as:
 
 $$
 Z=Z_{MF}\langle \exp{(-\beta \Delta E)}\rangle_{MF}
@@ -325,28 +315,22 @@ However, integrating this complicated exponential function is difficult, even wi
 
 Let’s assume that the fluctuations of the energy are small; $\Delta E \ll 1$. Then we can Taylor expand the exponent:
 
- 
-
 $$
 \langle \exp{(-\beta \Delta E)}\rangle_{MF}~\approx~\langle  1 - \beta \Delta E + ... \rangle_{MF}
 $$
-
- 
 
 $$
 =~1 - \beta \langle \Delta E\rangle_{MF}+...
 $$
 
- 
 
 $$
 =\exp{(-\beta \langle \Delta E\rangle_{MF})} + ...
 $$
 
- We have neglected terms of second order in the fluctuations $\Delta E$. This gives us our first-order perturbation theory result for the partition function of the original system:
+We have neglected terms of second order in the fluctuations $\Delta E$. This gives us our first-order perturbation theory result for the partition function of the original system:
 
  
-
 $$
 Z \approx Z_{MF}\exp{(-\beta \langle \Delta E\rangle_{MF})}
 $$
@@ -383,9 +367,7 @@ $$
 
 This inequality is the **Gibbs-Bogoliubov-Feynman inequality**. It tells us that with our mean-field approximation, we get a lower bound on the original partition function.
 
-## Variational treatment of the Ising model using the Gibbs-Bogoliubov-Feynman inequality
-
-Let’s apply this theory: do we recover the same results for magnetization in the Ising model?
+**Variational treatment of the Ising model.** Let’s apply this theory: do we recover the same results for magnetization in the Ising model?
 
 In the mean-field Ising model, we treat each spin independently, so the energy function of the system decomposes into independent parts:
 
@@ -425,9 +407,9 @@ We used that $m = \langle s_1\rangle_{MF} =  \tanh{[\beta({H + \Delta H})]}$ fro
 
 This confirms our earlier reasoning, that the optimal mean-field parameter is $\Delta H = Jzm$. There were three steps to this process. We started by defining the model we cared about, we wrote down a mean-field approximation to it, and we maximized a lower bound on the partition function.
 
-## The machine learning perspective on the Ising model
+# Physics to machine learning 
 
-Now let’s frame what we just did in the language of machine learning. More specifically, let’s think in terms of probabilistic modeling. 
+Let’s frame what we just did in the language of machine learning. More specifically, let’s think in terms of probabilistic modeling. 
 
 We need some definitions to see how the variational principle is equivalent to variational inference in machine learning.
 
@@ -444,9 +426,7 @@ A representation of the Ising model as an undirected graphical model. The nodes 
 
 The Boltzmann distribution is a parameterization of the joint distribution of this graphical model. This figure looks very similar to the physics spin-based representation---the spins are random variables. We can also write the joint distribution of the nodes in exponential family form. Exponential family distributions let us reason about a broad class of models and deserve a header.
 
-## Exponential families
-
-A way to parameterize probability distributions like the Ising model is with **exponential families**. These are families of distributions that support a representation in this specific, convenient mathematical form:
+**Exponential families.** A way to parameterize probability distributions like the Ising model is with exponential families. These are families of distributions that support a representation in this specific, convenient mathematical form:
 
 $$
 p(x ; \eta) = h(x)e^{\eta^\top t(x) - a(\eta)}
@@ -476,9 +456,7 @@ Comparing to the above formula for exponential families reveals the natural para
 
 More connections to physics: the log normalizer is the log of the partition function. This is made clear in the exponential family form of the Bernoulli: $\log Z = \log \sum_{x\in\{0,1\}} e^{\eta x} = \log{(1+e^\eta)}$. We can now identify the parameter $\eta$ as a analogous to temperature, with $x$ as a spin. We've identified the Ising model's exponential family form!
 
-## The exponential family form of the Ising model
-
-Let’s connect this to the energy function of the Ising model by writing its Boltzmann distribution in exponential family form:
+**The exponential family form of the Ising model.** Let’s connect this to the energy function of the Ising model by writing its Boltzmann distribution in exponential family form:
 
 $$
 p(s_1, s_2,...,s_N; \beta, J, H) = \frac{e^{-\beta E(s_1, ..., s_N)}}{Z}
@@ -500,9 +478,9 @@ For the Ising model, we can see that there are two sets of model parameters. The
 
 This is a subtle but important point. Our joint distribution over the set of random variables (the $N$ spins) is *indexed* by the set of model parameters. By varying the inverse temperature parameter $\beta$, we are actually selecting a specific model (the Ising model at that temperature). Ditto for a specific choice of the spin-spin interaction parameter $J$.
 
-## What questions can we ask about the model?
+# Variational inference
 
-Computing the magnetization $m = \frac{1}{N}\langle  s_1 + ... + s_N \rangle = \langle  s_i \rangle$ means calculating the expectation $\mathbb{E}_{p(s_i)}[s_i]$. In probability language, this means calculating the marginal expectation of a node $i$. 
+**What questions can we ask about this model?** For example, computing the magnetization $m = \frac{1}{N}\langle  s_1 + ... + s_N \rangle = \langle  s_i \rangle$ means calculating the expectation $\mathbb{E}_{p(s_i)}[s_i]$. In probability language, this means calculating the marginal expectation of a node $i$. 
 
 But calculating the marginal distribution is intractable for reasons we already discussed: it requires marginalizing over all other nodes $j \neq i$:
 
@@ -516,9 +494,7 @@ This is identical to what we saw in the partition function, when thinking about 
 
 Can we still answer questions about the marginal distributions by resorting to a variational principle?
 
-## Variational inference in machine learning
-
-If we could calculate the sum over all configurations of random variables, we could calculate the partition function. But we can’t, because the sum grows as $2^N$.
+**Variational inference in machine learning.** If we could calculate the sum over all configurations of random variables, we could calculate the partition function. But we can’t, because the sum grows as $2^N$.
 
 With our physics hat on, our strategy was to approximate to the partition function.
 
@@ -598,9 +574,9 @@ The interesting part is that we get can improve the approximation to our model $
 
 Is this too clever to be true? Have we surrendered anything? We have lost the ability to measure how good our approximation is, in absolute terms---for that, we still need to calculate the partition function to compute the KL divergence. We do know that as long as our lower bound $\mathcal{L}(\lambda)$ increases as we vary $\lambda$, our approximation gets better, and this is sufficient for a variety of problems.
 
-## Variational inference as the Gibbs-Bogoliubov-Feynman inequality!
+**Variational inference _is_ the Gibbs-Bogoliubov-Feynman inequality!**
 
-Let’s see if this is the same as the Gibbs-Bogoliubov-Feynman inequality we saw in physics. Recall that the inequality is
+Let’s confirm that this is the same as the Gibbs-Bogoliubov-Feynman inequality we saw in physics. Recall that the inequality is
 
 $$
 Z \geq Z_{MF} \exp{[-\beta \langle E - E_{MF}\rangle_{MF}]}.
@@ -626,9 +602,7 @@ Where we have identified that the variational family we are using, is the mean-f
 
 This shows that variational inference in machine learning---maximizing a lower bound on the partition function---is exactly the Gibbs-Bogoliubov-Feynman inequality in action.
 
-## The evidence lower bound in approximate posterior inference
-
-In machine learning we care about patterns in data. This gives rise to the concept of **latent variables**, unobserved random variables that capture patterns in observed data. 
+**The evidence lower bound in approximate posterior inference.** In machine learning we care about patterns in data. This gives rise to the concept of **latent variables**, unobserved random variables that capture patterns in observed data. 
 
 For example, in linear regression we might posit a linear relationship between someone's age and their income. This scalar coefficient captures a latent pattern that we seek to infer from many examples of (age, income) tuples. 
 
@@ -658,7 +632,7 @@ If we are using the variational method to learn an approximate posterior, our pa
 
 This technique has been used in machine learning for the past two decades. It is becoming popular because intractable partition functions come with the need to analyze large datasets. Because the variational principle relies on optimizing a lower bound, the field has borrowed heavily from the optimization literature to scale Bayesian inference to massive data. It's an exciting area, as new techniques from stochastic optimization may enable us to explore new physics and machine learning models.
 
-## Connections: are machine learning techniques useful in physics?
+# Connecting both fields
 
 There are many techniques for approximating partition functions developed in the machine learning community that may find use in physics.
 
@@ -666,9 +640,7 @@ For example, [black box variational inference](https://arxiv.org/abs/1401.0118) 
 
 Question for physicists familiar with variational methods: is stochastic optimization used in variational methods? *Would* this be useful?
 
-## Connections: could tools from physics be useful in machine learning?
-
-Yes! The Gibbs-Bogoliubov-Feynman inequality was originally developed in physics and found its way to machine learning through Michael Jordan’s group at MIT in the 90s.
+*Vice-versa*, could tools from physics be useful in machine learning? Yes! The Gibbs-Bogoliubov-Feynman inequality was originally developed in physics and found its way to machine learning through Michael Jordan’s group at MIT in the 90s.
 
 There seems to be a separate literature on constructing flexible families of distributions to approximate distributions. The replica trick, renormalization group theory, and others are just some topics that are beginning to make their way from statistical physics to machine learning.
 
@@ -686,7 +658,7 @@ How can we make transitions faster? How can we efficiently move techniques betwe
 
 This post is an attempt at mapping the language from one community to another. Another idea is a long review paper that to give detailed examples of models solved within a statistical physics framework (with mean-field methods, replica theory, renormalization theory, etc) and solved with modern variational inference from a machine learning perspective (black box variational inference, stochastic optimization, etc). This would highlight how the fields complement each other.
 
-## Glossary
+**Glossary**
 - Expectations: the angle brackets $\langle ~~\cdot~~\rangle$ denote an expectation. In the machine learning literature, this is denoted as $\mathbb{E}_p[~~\cdot~~]$ for the expectation of a quantity with respect to the distribution $p$. For example, $\langle  f(\vec{s}) \rangle$ denotes an expectation of a function of the spins $f(\vec{s})$. The expectation is implicitly with respect to the Boltzmann distribution:
   
 
@@ -722,9 +694,4 @@ $$
 
 *Thanks to Bohdan Kulchytskyy, Florian Wentzel, Siddharth Mishra-Sharma, Smiti Kaul, Guillaume Verdon, Henri Palacci, Sam Ritter, Mattias Fitzpatrick, and Sophie Kleber for comments and encouragement. Image credits: Freepik for iconography, and Analytical Scientific for the Newton's cradle image.*
 
-## Addendum
-
-This blog post ended up seeding the first several chapters of [my thesis](/papers/altosaar-2020-thesis.pdf).
-
-## Footnotes
-
+"Fun" fact: This blog post ended up seeding the first several chapters of [my thesis](/papers/altosaar-2020-thesis.pdf).
