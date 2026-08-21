@@ -267,6 +267,18 @@
   background: transparent;
 }
 
+/* The bar with its home link dropped — see Base.astro's navHome prop, which is
+   off on the home page alone.
+
+   .nav is `justify-content: space-between`, which is a rule about TWO children:
+   push the home link left, push the links right. With only one child it means
+   "push it left", and the nav swings to the wrong side. Naming the one-child
+   case is the fix. `margin-left: auto` on .nav-links would also work, but it
+   would be a rule firing on every page to describe something true on one. */
+.nav--links-only {
+  justify-content: flex-end;
+}
+
 .nav-home {
   /* Space between the wordmark and the mark when the mark is out. Named because
      it appears three times in the desktop reveal below — as the mark's margin,

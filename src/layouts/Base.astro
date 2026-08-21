@@ -61,6 +61,24 @@ interface Props {
    * is built around the wide column.
    */
   centered?: boolean;
+  /**
+   * Render the home link — the wordmark, and the portrait mark beside it — at
+   * the left of the nav.
+   *
+   * On by default, and off on exactly one route: the home page, where the link
+   * points at the page you are already reading. That is the argument for
+   * dropping it rather than hiding it. A `display: none` would leave
+   * .nav-home in the document as an empty, still-focusable link — a tab stop
+   * that announces "Jaan Altosaar — home" and goes nowhere visible, which is
+   * the same failure the .has-mark keying in chrome.css exists to prevent.
+   * Not rendering it costs the home page nothing else either: no
+   * /nav-still.svg fetch, no inline picker script.
+   *
+   * The nav is `justify-content: space-between`, so removing the first of its
+   * two children would swing the links to the left. SiteHeader adds
+   * .nav--links-only in that case; chrome.css has the one rule that answers it.
+   */
+  navHome?: boolean;
 }
 // Browser-tab title template, defined once. Pages pass only their own short
 // title (e.g. "FAQ") and the layout appends " | {SITE.name}", so the separator
@@ -79,6 +97,7 @@ const {
   footer = false,
   fullscreen = false,
   centered = true,
+  navHome = true,
 } = Astro.props;
 const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
 
@@ -166,7 +185,7 @@ const orgSchema = {
 
   <body>
     <a href="#main" class="skip-link">Skip to content</a>
-    <SiteHeader navMode={navMode} />
+    <SiteHeader navMode={navMode} navHome={navHome} />
     <MobileMenu />
     <main id="main" tabindex="-1" class={centered ? "is-centered" : undefined}>
       <slot />

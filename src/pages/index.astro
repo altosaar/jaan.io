@@ -8,6 +8,12 @@
 // page as two type treatments and nothing else:
 //   • the display h1 (Fraunces, --fs-hero)
 //   • everything else — the nav links and the one sentence — at --fs-md/350
+//
+// The nav's left half — the wordmark and the portrait mark — is dropped here
+// too, via `navHome={false}`. A link to the page you are already on is not
+// navigation, and on a page whose argument is that there is exactly one thing
+// to look at, a name in the corner is a second thing. Dropped rather than
+// hidden, at every width; Base.astro's prop carries the reasoning.
 import Base from "../layouts/Base.astro";
 import { SITE } from "../site.config";
 ---
@@ -17,6 +23,7 @@ import { SITE } from "../site.config";
   description={SITE.description}
   fullscreen
   centered={false}
+  navHome={false}
 >
   {
     /* Not <Hero>: that component carries a fixed padding-top and margin-bottom
