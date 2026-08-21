@@ -44,7 +44,13 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
      jumped to, or the heading you clicked lands underneath it and the section
      appears to start at its second paragraph. The extra 1rem is the same line
      the table of contents measures against (Toc.astro), so the heading you
-     land on is the one the rail then lights up. */
+     land on is the one the rail then lights up.
+
+     h1 is in the list because a post may open its sections with `#` — the
+     physics one does — and those are destinations in the rail like any other.
+     The title above is an h1 too and picks the rule up harmlessly: nothing
+     links to it. */
+  .prose :global(h1),
   .prose :global(h2),
   .prose :global(h3),
   .prose :global(h4),

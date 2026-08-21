@@ -31,7 +31,7 @@ interface Props {
   headings?: MarkdownHeading[];
   /** An authored rail. Mutually exclusive with `headings`. */
   links?: SiteLink[];
-  /** Deepest heading level to list. h2 is the section level in these posts. */
+  /** Deepest heading level to list, as a tag number: 3 keeps h1-h3. */
   maxDepth?: number;
   /** Accessible name for the landmark. */
   label?: string;
@@ -68,10 +68,28 @@ if (headings && links) {
  */
 const APPARATUS_SLUGS = new Set(["footnotes", "footnote-label"]);
 
-// h1 is the post title, which is not a section of itself.
-const items = (headings ?? []).filter(
-  (h) => h.depth >= 2 && h.depth <= maxDepth && !APPARATUS_SLUGS.has(h.slug),
-);
+/*
+ * Every heading in the body is a section of the article, h1 INCLUDED.
+ *
+ * The title is not one of them and never was: [slug].astro sets it from
+ * frontmatter, outside the Markdown, so `headings` holds only what the author
+ * wrote inside the post. Skipping depth 1 as "the title" therefore skipped real
+ * sections — the physics post opens its six with `#`, so all six were dropped
+ * and the rail vanished, one surviving `## References` being too few to draw.
+ */
+const items = (headings ?? []).filter((h) => h.depth <= maxDepth && !APPARATUS_SLUGS.has(h.slug));
+
+/*
+ * The rail indents by DISTANCE FROM THE SHALLOWEST HEADING, not by tag number.
+ *
+ * Posts here disagree about which tag opens a section: most use `##` and nest
+ * with `###`, the physics post uses `#`. Indenting on the absolute depth has to
+ * get one of those wrong — either every physics section sits flat where the
+ * others step, or its `## References` steps in under a parent it does not have.
+ * Measuring from whatever the post's own top level turns out to be makes both
+ * shapes read the same, and costs one pass over the list.
+ */
+const top = items.reduce((min, h) => Math.min(min, h.depth), Infinity);
 
 // A contents list of one is not worth a rail; an authored list of one is, since
 // the author asked for exactly those.
@@ -97,7 +115,7 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
               </li>
             ))
           : items.map((h) => (
-              <li class:list={["toc__item", `toc__item--d${h.depth}`]}>
+              <li class:list={["toc__item", `toc__item--sub${Math.min(h.depth - top, 2)}`]}>
                 <a class="toc__link" href={`#${h.slug}`} data-toc-link={h.slug}>
                   {h.text}
                 </a>
@@ -132,8 +150,8 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
     height: max-content;
     margin-block: auto;
 
-    /* The cap is what keeps centring safe. The rail has to survive the physics
-       post's twenty-two headings on a short laptop screen, and at full height a
+    /* The cap is what keeps centring safe. The rail has to survive the longest
+       post's dozen-plus headings on a short laptop screen, and at full height a
        centred box would slide up under the fixed nav. Subtracting twice the nav
        plus a rem means that even when the cap binds, the top edge lands exactly
        one rem below the nav — the same clearance the headings' scroll-margin
@@ -162,9 +180,15 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
   }
 
   /* Nested headings step in, so the rail shows structure rather than a flat
-     list. Only h3 can indent — maxDepth stops at 3 by default. */
-  .toc__item--d3 {
+     list. The number is levels below the post's own top heading, not the tag
+     depth — see `top` above — and it stops at two because maxDepth lists three
+     levels and anything deeper would be indenting past the tag's own text. */
+  .toc__item--sub1 {
     padding-left: 0.75rem;
+  }
+
+  .toc__item--sub2 {
+    padding-left: 1.5rem;
   }
 
   .toc__link {
@@ -290,7 +314,7 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
       current = next;
 
       // Keep the highlight visible when the rail is scrolling itself — the
-      // physics post has twenty of these and the current one can be off-rail.
+      // longest posts have a dozen of these and the current one can be off-rail.
       if (next && rail.scrollHeight > rail.clientHeight) {
         const r = next.getBoundingClientRect();
         const box = rail.getBoundingClientRect();
