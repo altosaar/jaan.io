@@ -5,13 +5,74 @@
 # structural accessibility checks).
 # Runs only on push (not every commit), so the extra seconds are infrequent.
 # Bypass once with: git push --no-verify
+#
+# WHY IT IS QUIET. The five stages together printed ~416 lines on a fully green
+# push — 162 of them Observable Framework's asset log, 71 Astro image lines all
+# saying "reused cache entry", 32 deletion lines. Nothing in that is read on a
+# passing run, and a wall of green scrollback trains you to stop reading the
+# output at all; that is how 140 audit warnings accumulated unnoticed. So each
+# stage's output goes to a log and only its result is printed, with the one line
+# per stage that actually carries information (contrast pairs, pages built,
+# audit counts) lifted back out. A FAILING stage dumps the whole log. The checks
+# and their strictness are unchanged — only the reporting is.
+#
+#   VERBOSE=1 git push    stream every stage live, the old behaviour
+#
 # SEO_SKIP_FRESH / SEO_SKIP_PLACEHOLDER mirror the workflow env (ci.yml): before
 # launch they downgrade the stale-Event check and the placeholder-copy check to
 # warnings, so a past event.json date or an unwritten pull quote can't block
 # pushes. Drop them here AND in ci.yml / site-checks.yml at launch to arm the
 # gate for real — see LAUNCH.md step A.4.
-npm run format:check &&
-	npm run check &&
-	npm run a11y &&
-	npm run build &&
-	SEO_SKIP_FRESH=1 SEO_SKIP_PLACEHOLDER=1 npm run audit
+set -u
+
+VERBOSE="${VERBOSE:-0}"
+log="$(git rev-parse --git-dir)/pre-push.log"
+: >"$log"
+
+# run <name> <summary-regex> <command...>
+#
+# Appends the command's output to the log and prints one line: the stage name,
+# how long it took, and the first line of ITS OWN output matching the regex —
+# matched from the offset this stage started writing at, so the audit's
+# "0 errors" cannot be answered by astro check's. On failure it prints the whole
+# log and returns the command's status, which breaks the && chain and, because a
+# non-zero pre-push blocks the push, leaves the remote untouched.
+run() {
+	name=$1
+	summary_re=$2
+	shift 2
+
+	if [ "$VERBOSE" = "1" ]; then
+		printf '\n────── %s ──────\n' "$name"
+		"$@"
+		return $?
+	fi
+
+	from=$(($(wc -l <"$log") + 1))
+	printf '  %-13s' "$name"
+	start=$(date +%s)
+	"$@" >>"$log" 2>&1
+	status=$?
+	elapsed=$(($(date +%s) - start))
+
+	if [ "$status" -ne 0 ]; then
+		printf 'FAILED (%ss)\n\n' "$elapsed"
+		cat "$log"
+		printf '\n[pre-push] %s failed — nothing was pushed. Full log: %s\n' "$name" "$log"
+		return "$status"
+	fi
+
+	# Omitted rather than guessed at if a tool changes its wording.
+	# Trimmed of leading whitespace, list dashes, and Astro's "15:09:50 [build] "
+	# timestamp prefix, so the five lines align as one table.
+	summary=$(tail -n "+$from" "$log" | grep -m1 -E "$summary_re" 2>/dev/null |
+		sed -e 's/^[[:space:]-]*//' -e 's/^[0-9][0-9:]* \[[a-z]*\] //')
+	printf 'ok %3ss  %s\n' "$elapsed" "$summary"
+	return 0
+}
+
+run format:check 'All matched files|Code style issues' npm run --silent format:check &&
+	run check '[0-9]+ errors?$' npm run --silent check &&
+	run a11y 'pairs checked' npm run --silent a11y &&
+	run build 'page\(s\) built' npm run --silent build &&
+	run audit 'pages · .*errors' env SEO_SKIP_FRESH=1 SEO_SKIP_PLACEHOLDER=1 npm run --silent audit

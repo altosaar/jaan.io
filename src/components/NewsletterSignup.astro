@@ -45,11 +45,24 @@ const TESTING_SITE_KEYS = [
   "2x00000000000000000000BB", // invisible, always blocks
   "3x00000000000000000000FF", // forces an interactive challenge
 ];
+//
+// Warned ONCE PER BUILD, not once per render. This frontmatter runs for every
+// page that mounts the component, so the plain console.warn printed 21 copies —
+// and because a warning goes to stderr while Astro's route list goes to stdout,
+// the two interleaved and left the build log looking corrupted
+// ("├─ /about.html[NewsletterSignup] built with a…"). The flag lives on
+// globalThis rather than in module scope because it has to outlive whatever
+// scope Astro gives each render.
+const TESTING_KEY_WARNED = Symbol.for("jaan.io/newsletter-testing-key-warned");
 if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
   const message =
     "[NewsletterSignup] built with a Turnstile TESTING site key — this form has no bot protection.";
   if (process.env.CI) throw new Error(message);
-  console.warn(`${message} Fine locally; CI refuses to build it.`);
+  const once = globalThis as unknown as Record<symbol, boolean>;
+  if (!once[TESTING_KEY_WARNED]) {
+    once[TESTING_KEY_WARNED] = true;
+    console.warn(`${message} Fine locally; CI refuses to build it.`);
+  }
 }
 ---
 
