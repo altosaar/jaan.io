@@ -3,6 +3,9 @@ title: "Virtual Thesis Defense - Giving and Recording a Stressful Zoom Presentat
 description: "Everything that can go wrong, will go wrong, and at the last minute."
 date: 2020-05-21
 thumb: ../../assets/thumbs/thesis-icon.svg
+ogImage: ../../assets/og/virtual-thesis-defense.jpg
+ogImageAlt: "A frame from the recorded defense: Jaan Altosaar speaking into a handheld
+  microphone beside a slide of three icon diagrams on black."
 ---
 
 I defended my PhD on Zoom ([YouTube](https://youtu.be/msbUn_JfOfY)). It was stressful, but I hope these notes save you time for presenting and enable you to record higher-quality academic presentations. Please let me know if you have any suggestions I missed!

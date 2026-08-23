@@ -3,6 +3,9 @@ title: "Smoked salmon openfacer"
 description: "It's time to stop being close-minded about sandwiches. This is the best."
 date: 2013-07-19
 thumb: ../../assets/thumbs/smoked-thumb.png
+ogImage: ../../assets/og/smoked-salmon-openfacer.jpg
+ogImageAlt: "Two open-faced smoked salmon sandwiches on a glass plate, scattered with
+  capers, diced spring onion and basil leaves."
 ---
 
 This sandwich is an all-time classic hall-of-famer mainstay in my family. It's a classy breakfast, lunch, or dinner, and is great for hosting (guests can make their own sandwiches). Just brush your teeth after consumption.

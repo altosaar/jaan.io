@@ -34,22 +34,63 @@ const posts = defineCollection({
     generateId: ({ entry }) => entry.replace(/\.md$/, ""),
   }),
   schema: ({ image }) =>
-    z.object({
-      title: filled("title"),
-      description: filled("description"),
-      // Original publication date. Preserved from the Jekyll `_posts/` filename
-      // so the feed and any future archive keep their historical order.
-      //
-      // Orders /articles, and is printed as a bare YEAR under each article's
-      // own headline (src/pages/[slug].astro). The full date rides along in the
-      // <time datetime> attribute, so machines still get the day.
-      date: z.coerce.date(),
-      // The little line-art mark beside the post in the /articles list, carried
-      // over from the Jekyll site's `image.thumb`. Optional: a post without one
-      // simply lists without a mark (see articles.astro), which is better than
-      // blocking a new post on commissioning an icon.
-      thumb: image().optional(),
-    }),
+    z
+      .object({
+        title: filled("title"),
+        description: filled("description"),
+        // Original publication date. Preserved from the Jekyll `_posts/` filename
+        // so the feed and any future archive keep their historical order.
+        //
+        // Orders /articles, and is printed as a bare YEAR under each article's
+        // own headline (src/pages/[slug].astro). The full date rides along in the
+        // <time datetime> attribute, so machines still get the day.
+        date: z.coerce.date(),
+        // The little line-art mark beside the post in the /articles list, carried
+        // over from the Jekyll site's `image.thumb`. Optional: a post without one
+        // simply lists without a mark (see articles.astro), which is better than
+        // blocking a new post on commissioning an icon.
+        //
+        // TRIM IT TO ITS INK BEFORE COMMITTING IT. Every mark on the site is
+        // drawn inside a fixed box (src/components/IndexMark.astro) and scaled to
+        // fit, so any transparent margin left in the file is margin INSIDE that
+        // box, and the mark reads small next to one that has none. The set these
+        // arrived as ran from 27% to 65% of its own frame and the /articles
+        // column looked accordingly ragged. Nothing checks this, because it is a
+        // property of the artwork rather than of the markup:
+        //
+        //   npx sharp-cli --input thumb.png --output thumb.png trim
+        //
+        // It is ALSO this post's share image when `ogImage` below is not set:
+        // scripts/gen-og-cards.mjs draws it large on the site's black and
+        // [slug].astro points og:image at the result. So a post with a mark and no
+        // photograph still previews as itself rather than as the site.
+        thumb: image().optional(),
+        // The picture a link to this post previews as, in iMessage, WhatsApp,
+        // Slack, Facebook, LinkedIn — anywhere the URL gets pasted.
+        //
+        // The Jekyll site's `image.feature`, which was only ever a CSS background
+        // behind the headline (the og tags in _includes/head.html were commented
+        // out, so the old site had no share image at all). The five posts whose
+        // banner survives at a usable resolution now name it here; the rest fall
+        // back to their `thumb` on a card, and a post with neither falls back to
+        // the portrait. See src/lib/og.ts for the whole ladder.
+        //
+        // Cropped to 1200 × 630 with Sharp's saliency crop, so anything roughly
+        // landscape works and nothing has to be pre-cut to fit.
+        ogImage: image().optional(),
+        // Alt text for it. REQUIRED whenever ogImage is set — see the refine
+        // below. It becomes og:image:alt, which is what a screen reader announces
+        // in place of the preview and is the one part of a share card that is not
+        // decorative.
+        ogImageAlt: filled("ogImageAlt").optional(),
+      })
+      // Enforced here rather than in the layout, because the layout's only options
+      // would be to ship an unlabelled card or to fail at render time on a page
+      // that looks fine. This fails at content-load with the file named.
+      .refine((post) => !post.ogImage || post.ogImageAlt, {
+        message: "a post with `ogImage` must also set `ogImageAlt` — it becomes og:image:alt",
+        path: ["ogImageAlt"],
+      }),
 });
 
 export const collections = { pages, posts };

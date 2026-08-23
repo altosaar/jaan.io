@@ -9,6 +9,7 @@ import { join } from "node:path";
 import Base from "../layouts/Base.astro";
 import Section from "../components/Section.astro";
 import NewsletterSignup from "../components/NewsletterSignup.astro";
+import IndexMark from "../components/IndexMark.astro";
 import { VISUALIZATIONS } from "../data/visualizations";
 import "../styles/viz.css";
 
@@ -40,6 +41,14 @@ const built = existsSync(thumbDir);
 if (!built) {
   console.warn(`[visualizations] no marks at ${thumbDir} — run \`npm run viz\``);
 }
+// The mark box. Larger than the one /articles and /projects share — these marks
+// are whole charts rather than single glyphs, and carry correspondingly more to
+// read — and 8:5 rather than square, because every one of them is emitted by the
+// loaders in viz/src/thumbs at exactly 128 x 80. They are already identical to
+// each other, so a square box would only band each one with empty space.
+const MARK_SIZE = "clamp(4.5rem, 11vw, 7.5rem)";
+const MARK_RATIO = 128 / 80;
+
 const marks = new Map(
   VISUALIZATIONS.map((viz) => [
     viz.slug,
@@ -67,19 +76,22 @@ const marks = new Map(
       {
         VISUALIZATIONS.map((viz) => (
           <li class="viz-index__item">
-            {marks.get(viz.slug) && (
-              /* aria-hidden is set on the SVG itself by the loader: the mark is
-                 a drawing of the chart whose name is sitting right beside it,
-                 so announcing it would say everything twice. */
-              <div class="viz-index__mark" set:html={marks.get(viz.slug)} />
-            )}
-            <div class="viz-index__body">
-              <a href={`/visualizations/${viz.slug}`} class="viz-index__link">
+            {/* ONE LINK PER ENTRY, wrapping the mark, the headline and the
+                blurb — so the blurb is clickable rather than dead text beside a
+                link. Which part LIGHTS is decided by which part the pointer is
+                actually over; see the stylesheet. */}
+            <a href={`/visualizations/${viz.slug}`} class="viz-index__link">
+              {marks.get(viz.slug) && (
+                /* aria-hidden is set on the SVG itself by the loader: the mark
+                   is a drawing of the chart whose name is sitting right beside
+                   it, so announcing it would say everything twice. */
+                <IndexMark size={MARK_SIZE} ratio={MARK_RATIO} set:html={marks.get(viz.slug)} />
+              )}
+              <div class="viz-index__body">
                 <h2 class="viz-index__name">{viz.title}</h2>
-              </a>
-              <p class="viz-index__blurb">{viz.blurb}</p>
-              <p class="viz-index__scale">{viz.scale}</p>
-            </div>
+                <p class="viz-index__blurb">{viz.blurb}</p>
+              </div>
+            </a>
           </li>
         ))
       }
@@ -124,9 +136,8 @@ const marks = new Map(
     max-width: var(--reading-w-tight);
   }
 
-  /* Tighter than /articles' 6.75rem: seven entries rather than three, and each
-     carries three lines instead of two, so the same spacing would turn a list
-     you scan into a page you scroll. */
+  /* Tighter than /articles' 6.75rem: eight entries rather than nine short ones,
+     so the same spacing would turn a list you scan into a page you scroll. */
   .viz-index {
     list-style: none;
     margin: 0;
@@ -138,11 +149,14 @@ const marks = new Map(
   }
 
   /* Mark left, text right — the arrangement /articles uses for its post marks,
-     so the two index pages read as the same kind of page. */
-  .viz-index__item {
+     so the two index pages read as the same kind of page. On the LINK, because
+     the link is the whole entry now. */
+  .viz-index__link {
     display: flex;
     align-items: flex-start;
     gap: clamp(1rem, 3vw, 1.75rem);
+    text-decoration: none;
+    color: inherit;
   }
 
   .viz-index__body {
@@ -151,45 +165,19 @@ const marks = new Map(
     min-width: 0;
   }
 
-  /* The marks are 128 × 80 and drawn in currentColor, so they are already the
-     right colour; the job here is size and weight. Dimmer than the text at
-     rest — a row of seven charts at full brightness competes with the headlines
-     they belong to — and brought up to match on hover, so the whole row lights
-     as one object under the pointer. */
-  .viz-index__mark {
-    flex: none;
-    width: clamp(4.5rem, 11vw, 7.5rem);
-    color: var(--text);
-    opacity: 0.6;
-    transition: opacity var(--dur-fast) var(--ease-out);
-    /* Nudged down so the mark's optical centre sits with the headline's
-       x-height rather than its cap line. */
-    margin-top: 0.35rem;
-  }
+  /* The mark's colour and weight, handed down. Set on the row rather than on
+     the mark, because these are custom properties and inherit — which is the
+     only way a page can reach into IndexMark; see the note in that file.
 
-  .viz-index__mark :global(svg) {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  .viz-index__item:hover .viz-index__mark {
-    opacity: 1;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .viz-index__mark {
-      transition: none;
-    }
-  }
-
-  .viz-index__link {
-    text-decoration: none;
-    color: inherit;
-    display: block;
+     Dimmer at rest than the other two indexes: a row of eight whole charts at
+     full brightness competes with the headlines they belong to. The lit state
+     is set on the link below. */
+  .viz-index__item {
+    --mark-opacity: 0.6;
   }
 
   .viz-index__name {
+    color: var(--lit, inherit);
     font-family: var(--font-display);
     font-size: clamp(1.25rem, 2.2vw, 1.5rem);
     font-weight: 600;
@@ -198,24 +186,31 @@ const marks = new Map(
     transition: color var(--dur-fast) var(--ease-out);
   }
 
-  .viz-index__link:hover .viz-index__name,
-  .viz-index__link:focus-visible .viz-index__name {
-    color: var(--accent);
+  /* HOVER ANY ONE OF THE THREE — the drawing, the headline, the description —
+     and all three light together. `:has(:hover)` rather than a plain `:hover` on
+     the link: the link is the whole entry, so a plain hover would also fire from
+     the empty margin beside a short headline and from the gap the mark leaves in
+     its box. Requiring a hovered DESCENDANT narrows it to the parts themselves —
+     the mark's box is out of hit testing (see IndexMark) so only its drawing
+     counts, and the anchor's own dead space has no descendant under the pointer.
+
+     Carried by --lit rather than by four descendant selectors: custom properties
+     inherit, so one declaration here reaches every part below, and each part
+     names its own resting colour as the fallback. :focus-visible lights the same
+     way — one tab stop per entry, and no pointer to say which part of it. */
+  .viz-index__link:has(:hover),
+  .viz-index__link:focus-visible {
+    --lit: var(--accent);
+    --mark-opacity: 1;
+    --mark-color: var(--accent);
   }
 
   .viz-index__blurb {
+    color: var(--lit, inherit);
+    transition: color var(--dur-fast) var(--ease-out);
     margin-top: 0.9rem;
     font-size: var(--fs-base);
     line-height: 1.6;
     max-width: var(--reading-w-tight);
-  }
-
-  .viz-index__scale {
-    margin-top: 0.6rem;
-    font-family: var(--font-chrome);
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
   }
 </style>

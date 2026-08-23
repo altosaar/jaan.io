@@ -7,29 +7,37 @@ import SiteHeader from "../components/SiteHeader.astro";
 import MobileMenu from "../components/MobileMenu.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import { getImage } from "astro:assets";
-import { featured, OG_SIZE, OG_QUALITY } from "../lib/og";
+import { featured, OG_SIZE, OG_QUALITY, type ShareImage } from "../lib/og";
 import { FAVICON_PICKER } from "../lib/favicon";
 import { SITE } from "../site.config";
-
-// The share image: one fixed portrait for the whole site, squared at build time
-// by Sharp and resolved to an absolute URL for the meta tags. Not a prop and not
-// per-page — see src/lib/og.ts for why it is the same face everywhere, and
-// astro.config.mjs for the encoder settings behind `format: "jpeg"`.
-const ogRendered = await getImage({
-  src: featured.image,
-  width: OG_SIZE,
-  height: OG_SIZE,
-  fit: "cover",
-  position: "attention",
-  format: "jpeg",
-  quality: OG_QUALITY,
-});
-const ogImageUrl = new URL(ogRendered.src, Astro.site).href;
 
 interface Props {
   title?: string;
   description?: string;
   navMode?: "ticker" | "static";
+  /**
+   * What a link to this page previews as when it is pasted somewhere.
+   *
+   * Omitted on most routes, which is what puts the portrait on them. The two
+   * that pass one are the routes with a subject of their own — a post
+   * (src/pages/[slug].astro) and a visualization (src/layouts/Viz.astro) — and
+   * both assemble it with the helpers in src/lib/og.ts. Nothing requires the
+   * shape to match the portrait's; a crawler reads width and height off the
+   * tags below, which is why they are carried on the object rather than
+   * assumed here.
+   */
+  share?: ShareImage;
+  /**
+   * og:type. "article" on a post, "website" everywhere else.
+   *
+   * Worth the one prop: it is what tells Facebook and LinkedIn to treat the URL
+   * as a piece of writing with a publication date rather than as a home page,
+   * and it is the precondition for the article:published_time below meaning
+   * anything at all.
+   */
+  ogType?: "website" | "article";
+  /** ISO date for article:published_time. Only read when ogType is "article". */
+  publishedTime?: string;
   /**
    * Render the site footer. OFF EVERYWHERE for now — no route passes true.
    *
@@ -98,8 +106,46 @@ const {
   fullscreen = false,
   centered = true,
   navHome = true,
+  share,
+  ogType = "website",
+  publishedTime,
 } = Astro.props;
 const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
+
+// The share image. A page that brought its own uses it; everything else gets the
+// portrait, squared here by Sharp — see src/lib/og.ts for the ladder and why the
+// fallback is a face, and astro.config.mjs for the encoder settings behind
+// `format: "jpeg"`.
+//
+// The portrait is rendered ONLY when it is actually needed. getImage() registers
+// a transform with the build, so calling it unconditionally would emit the 1536²
+// JPEG even on a build where no page fell back to it.
+let shareImage: ShareImage;
+if (share) {
+  shareImage = share;
+} else {
+  const rendered = await getImage({
+    src: featured.image,
+    width: OG_SIZE,
+    height: OG_SIZE,
+    fit: "cover",
+    position: "attention",
+    format: "jpeg",
+    quality: OG_QUALITY,
+  });
+  shareImage = {
+    src: rendered.src,
+    width: OG_SIZE,
+    height: OG_SIZE,
+    type: "image/jpeg",
+    alt: featured.alt,
+  };
+}
+
+// Absolute, because a crawler that finds og:image is often not the browser that
+// loaded the page and cannot resolve a relative path against it. Facebook and
+// LinkedIn both drop a relative one outright.
+const shareImageUrl = new URL(shareImage.src, Astro.site).href;
 
 // This page's own absolute URL, resolved against `site` (astro.config.mjs).
 // build.format "file" makes Astro.url.pathname the emitted file path
@@ -158,21 +204,35 @@ const orgSchema = {
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <script is:inline set:html={FAVICON_PICKER} />
     <noscript><link rel="icon" href="/favicon.svg" type="image/svg+xml" /></noscript>
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
+    {
+      ogType === "article" && publishedTime && (
+        <meta property="article:published_time" content={publishedTime} />
+      )
+    }
     <meta property="og:locale" content={SITE.locale} />
     <meta property="og:site_name" content={SITE.name} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={ogImageUrl} />
-    <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:width" content={String(OG_SIZE)} />
-    <meta property="og:image:height" content={String(OG_SIZE)} />
-    <meta property="og:image:alt" content={featured.alt} />
+    {
+      /* The four og:image:* tags stay together and stay TRUE to each other. A
+         crawler that trusts og:image:width/height lays the card out before it
+         has finished fetching the file, so a declared size that is not the real
+         size draws the preview wrong — which is why the numbers come off the
+         same object that produced the file, and why `npm run audit` measures
+         the shipped image against what shipped in these tags. */
+    }
+    <meta property="og:image" content={shareImageUrl} />
+    <meta property="og:image:type" content={shareImage.type} />
+    <meta property="og:image:width" content={String(shareImage.width)} />
+    <meta property="og:image:height" content={String(shareImage.height)} />
+    <meta property="og:image:alt" content={shareImage.alt} />
     <meta property="og:url" content={canonicalURL} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImageUrl} />
+    <meta name="twitter:image" content={shareImageUrl} />
+    <meta name="twitter:image:alt" content={shareImage.alt} />
     {
       SITE.fonts.map((href) => (
         <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />

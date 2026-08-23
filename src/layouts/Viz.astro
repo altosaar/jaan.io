@@ -5,9 +5,13 @@
 // The charts arrive from viz/ as bare SVG (see VizEmbed.astro); everything
 // visible around them is this file, which is why they read as part of jaan.io
 // rather than as an iframe onto a different website.
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import Base from "../layouts/Base.astro";
 import Section from "../components/Section.astro";
 import NewsletterSignup from "../components/NewsletterSignup.astro";
+import { VISUALIZATIONS } from "../data/visualizations";
+import { cardImage, cardPath } from "../lib/og";
 import "../styles/viz.css";
 
 interface Props {
@@ -21,9 +25,39 @@ interface Props {
 }
 
 const { title, description, eyebrow, eyebrowHref } = Astro.props;
+
+// The share image: this chart's own mark, drawn large on a card by
+// scripts/gen-og-cards.mjs, so a link to a specific visualization previews as
+// that visualization rather than as the site's portrait.
+//
+// Looked up from the URL rather than taken as a prop. Eight pages use this
+// layout and every one of them would otherwise have to name its own mark — a
+// second copy of a mapping src/data/visualizations.ts already holds, and one
+// that would silently go stale the day a page moved. The URL is the thing that
+// cannot drift from what is actually being served.
+//
+// `build.format: "file"` makes the pathname the emitted file path (/x.html), so
+// strip the extension before matching, exactly as Base.astro does for canonical.
+const slug = Astro.url.pathname
+  .replace(/\.html$/, "")
+  .replace(/^\/visualizations\//, "")
+  .replace(/\/$/, "");
+const viz = VISUALIZATIONS.find((v) => v.slug === slug);
+// Absent when `npm run viz` has not run in this checkout: the marks are
+// generated output and so are the cards. Base.astro then falls back to the
+// portrait, which is a correct share card rather than a broken one.
+const hasCard =
+  viz && existsSync(join(process.cwd(), "public", cardPath("visualizations", viz.thumb)));
+const share = hasCard
+  ? cardImage(
+      "visualizations",
+      viz.thumb,
+      `A miniature of the “${title}” chart, drawn in white on black.`,
+    )
+  : undefined;
 ---
 
-<Base title={title} description={description}>
+<Base title={title} description={description} share={share}>
   {
     /* Forward a page's <head> additions through to Base. Only the New York map
        uses it, for MapLibre's stylesheet, which no other route needs. Without

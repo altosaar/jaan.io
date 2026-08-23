@@ -1,0 +1,210 @@
+---
+// The box every index-list mark is drawn inside — /articles, /projects,
+// /visualizations.
+//
+// WHAT IT IS FOR. Those three pages are the same page in three flavours: a mark
+// on the left, a headline and a line or two on the right. The marks are not the
+// same as each other and never will be — one is a borrowed plugin logo, one is
+// a line icon drawn in 2013, one is an Observable Plot chart — so left to
+// themselves they arrive at different sizes and different proportions, and the
+// column of headlines beside them comes out ragged. This fixes the box and fits
+// whatever it is given inside it.
+//
+// EVERY MARK IS A SHAPE, NOT A PICTURE. All of them are one colour on nothing,
+// so none of them carries a colour worth keeping — and painting them in the
+// page's own colour is what lets them follow the theme, and light up with the
+// row they belong to. Two ways in, depending on what the mark is:
+//
+//   • An inline <svg>, passed as a child. Both sources draw in `currentColor`
+//     (or carry no fill at all), so `fill` below reaches them.
+//   • A `mask` URL, for the article thumbs, which are raster. The box is filled
+//     with currentColor and the file is used as a MASK over it, so its alpha
+//     becomes the drawing. This replaces a `filter: invert(1)` that used to sit
+//     on that page: those icons are black line art drawn for the white Jekyll
+//     blog they came from, and flipping them got them visible on a dark page but
+//     left them stuck at whatever colour the flip produced. As a mask they are
+//     simply a shape, and take the colour like everything else.
+//
+// FITTING. The box is one size; the mark is contained inside it and centred.
+// An inline <svg> at `width: 100%; height: 100%` does this itself — SVG's
+// DEFAULT preserveAspectRatio ("xMidYMid meet") fits the viewBox inside and
+// centres it, which is the semantics of the element rather than a CSS trick.
+// THE ONE REQUIREMENT is that the SVG carries a viewBox; both sources do. A
+// mask does the same with `center / contain`.
+//
+// WHAT IT CANNOT DO is make two marks look the same SIZE, only occupy the same
+// box — a drawing with empty margin baked into its own frame contains to its
+// margin and reads small. That is why src/assets/thumbs/* are trimmed to their
+// ink (they were not, and the marks on /articles ranged from 27% to 65% of
+// their box); a new thumb has to be trimmed the same way. See the note on
+// `thumb` in src/content.config.ts.
+interface Props {
+  /**
+   * The box's width, as any CSS length. The pages set their own — /articles and
+   * /projects share one so the two lists line up with each other; the chart
+   * index runs larger because its marks carry more detail.
+   */
+  size: string;
+  /**
+   * The box's aspect ratio, width ÷ height. Square by default, which is what a
+   * list of unlike marks wants.
+   *
+   * /visualizations passes 8/5 instead, and that is not an inconsistency: every
+   * mark on that page is emitted by the same loader at the same 128 × 80, so
+   * they are already identical to each other, and a square box would only add a
+   * band of empty space above and below each one.
+   */
+  ratio?: number;
+  /**
+   * URL of a file to paint as a shape. For the article thumbs, which are raster
+   * and so cannot be handed a colour any other way — see above. Leave it unset
+   * and pass an inline <svg> as a child instead.
+   */
+  mask?: string;
+  /**
+   * The masked file's own aspect ratio, width ÷ height.
+   *
+   * Required alongside `mask`, and it is what makes the mark a HOVER TARGET the
+   * size of the drawing rather than the size of the box. A mask is a painting
+   * operation: it does not affect hit testing, so a masked square box is
+   * hoverable in all four empty corners. Sizing the masked element to the
+   * drawing instead puts the pointer target where the ink is. (An inline <svg>
+   * needs none of this — see the pointer-events note in the stylesheet.)
+   */
+  inkRatio?: number;
+}
+
+const { size, ratio = 1, mask, inkRatio = 1 } = Astro.props;
+const geometry = `--mark-size:${size};--mark-ratio:${ratio}`;
+
+// Which axis binds when the drawing is contained inside the box. Worked out
+// here rather than left to `max-inline-size`/`max-block-size`, because an
+// element sized by `aspect-ratio` needs exactly ONE definite dimension — give it
+// two bounds and the ratio has nothing left to derive.
+const inkBox = inkRatio >= ratio ? "--ink-w:100%;--ink-h:auto" : "--ink-w:auto;--ink-h:100%";
+---
+
+{
+  mask ? (
+    <div class="index-mark index-mark--mask" style={geometry}>
+      <span
+        class="index-mark__ink"
+        style={`--mark-mask:url("${mask}");--ink-ratio:${inkRatio};${inkBox}`}
+      />
+    </div>
+  ) : (
+    <div class="index-mark" style={geometry}>
+      <slot />
+    </div>
+  )
+}
+
+<style>
+  .index-mark {
+    /* Never shrink: these sit in a flex row beside text that will happily take
+       every pixel it is offered. */
+    flex: none;
+    inline-size: var(--mark-size);
+    aspect-ratio: var(--mark-ratio);
+    /* Nudged down so the mark's optical centre sits with the headline's x-height
+       rather than its cap line. */
+    margin-block-start: 0.3rem;
+
+    /* COLOUR AND WEIGHT COME FROM ABOVE, and that is the whole mechanism behind
+       the hover. Custom properties inherit, so the row sets these on ITSELF —
+       `.article`, `.project`, `.viz-index__item` — and never has to select this
+       element. Which matters more than it sounds: a page CANNOT style this box
+       through a class. Astro scopes `.article__mark` to that page's id, this
+       box only carries THIS file's id, and the rule silently never matches.
+       That is exactly how the article marks went invisible once (a page-scoped
+       `filter: invert(1)` that never applied, on black art over a black page). */
+    color: var(--mark-color, var(--text));
+    fill: currentColor;
+    opacity: var(--mark-opacity, 0.85);
+    /* The same duration and easing as .nav-btn in src/styles/chrome.css, so a
+       mark lighting up and the header's button filling in read as one idiom. */
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      opacity var(--dur-fast) var(--ease-out);
+  }
+
+  .index-mark--mask {
+    display: grid;
+    place-items: center;
+  }
+
+  /* The drawing: a flat fill of the current colour, cut to the file's alpha.
+     Sized to the ink rather than to the box (see `inkRatio`), so `contain` here
+     is belt and braces against rounding rather than the thing doing the fitting.
+     -webkit- first, for Safari. */
+  .index-mark__ink {
+    inline-size: var(--ink-w);
+    block-size: var(--ink-h);
+    aspect-ratio: var(--ink-ratio);
+    background: currentColor;
+    -webkit-mask: var(--mark-mask) center / contain no-repeat;
+    mask: var(--mark-mask) center / contain no-repeat;
+  }
+
+  /* :global because the SVGs arrive two ways Astro does not scope to this file —
+     inlined from set:html, and from an imported .svg component. */
+  .index-mark > :global(svg) {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  /* ── ONLY THE DRAWING IS A HOVER TARGET ──────────────────────────────────
+     Not the empty corner of the box around it. The entry that owns this mark
+     lights as a whole — the drawing, the headline and the description together,
+     from a hover on any one of them (see `:has(:hover)` on each index page) —
+     and this is what keeps "any one of them" from including thirty pixels of
+     empty margin. The box is taken out of hit testing entirely and only what is
+     drawn inside it put back:
+
+       • An inline <svg> hands `visiblePainted` to its SHAPES — SVG's own rule
+         that a pointer counts as over an element only where it is actually
+         painted, so the letterboxing either side of a chart mark and the gaps
+         inside a line drawing are dead space. Per-pixel, for free, from the
+         format.
+
+         On the SHAPES and not on the <svg> itself, which is the whole trick:
+         an inline <svg> in HTML is a replaced element and hit-tests as its
+         BORDER BOX no matter what `pointer-events` says, so `visiblePainted`
+         there is silently ignored and every empty corner stays a target
+         (verified — it was). The root is taken out instead, and the children
+         put back; `pointer-events` inherits, so one rule on the direct children
+         reaches every shape however deeply it is nested.
+       • The masked span is a rectangle to hit testing no matter what the mask
+         does, so the best available is a rectangle the size of the drawing —
+         which is what `inkRatio` arranges. The same limit reaches three of the
+         chart marks: glucose, hospital-prices and new-york-real-estate are a
+         PNG carried as a mask over one full-size <rect> (see maskedRaster in
+         viz/src/thumbs/mark.js), so that rect is painted everywhere and their
+         whole box counts. The other five marks are vector and are exact.
+
+     `pointer-events: none` on the box does not make the entry unclickable: the
+     hit falls through to the link wrapping the whole row, so a click on an empty
+     corner still follows it. */
+  .index-mark {
+    pointer-events: none;
+  }
+
+  .index-mark > :global(svg) {
+    pointer-events: none;
+  }
+
+  .index-mark > :global(svg) > :global(*) {
+    pointer-events: visiblePainted;
+  }
+
+  .index-mark__ink {
+    pointer-events: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .index-mark {
+      transition: none;
+    }
+  }
+</style>

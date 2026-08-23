@@ -1,20 +1,31 @@
 import portrait from "../assets/portrait-open.webp";
+import { CARD, cardPath } from "./og-card.mjs";
 
-// Social share image (Open Graph / Twitter) for iMessage, WhatsApp, Slack, etc.
+// Social share images (Open Graph / Twitter) for iMessage, WhatsApp, Slack, etc.
 //
-// The upstream template picked this from the photo gallery. On a personal site
-// the share image should be the person, not a rotating photo from the portfolio:
-// a link to jaan.io that previews as a stranger's portrait is confusing, and a
-// share image that changes between builds makes previews inconsistent across
-// the places a link has already been pasted.
+// THREE KINDS, in the order a page reaches for them:
 //
-// Base.astro renders this through Sharp at OG_SIZE using `fit: "cover"` and
+//   1. Its own picture. A post names one as `ogImage` in its frontmatter; the
+//      five that carried an `image.feature` banner on the Jekyll site do.
+//      Rendered by Astro's Sharp service into the 1200 × 630 CARD.
+//   2. Its mark, drawn on a card. Every post has a line-art `thumb`, and every
+//      visualization has a generated SVG mark; scripts/gen-og-cards.mjs draws
+//      each one large on the site's own black and writes public/og/**.png, so a
+//      link to a specific piece previews as that piece rather than as the site.
+//   3. The portrait below. Everything else — /about, /articles, /projects,
+//      /images, the home page — shares one face.
+//
+// The upstream template picked the sitewide image from the photo gallery. On a
+// personal site that should be the person, not a rotating photo from the
+// portfolio: a link to jaan.io that previews as a stranger's portrait is
+// confusing, and a share image that changes between builds makes previews
+// inconsistent across the places a link has already been pasted. The eyes-open
+// frame specifically: it is the resting frame of the home page's two-frame
+// portrait, so a shared link previews as the face the page settles on.
+//
+// Base.astro renders it through Sharp at OG_SIZE using `fit: "cover"` and
 // `position: "attention"` (Sharp's saliency crop, which keeps the face in frame
-// when squaring a non-square source). It is wired into <head> unconditionally
-// and takes no prop, so every page on the site shares one share image; the SEO
-// audit checks that this stays true.
-// The eyes-open frame specifically: it is the resting frame of the home page's
-// two-frame portrait, so a shared link previews as the face the page settles on.
+// when squaring a non-square source).
 export const featured = {
   image: portrait,
   title: "Jaan Altosaar",
@@ -29,6 +40,12 @@ export const featured = {
  * iMessage, WhatsApp and Slack, which is where a link to a personal site
  * actually gets pasted, and the platforms that want a wider crop take one.
  *
+ * Nothing requires the shape to be the same on every page — a crawler reads the
+ * dimensions off each page's own tags, and pages here disagree about them on
+ * purpose. The routes that carry a picture or a chart use CARD (og-card.mjs)
+ * instead, where the width is what makes the picture readable; that argument
+ * does not apply to a face.
+ *
  * 1536 is the ceiling this source supports. portrait-open.webp is 1571×1600, so
  * a square crop cannot exceed 1571 without inventing pixels — and Astro's Sharp
  * service resizes `withoutEnlargement`, so asking for more would silently emit
@@ -40,16 +57,57 @@ export const featured = {
 export const OG_SIZE = 1536;
 
 /**
- * JPEG quality for the share card.
+ * JPEG quality for the share images Astro renders — the portrait, and the five
+ * posts that bring their own photograph.
  *
- * High, because this is a single image fetched by a crawler once and then
- * re-encoded by every platform that shows it — whatever is handed over is the
- * master they degrade from, so artifacts baked in here survive into every
- * preview. At 1536² with the encoder settings in astro.config.mjs this lands
- * around 550 KB, comfortably inside the tightest limit anyone publishes
- * (Twitter and LinkedIn both cap at 5 MB; Facebook at 8 MB).
+ * High, because these are fetched by a crawler once and then re-encoded by
+ * every platform that shows them — whatever is handed over is the master they
+ * degrade from, so artifacts baked in here survive into every preview. At 1536²
+ * with the encoder settings in astro.config.mjs the portrait lands around
+ * 550 KB, comfortably inside the tightest limit anyone publishes (Twitter and
+ * LinkedIn both cap at 5 MB; Facebook at 8 MB), and a 1200 × 630 card is a
+ * third of that.
  *
  * Quality 100 is not "better" here in any way that reaches a viewer: it triples
  * the file for detail no platform's own re-encode preserves.
  */
 export const OG_QUALITY = 95;
+
+/**
+ * Everything <head> needs to describe one share image.
+ *
+ * Assembled per route and handed to Base.astro as its `share` prop. `type` is
+ * spelled out rather than inferred from the extension, because it becomes
+ * og:image:type and a crawler takes that at its word.
+ */
+export interface ShareImage {
+  /** Root-relative or already absolute; Base.astro resolves it against `site`. */
+  src: string;
+  width: number;
+  height: number;
+  type: "image/jpeg" | "image/png";
+  alt: string;
+}
+
+/**
+ * The card generated from a post's `thumb` or a visualization's mark.
+ *
+ * Callers check the PNG exists before using this and fall back to the portrait
+ * if it does not — which is the state of a fresh checkout where the cards have
+ * not been generated, and of any checkout where `npm run viz` has not run. A
+ * missing card must degrade to the portrait, never to a 404 in someone's
+ * message thread.
+ */
+export const cardImage = (
+  kind: "articles" | "visualizations",
+  name: string,
+  alt: string,
+): ShareImage => ({
+  src: cardPath(kind, name),
+  width: CARD.width,
+  height: CARD.height,
+  type: "image/png",
+  alt,
+});
+
+export { CARD, CARD_DIR, cardPath } from "./og-card.mjs";

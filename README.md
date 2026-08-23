@@ -20,9 +20,11 @@ npm run preview  # serves dist/ on localhost:4322
 ```
 
 `npm run dev` and `npm run build` both build the `/visualizations` charts first
-(see §7 and `viz/README.md`); `npm run viz` forces a rebuild after editing one.
-Three of the seven read their data from R2, so until that bucket exists they
-need `npm run viz:local` once to run against local copies.
+(see §7 and `viz/README.md`), then draw the social share cards from their marks
+and from each post's thumb (`npm run og`; see **Share images** below). `npm run
+viz` forces a rebuild of both after editing a chart. Three of the seven read
+their data from R2, so until that bucket exists they need `npm run viz:local`
+once to run against local copies.
 
 There is no test framework by design. These are the tests, and CI runs all but
 the last one:
@@ -83,16 +85,40 @@ and brings the wordmark back, and nothing else needs touching.
 
 ## Where things live
 
-|                                      |                                         |
-| ------------------------------------ | --------------------------------------- |
-| Name, nav, social, feature switches  | `src/site.config.ts`                    |
-| Colours, type, spacing               | `src/styles/tokens.css`                 |
-| Blog posts — **filename is the URL** | `src/content/posts/*.md`                |
-| Long-form page content               | `src/content/pages/*.md`                |
-| Gallery photos + alt text            | `src/data/gallery.ts`                   |
-| Trailing-slash and legacy redirects  | `public/_redirects`                     |
-| Newsletter form                      | `src/components/NewsletterSignup.astro` |
-| Newsletter endpoints + D1 bindings   | `functions/api/`, `wrangler.toml`       |
+|                                      |                                             |
+| ------------------------------------ | ------------------------------------------- |
+| Name, nav, social, feature switches  | `src/site.config.ts`                        |
+| Colours, type, spacing               | `src/styles/tokens.css`                     |
+| Blog posts — **filename is the URL** | `src/content/posts/*.md`                    |
+| Long-form page content               | `src/content/pages/*.md`                    |
+| Gallery photos + alt text            | `src/data/gallery.ts`                       |
+| Trailing-slash and legacy redirects  | `public/_redirects`                         |
+| Newsletter form                      | `src/components/NewsletterSignup.astro`     |
+| Newsletter endpoints + D1 bindings   | `functions/api/`, `wrangler.toml`           |
+| Share images (og:image)              | `src/lib/og.ts`, `scripts/gen-og-cards.mjs` |
+
+## Share images
+
+What a link previews as when it is pasted into iMessage, WhatsApp, Slack or a
+social post. Three kinds, in the order a page reaches for them — the full
+reasoning is in `src/lib/og.ts`:
+
+1. **Its own picture.** A post sets `ogImage` (and the required `ogImageAlt`) in
+   its frontmatter, pointing at a file in `src/assets/og/`. Five do: the Jekyll
+   site's `image.feature` banners, at the resolutions that survived. Cropped to
+   1200 × 630 with Sharp's saliency crop, so nothing has to be pre-cut.
+2. **Its mark, on a card.** Otherwise a post uses its `thumb`, and a
+   visualization uses its generated SVG mark, drawn large on the site's black at
+   1200 × 630 by `scripts/gen-og-cards.mjs` into `public/og/` (gitignored,
+   rebuilt every `npm run build`). No type on the card — the platform already
+   prints the title beside it, and text would mean a font no CI runner has.
+3. **The portrait.** Every other route — `/about`, `/articles`, `/projects`,
+   `/images`, the home page — shares one square 1536² face.
+
+`npm run audit` is the guard. It checks each declared size against the file that
+shipped, that every chart page carries its own card, and that no generated card
+goes unreferenced — which is what catches a page silently falling back to the
+portrait because a slug stopped matching.
 
 ## Newsletter
 
@@ -424,6 +450,9 @@ Run these against the Pages preview URL before touching DNS, and again after.
       external deep links, as happened once already with food2vec.
 - [ ] Canonical, `og:url` and the sitemap all agree on the slash-less form.
       `npm run audit` fails the build if they drift.
+- [ ] Paste a post URL and a `/visualizations/…` URL into iMessage and Slack and
+      confirm each previews as its own picture, not as the portrait. The audit
+      checks the tags; only a real unfurl checks the crawlers.
 - [ ] Keyboard pass over the carousel: Tab in, arrows, Home/End, and confirm
       off-screen slides are not focusable. No script tests this.
 

@@ -218,6 +218,24 @@ function jpegSize(buf) {
   return null;
 }
 
+/**
+ * Width and height out of a PNG's IHDR.
+ *
+ * Needed since the generated share cards (scripts/gen-og-cards.mjs) are PNG:
+ * flat black behind hard-edged line art is the one case JPEG is worst at, where
+ * its ringing shows as a halo around every stroke. IHDR is mandated to be the
+ * first chunk, so the two dimensions are always at a fixed offset — this needs
+ * no chunk walk at all, unlike its JPEG sibling above.
+ */
+function pngSize(buf) {
+  if (buf.length < 24 || buf.readUInt32BE(0) !== 0x89504e47) return null;
+  if (buf.toString("latin1", 12, 16) !== "IHDR") return null;
+  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+}
+
+/** Dimensions of whichever of the two the bytes turn out to be. */
+const imageSize = (buf) => pngSize(buf) ?? jpegSize(buf);
+
 function assetExists(u, page) {
   // Only verify same-host or root-relative references; externals are lychee's job.
   let p = u.trim();
@@ -295,8 +313,23 @@ for (const page of htmlFiles) {
   ))
     assetExists(decode(m[1]), page);
 
+  // The whole share card, as this page declares it. Collected per page rather
+  // than as a single sitewide value: posts and visualizations each carry their
+  // own picture now (see src/lib/og.ts), so the share-image section below checks
+  // that every one of them is real and correctly described, not that they agree.
   const ogImg = head.match(/<meta\s+property="og:image"\s+content="([^"]+)"/);
-  if (ogImg) ogImages.set(page, decode(ogImg[1]));
+  if (ogImg) {
+    const declared = (k) =>
+      head.match(new RegExp(`<meta property="og:image:${k}" content="([^"]+)"`))?.[1];
+    ogImages.set(page, {
+      url: decode(ogImg[1]),
+      width: Number(declared("width")) || null,
+      height: Number(declared("height")) || null,
+      type: declared("type") ?? null,
+      alt: declared("alt") ? decode(declared("alt")) : null,
+      twitter: decode(head.match(/<meta\s+name="twitter:image"\s+content="([^"]+)"/)?.[1] ?? ""),
+    });
+  }
   for (const m of html.matchAll(/<(?:img|source|script|link)\b[^>]*?(?:src|href)="([^"]+)"/g)) {
     const v = decode(m[1]);
     if (/\.(css|js|mjs|png|jpe?g|webp|avif|gif|svg|ico|woff2?)(\?|$)/i.test(v))
@@ -601,66 +634,123 @@ for (const page of htmlFiles) {
 }
 
 // ------------------------------------------------------ share image (OG) ---
-// One portrait, identical on every page. src/layouts/Base.astro renders it from
-// src/lib/og.ts into <head> unconditionally and exposes no prop for it, so this
-// holds today by construction — the check is here so that adding a per-page
-// override later is a decision somebody makes on purpose. A link to any part of
-// the site should preview as the same face; a share card that varies by route
-// reads as a different site each time it is pasted.
+// Three kinds of share card, and this section checks all three are real.
+//
+// The site used to declare ONE image everywhere, and this block used to enforce
+// exactly that. It no longer does: posts and visualizations carry a picture of
+// their own (a ported feature photograph, or their mark drawn large on a card by
+// scripts/gen-og-cards.mjs), and everything else falls back to the portrait. See
+// src/lib/og.ts for the ladder.
+//
+// That trade is worth making — a link to one chart previewing as that chart
+// beats previewing as a face — but it buys a failure mode the old design did not
+// have: a page can now fall back SILENTLY. Nothing looks broken when a card goes
+// missing and the portrait quietly stands in, so the checks that used to be
+// "everything agrees" are now "everything that should differ, does".
 {
-  const distinct = new Set(ogImages.values());
-  if (distinct.size > 1) {
-    err(
-      "(site)",
-      `og:image differs across pages (${distinct.size} distinct). Every page should share one share card — see src/lib/og.ts. ` +
-        [...distinct]
-          .map((u) => `${u} on ${[...ogImages].filter(([, v]) => v === u).length} page(s)`)
-          .join("; "),
-    );
+  const entries = [...ogImages];
+
+  // ── The fallback itself still resolves ────────────────────────────────────
+  // Checked on the home page specifically. It is the one route that must never
+  // carry a picture of its own, so if its share image is not the portrait, the
+  // sitewide default has broken rather than been overridden.
+  const home = ogImages.get("index.html");
+  if (home && !/portrait-open/.test(home.url))
+    err("index.html", `og:image is not the portrait: ${home.url} — the sitewide fallback broke.`);
+
+  // ── The pages that should differ, do ──────────────────────────────────────
+  // Every chart page gets its own card. Derived from the URL rather than from a
+  // list, so a visualization added later is covered the day it ships.
+  for (const [page, og] of entries) {
+    if (!page.startsWith("visualizations/") || page === "visualizations/index.html") continue;
+    if (!og.url.includes("/og/visualizations/"))
+      err(
+        page,
+        `og:image is ${og.url}, not this chart's card. Viz.astro looks the mark up by URL — ` +
+          `check the slug matches src/data/visualizations.ts, and that \`npm run viz\` has run.`,
+      );
   }
 
-  const [shared] = distinct;
-  if (shared) {
-    if (!/portrait-open/.test(shared))
+  // No generated card may go unused. This is what catches the wiring breaking
+  // in the other direction: a card built for a post or chart that no page ends
+  // up pointing at means the lookup in [slug].astro or Viz.astro stopped
+  // matching, and those pages have silently fallen back to the portrait.
+  // Compared as PATHS, not as written. og:image has to be absolute for a crawler
+  // that never loaded the page (Facebook and LinkedIn drop a relative one), so
+  // what is in the tag is https://jaan.io/og/… while what is on disk is og/… .
+  const referenced = new Set(
+    entries.map(([, og]) => {
+      try {
+        return new URL(og.url, SITE).pathname;
+      } catch {
+        return og.url;
+      }
+    }),
+  );
+  for (const f of fileSet)
+    if (f.startsWith("og/") && f.endsWith(".png") && !referenced.has("/" + f))
       err(
         "(site)",
-        `og:image is not the portrait: ${shared} (expected a derivative of portrait-open).`,
+        `Generated card /${f} is referenced by no page — see scripts/gen-og-cards.mjs.`,
       );
 
-    const file = assetExists(shared, "(site)");
-    if (file) {
-      const bytes = statSync(join(dist, file)).size;
-      // Every platform that documents a ceiling puts it at 5 MB or more
-      // (Twitter/LinkedIn 5, Facebook 8). Over that the card silently does not
-      // render — no error anywhere, just a bare link.
-      if (bytes > 5 * 1024 * 1024)
-        err(
-          "(site)",
-          `og:image is ${(bytes / 1024 / 1024).toFixed(1)} MB — over the 5 MB most platforms accept.`,
-        );
+  // ── Every distinct card, on its own terms ─────────────────────────────────
+  const byUrl = new Map();
+  for (const [page, og] of entries) {
+    if (og.twitter && og.twitter !== og.url)
+      err(page, `twitter:image (${og.twitter}) differs from og:image (${og.url}).`);
+    if (!og.alt) warn(page, "og:image has no og:image:alt.");
+    if (!byUrl.has(og.url)) byUrl.set(og.url, { page, og });
+  }
 
-      // The declared size must be the real size. Astro's Sharp service resizes
-      // `withoutEnlargement`, so asking for a square larger than the source
-      // quietly yields a SMALLER file while og:image:width/height keep claiming
-      // the number that was asked for — and a crawler that trusts those
-      // dimensions lays out the card wrong. Read them back out of the JPEG.
-      const declared = ["width", "height"].map((k) => {
-        const m = read("index.html").match(
-          new RegExp(`<meta property="og:image:${k}" content="(\\d+)"`),
-        );
-        return m ? Number(m[1]) : null;
-      });
-      const actual = jpegSize(readFileSync(join(dist, file)));
-      if (actual && declared[0] && (actual.width !== declared[0] || actual.height !== declared[1]))
-        err(
-          "(site)",
-          `og:image is ${actual.width}\u00d7${actual.height} but declares ${declared[0]}\u00d7${declared[1]}. ` +
-            `OG_SIZE in src/lib/og.ts is probably larger than the source image.`,
-        );
-      // Facebook and LinkedIn both refuse to render anything under 200px.
-      if (actual && Math.min(actual.width, actual.height) < 200)
-        err("(site)", `og:image is ${actual.width}\u00d7${actual.height} — under the 200px floor.`);
+  for (const [url, { page, og }] of byUrl) {
+    const file = assetExists(url, page);
+    if (!file) continue;
+
+    const bytes = statSync(join(dist, file)).size;
+    // Every platform that documents a ceiling puts it at 5 MB or more
+    // (Twitter/LinkedIn 5, Facebook 8). Over that the card silently does not
+    // render — no error anywhere, just a bare link.
+    if (bytes > 5 * 1024 * 1024)
+      err(
+        page,
+        `og:image is ${(bytes / 1024 / 1024).toFixed(1)} MB — over the 5 MB most platforms accept.`,
+      );
+
+    // THE DECLARED SIZE MUST BE THE REAL SIZE. Astro's Sharp service resizes
+    // `withoutEnlargement`, so asking for a crop larger than the source quietly
+    // yields a SMALLER file while og:image:width/height keep claiming the number
+    // that was asked for — and a crawler that trusts those dimensions lays the
+    // card out wrong. Read them back out of the file itself.
+    const actual = imageSize(readFileSync(join(dist, file)));
+    if (!actual) {
+      warn(page, `og:image ${url} is neither JPEG nor PNG — dimensions unverified.`);
+      continue;
     }
+    if (og.width && (actual.width !== og.width || actual.height !== og.height))
+      err(
+        page,
+        `og:image is ${actual.width}×${actual.height} but declares ${og.width}×${og.height}. ` +
+          `The requested size is probably larger than the source image — see src/lib/og.ts.`,
+      );
+
+    // Facebook and LinkedIn both refuse to render anything under 200px, and
+    // both draw the small side-by-side card rather than the large one below
+    // 600 × 315. A card under the floor is invisible; one under the recommended
+    // size just shows small, so that is a warning.
+    if (Math.min(actual.width, actual.height) < 200)
+      err(page, `og:image is ${actual.width}×${actual.height} — under the 200px floor.`);
+    else if (actual.width < 600 || actual.height < 315)
+      warn(
+        page,
+        `og:image is ${actual.width}×${actual.height} — under 600×315, so it renders as a small card.`,
+      );
+
+    // og:image:type is what a crawler believes before it fetches anything.
+    const ext = file.toLowerCase();
+    const real = ext.endsWith(".png") ? "image/png" : "image/jpeg";
+    if (og.type && og.type !== real)
+      err(page, `og:image:type says ${og.type} but ${url} is ${real}.`);
   }
 }
 

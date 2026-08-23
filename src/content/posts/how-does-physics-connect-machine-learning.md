@@ -3,6 +3,10 @@ title: "How does physics connect to machine learning?"
 description: "Did Richard Feynman help seed a key machine learning technique in the 60s?"
 date: 2017-08-11
 thumb: ../../assets/thumbs/physics-machine-learning-thumb.png
+ogImage: ../../assets/og/physics-machine-learning.jpg
+ogImageAlt: "A Newton's cradle of five chrome balls with the leftmost swung out,
+  labelled “1960s: Gibbs-Bogoliubov-Feynman inequality” on the left and “2000s:
+  variational inference used in machine learning” on the right."
 ---
 _Mandarin translation available - 用普通话阅读这篇文章: [WeChat](http://mp.weixin.qq.com/s?__biz=MjM5MTQzNzU2NA==&mid=2651658123&idx=1&sn=5f0c4bdfcb11e623e93874387f5e6d19&chksm=bd4c30188a3bb90e536612140d0ccf52e511aaaee148b0e7e7ce351c198938d5ff6b855d613c&scene=0#rd)_
 
