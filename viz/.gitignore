@@ -6,3 +6,8 @@ node_modules/
 # ".observablehq/cache/" would only ever match viz/.observablehq/cache.
 **/.observablehq/
 .DS_Store
+
+# Input fingerprint written by scripts/build-visualizations.mjs after a
+# successful publish; its presence and value decide whether the next build is
+# skipped. Generated, machine-specific, never committed.
+.build-stamp

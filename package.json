@@ -19,7 +19,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "git config core.hooksPath .githooks || true",
-    "viz": "node scripts/build-visualizations.mjs && node scripts/gen-og-cards.mjs",
+    "viz": "node scripts/build-visualizations.mjs --force && node scripts/gen-og-cards.mjs",
     "viz:dev": "npm --prefix viz run dev",
     "viz:local": "node scripts/stage-viz-data.mjs"
   },
