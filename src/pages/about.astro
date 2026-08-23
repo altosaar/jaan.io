@@ -22,11 +22,15 @@ const { Content } = await render(page);
 
 <Base title={page.data.title} description={page.data.description}>
   {
-    /* No <h1>: the page opens straight into the prose, the way /images/ does.
-       `title` stays in the frontmatter because it is still the browser-tab
-       title ("About | Jaan Altosaar") and the collection schema requires it —
-       emptying it there fails the build rather than hiding the heading. */
+    /* No VISIBLE <h1>: the page opens straight into the prose, the way /images/
+       does. The heading is still in the DOM, sr-only, because a page with no
+       h1 at all leaves a screen reader's heading list empty and gives a crawler
+       nothing to read the page as. `title` stays in the frontmatter because it
+       is also the browser-tab title ("About | Jaan Altosaar") and the
+       collection schema requires it — emptying it there fails the build rather
+       than hiding the heading. */
   }
+  <h1 class="sr-only">{page.data.title}</h1>
   {
     /* The same rail the articles carry, in its `links` mode: /about/ has no
        sections worth listing, but it is the page someone lands on wanting to

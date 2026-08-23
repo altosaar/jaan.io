@@ -8,7 +8,7 @@ ogImageAlt: "A Newton's cradle of five chrome balls with the leftmost swung out,
   labelled “1960s: Gibbs-Bogoliubov-Feynman inequality” on the left and “2000s:
   variational inference used in machine learning” on the right."
 ---
-_Mandarin translation available - 用普通话阅读这篇文章: [WeChat](http://mp.weixin.qq.com/s?__biz=MjM5MTQzNzU2NA==&mid=2651658123&idx=1&sn=5f0c4bdfcb11e623e93874387f5e6d19&chksm=bd4c30188a3bb90e536612140d0ccf52e511aaaee148b0e7e7ce351c198938d5ff6b855d613c&scene=0#rd)_
+_Mandarin translation available - 用普通话阅读这篇文章: [WeChat](https://mp.weixin.qq.com/s?__biz=MjM5MTQzNzU2NA==&mid=2651658123&idx=1&sn=5f0c4bdfcb11e623e93874387f5e6d19&chksm=bd4c30188a3bb90e536612140d0ccf52e511aaaee148b0e7e7ce351c198938d5ff6b855d613c&scene=0#rd)_
 
 I struggled to learn machine learning. I was used to variational tricks, MCMC samplers, and discreet Taylor expansions from years of physics training. Now the concepts were mixed up. The intuitive models of physical systems were replaced by abstract models of ‘data’ and amechanical patterns of cause and effect.
 
@@ -22,7 +22,7 @@ If you have a physics background, I hope you will have a better sense of machine
 
 *If this article is confusing, falls short of these goals, or could be improved in any way please [email me](mailto:j@jaan.io), [@ me](https://twitter.com/thejaan), or [submit a pull request](https://github.com/altosaar/jaan.io/blob/master/_posts/blog/2017-08-11-how-does-physics-connect-machine-learning.md).*
 
-# Modeling magnetic spins
+## Modeling magnetic spins
 
 Consider a lattice of spins that point up or down:
 
@@ -70,7 +70,7 @@ Now that we have defined the Ising model and its characteristics, let’s think 
 
 **The Boltzmann distribution.** Can we make our goals more precise and make math from words? To do this, we need to define a distribution over spin configurations. It is straightforward to derive the probability of finding the system in an equilibrium state [^1]:
 
-[^1]: [Derivation](http://www.physics.udel.edu/~glyde/PHYS813/Lectures/chapter_3.pdf)
+[^1]: [Derivation](https://www.physics.udel.edu/~glyde/PHYS813/Lectures/chapter_3.pdf)
 
 $$
 p(s_1, s_2,...,s_N) = \frac{e^{-\beta E(s_1, s_2,...,s_N)}}{Z}
@@ -110,11 +110,11 @@ If the spins are aligned, the system is in an ordered state and the magnetizatio
 
 These are global **phases** of the system, and they depend on temperature. If the temperature $T$ goes to infinity, the inverse temperature $\beta$ goes to zero, and all states of the system are equally likely, as described by the Boltzmann distribution. But if the temperature is finite, then some states are more likely than others, and the system can transition between ordered and disordered phases. Such **phase transitions** and how they depend on the temperature are important for comparing how well this Ising model matches real-world materials [^3].
 
-[^3]: For example, the magnetization of dysprosium aluminium garnet at low temperatures is exactly [described](http://www.sbfisica.org.br/bjp/files/v30_794.pdf) by this model.
+[^3]: For example, the magnetization of dysprosium aluminium garnet at low temperatures is exactly [described](https://www.sbfisica.org.br/bjp/files/v30_794.pdf) by this model.
 
 Let's remember that we can't evaluate the partition function $Z$. This situation seems hopeless for answering interesting questions like calculating the magnetization. But thankfully, we may be able to simplify the problem by considering each spin independently and figuring out an approximation…
 
-# Approximating Interactions
+## Approximating Interactions
 
 Because we cannot evaluate the intractable sum required to calculate the partition function, we turn to **mean-field theory** to approximate the interactions between magnetic spins. 
 
@@ -247,7 +247,7 @@ We set out to understand the behavior of this model at various temperatures, in 
 
 By considering a single spin and approximating the effects of other spins as an effective magnetic field, we were able to reduce the complexity of the problem. This allowed us to study phase transitions. However, our exposition felt a little hand-wavy, so let's dive into a rigorous foundation to justify our intuitions.
 
-# Deriving the variational principle
+## Deriving the variational principle
 
 Can we learn what tradeoffs we make when we make the assumption of 'ignoring fluctuations' of spins around their mean values? Specifically, how can we gauge the quality of results derived from our mean-field theory? 
 
@@ -347,7 +347,7 @@ $$
 
  How good is the approximation? We need a simple identity [^5]: $e^x \geq x + 1$. 
 
- [^5]: [Visual proof](http://www.wolframalpha.com/input/?i=plot+e%5Ex,+x+%2B+1) that $e^x \geq x + 1$.
+ [^5]: [Visual proof](https://www.wolframalpha.com/input/?i=plot+e%5Ex,+x+%2B+1) that $e^x \geq x + 1$.
 
 Let’s apply this to the expectation in the exact factorization of the partition function, taking $f = -\beta \Delta E$:
 
@@ -411,7 +411,7 @@ We used that $m = \langle s_1\rangle_{MF} =  \tanh{[\beta({H + \Delta H})]}$ fro
 
 This confirms our earlier reasoning, that the optimal mean-field parameter is $\Delta H = Jzm$. There were three steps to this process. We started by defining the model we cared about, we wrote down a mean-field approximation to it, and we maximized a lower bound on the partition function.
 
-# Physics to machine learning 
+## Physics to machine learning 
 
 Let’s frame what we just did in the language of machine learning. More specifically, let’s think in terms of probabilistic modeling. 
 
@@ -482,7 +482,7 @@ For the Ising model, we can see that there are two sets of model parameters. The
 
 This is a subtle but important point. Our joint distribution over the set of random variables (the $N$ spins) is *indexed* by the set of model parameters. By varying the inverse temperature parameter $\beta$, we are actually selecting a specific model (the Ising model at that temperature). Ditto for a specific choice of the spin-spin interaction parameter $J$.
 
-# Variational inference
+## Variational inference
 
 **What questions can we ask about this model?** For example, computing the magnetization $m = \frac{1}{N}\langle  s_1 + ... + s_N \rangle = \langle  s_i \rangle$ means calculating the expectation $\mathbb{E}_{p(s_i)}[s_i]$. In probability language, this means calculating the marginal expectation of a node $i$. 
 
@@ -636,7 +636,7 @@ If we are using the variational method to learn an approximate posterior, our pa
 
 This technique has been used in machine learning for the past two decades. It is becoming popular because intractable partition functions come with the need to analyze large datasets. Because the variational principle relies on optimizing a lower bound, the field has borrowed heavily from the optimization literature to scale Bayesian inference to massive data. It's an exciting area, as new techniques from stochastic optimization may enable us to explore new physics and machine learning models.
 
-# Connecting both fields
+## Connecting both fields
 
 There are many techniques for approximating partition functions developed in the machine learning community that may find use in physics.
 
@@ -685,16 +685,16 @@ $$
 
 ---
 
-# References
-- [Peterson & Anderson (1987)](http://www.complex-systems.com/pdf/01-5-6.pdf) used solutions to time-dependent Ising models to learn the parameters of Boltzmann machines. This is a canonical reference for the ‘start’ of variational inference as it is known in the machine learning community.
-- You can go deep into Ising models: there are hundreds of lectures and references on line. Here are the sources I used for these notes: from [Basel](http://web.archive.org/web/20160328001508/http://quantumtheory.physik.unibas.ch/people/bruder/Semesterprojekte2007/p1/Ising.pdf) and [Munich](https://www.physik.uni-muenchen.de/lehre/vorlesungen/sose_14/asp/lectures/ASP_Chapter5.pdf).
-- Dave’s course, [Foundations of Graphical Models](http://www.cs.columbia.edu/~blei/fogm/2016F/)
+## References
+- [Peterson & Anderson (1987)](https://www.complex-systems.com/pdf/01-5-6.pdf) used solutions to time-dependent Ising models to learn the parameters of Boltzmann machines. This is a canonical reference for the ‘start’ of variational inference as it is known in the machine learning community.
+- You can go deep into Ising models: there are hundreds of lectures and references on line. Here are the sources I used for these notes: from [Basel](https://web.archive.org/web/20160328001508/http://quantumtheory.physik.unibas.ch/people/bruder/Semesterprojekte2007/p1/Ising.pdf) and [Munich](https://www.physik.uni-muenchen.de/lehre/vorlesungen/sose_14/asp/lectures/ASP_Chapter5.pdf).
+- Dave’s course, [Foundations of Graphical Models](https://www.cs.columbia.edu/~blei/fogm/2016F/)
 - [Wainwright & Jordan (2008)](https://people.eecs.berkeley.edu/~wainwrig/Papers/WaiJor08_FTML.pdf) is challenging but worthwhile.
-- David MacKay's [Information Theory, Inference, and Learning Algorithms](http://www.inference.org.uk/itprnn/book.html) has a section on variational free energy (Chapter 33, p. 422).
+- David MacKay's [Information Theory, Inference, and Learning Algorithms](https://www.inference.org.uk/itprnn/book.html) has a section on variational free energy (Chapter 33, p. 422).
 - David Chandler's Introduction to Modern Statistical Mechanics (1987) has a simple derivation of the variational free energy (Section 5.1, pp. 135-138) that I followed in this exposition.
 - Feynman, Statistical Mechanics - A set of lecture notes (1972) derives the variational free energy using a perturbation expansion (Section 2.11, pp. 67-71).
 - Parisi's Statistical Field Theory (1988) derives the variational principle in three different ways (Section 3.2, pp. 24-31).
-- Matthew Beal’s [thesis](http://www.cse.buffalo.edu/faculty/mbeal/thesis/beal03_2.pdf) has interesting references, and Rich Turner has [notes](http://www.gatsby.ucl.ac.uk/~turner/Notes/ContrastiveDivergence/FreeEnergyNotes.pdf) on correspondences between physics and machine learning. 
+- Matthew Beal’s [thesis](https://www.cse.buffalo.edu/faculty/mbeal/thesis/beal03_2.pdf) has interesting references, and Rich Turner has [notes](https://www.gatsby.ucl.ac.uk/~turner/Notes/ContrastiveDivergence/FreeEnergyNotes.pdf) on correspondences between physics and machine learning. 
 
 *Thanks to Bohdan Kulchytskyy, Florian Wentzel, Siddharth Mishra-Sharma, Smiti Kaul, Guillaume Verdon, Henri Palacci, Sam Ritter, Mattias Fitzpatrick, and Sophie Kleber for comments and encouragement. Image credits: Freepik for iconography, and Analytical Scientific for the Newton's cradle image.*
 

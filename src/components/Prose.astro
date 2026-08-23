@@ -46,10 +46,11 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
      the table of contents measures against (Toc.astro), so the heading you
      land on is the one the rail then lights up.
 
-     h1 is in the list because a post may open its sections with `#` — the
-     physics one does — and those are destinations in the rail like any other.
-     The title above is an h1 too and picks the rule up harmlessly: nothing
-     links to it. */
+     h1 is in the list only for the post title above, which picks the rule up
+     harmlessly — nothing links to it. Posts open their sections with `##`
+     (the physics one used to use `#`, which gave it eight h1s and section
+     headings as large as its own title); those h2s are the rail's
+     destinations. */
   .prose :global(h1),
   .prose :global(h2),
   .prose :global(h3),

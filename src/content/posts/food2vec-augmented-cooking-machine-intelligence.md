@@ -85,13 +85,13 @@ If you end up adding an ingredient to your food based on these tools, I'd love t
 
 * This NYT piece, [The Great AI Awakening](https://www.nytimes.com/2016/12/14/magazine/the-great-ai-awakening.html), does a much better job at describing embeddings than I can
 * Wesley has a neat paper on a similar approach: [diet2vec](https://arxiv.org/abs/1612.00388)
-* Sanjeev Arora's [research](http://www.offconvex.org/2016/02/14/word-embeddings-2/) has good explanations for the analogy properties of embeddings
+* Sanjeev Arora's [research](https://www.offconvex.org/2016/02/14/word-embeddings-2/) has good explanations for the analogy properties of embeddings
 * The [t-SNE algorithm](https://www.oreilly.com/learning/an-illustrated-introduction-to-the-t-sne-algorithm) for visualizing high-dimensional embeddings
-* The original [Nature Scientific Report](http://www.nature.com/articles/srep00196) with the data
-* Dave taught a fantastic [class](http://www.cs.columbia.edu/~blei/seminar/2016_discrete_data/index.html) that helped me understand embeddings 
+* The original [Nature Scientific Report](https://www.nature.com/articles/srep00196) with the data
+* Dave taught a fantastic [class](https://www.cs.columbia.edu/~blei/seminar/2016_discrete_data/index.html) that helped me understand embeddings 
 * Maja's paper on [exponential family embeddings](https://arxiv.org/abs/1608.00778) generalizes word2vec to other distributions that would be neat to try on this data (word2vec can be interpreted as a Bernoulli embedding model with biased gradients)
 
-*Thanks to David Blei for the idea, Peter Bearman for presenting his work to our group, [MealMakeOverMoms](https://www.flickr.com/photos/mealmakeovermoms/) for the mise photo, [Anthony](http://anthony.ai/) for open-sourcing the embedding browser on which ours is based,  and [Plotly](https://plot.ly/) for open-sourcing their fantastic plotting library.*
+*Thanks to David Blei for the idea, Peter Bearman for presenting his work to our group, [MealMakeOverMoms](https://www.flickr.com/photos/mealmakeovermoms/) for the mise photo, [Anthony](https://anthony.ai/) for open-sourcing the embedding browser on which ours is based,  and [Plotly](https://plot.ly/) for open-sourcing their fantastic plotting library.*
 
 Feel free to ping me on [Twitter](https://twitter.com/thejaan) or [email](mailto:altosaar@princeton.edu) with feedback or ideas!
 

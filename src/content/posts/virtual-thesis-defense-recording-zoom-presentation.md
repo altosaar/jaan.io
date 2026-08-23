@@ -14,9 +14,9 @@ I defended my PhD on Zoom ([YouTube](https://youtu.be/msbUn_JfOfY)). It was stre
 
 Many tips from meatspace apply. I recommend Matt Might's tri-tips:
 
-* [http://matt.might.net/articles/phd-defense-tips/](http://matt.might.net/articles/phd-defense-tips/)
-* [http://matt.might.net/articles/academic-presentation-tips/](http://matt.might.net/articles/academic-presentation-tips/)
-* [http://matt.might.net/articles/advice-for-academic-job-hunt/#talk](http://matt.might.net/articles/advice-for-academic-job-hunt/#talk)
+* [https://matt.might.net/articles/phd-defense-tips/](https://matt.might.net/articles/phd-defense-tips/)
+* [https://matt.might.net/articles/academic-presentation-tips/](https://matt.might.net/articles/academic-presentation-tips/)
+* [https://matt.might.net/articles/advice-for-academic-job-hunt/#talk](https://matt.might.net/articles/advice-for-academic-job-hunt/#talk)
 
 For example, using Keynote and a [bluetooth clicker](https://www.amazon.com/gp/product/B000FPGP4U) makes a difference. In addition, I suggest standing to give the presentation and wearing shoes, and anything else that would help make it feel more like a standard academic presentation instead of mid-pandemic [grilling hour](https://www.youtube.com/watch?v=wU9Daiu5XoM).
 

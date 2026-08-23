@@ -11,7 +11,7 @@ Why do deep learning researchers and probabilistic machine learning folks get co
 
 There is a conceptual and language gap. The sciences of neural networks and probability models do not have a shared language. My goal is to bridge this idea gap and allow for more collaboration and discussion between these fields, and provide a consistent implementation ([Github link](https://github.com/altosaar/variational-autoencoder)). *If many words here are new to you, jump to the [glossary](#glossary).*
 
-Variational autoencoders are cool. They let us design complex generative models of data, and fit them to large datasets. They can generate images of fictional celebrity faces and high-resolution [digital artwork](http://blog.otoro.net/2016/04/01/generating-large-images-from-latent-vectors/).
+Variational autoencoders are cool. They let us design complex generative models of data, and fit them to large datasets. They can generate images of fictional celebrity faces and high-resolution [digital artwork](https://blog.otoro.net/2016/04/01/generating-large-images-from-latent-vectors/).
 
 <figure>
     <img alt="Variational autoencoder applied to faces." src="/images/variational-autoencoder-faces.jpg" style="max-width: 50%">
@@ -263,12 +263,12 @@ Is anything in this article confusing or can any explanation be improved? Please
 
 ## References for ideas and figures
 
-Many ideas and figures are from Shakir Mohamed's excellent blog posts on the [reparametrization trick](http://blog.shakirm.com/2015/10/machine-learning-trick-of-the-day-4-reparameterisation-tricks/) and [autoencoders](http://blog.shakirm.com/2015/03/a-statistical-view-of-deep-learning-ii-auto-encoders-and-free-energy/).
-Durk Kingma created the great visual of the [reparametrization trick](http://dpkingma.com/?page_id=277). Great references for variational inference are this [tutorial](https://arxiv.org/abs/1601.00670) and David Blei's [course notes](https://www.cs.princeton.edu/courses/archive/fall11/cos597C/lectures/variational-inference-i.pdf). Dustin Tran has a helpful blog post on [variational autoencoders](http://dustintran.com/blog/denoising-criterion-for-variational-auto-encoding-framework/). The header's molecule samples generated from a variational autoencoder are from [this paper](https://arxiv.org/abs/1802.04364).
+Many ideas and figures are from Shakir Mohamed's excellent blog posts on the [reparametrization trick](https://blog.shakirm.com/2015/10/machine-learning-trick-of-the-day-4-reparameterisation-tricks/) and [autoencoders](https://blog.shakirm.com/2015/03/a-statistical-view-of-deep-learning-ii-auto-encoders-and-free-energy/).
+Durk Kingma created the great visual of the [reparametrization trick](https://dpkingma.com/?page_id=277). Great references for variational inference are this [tutorial](https://arxiv.org/abs/1601.00670) and David Blei's [course notes](https://www.cs.princeton.edu/courses/archive/fall11/cos597C/lectures/variational-inference-i.pdf). Dustin Tran has a helpful blog post on [variational autoencoders](https://dustintran.com/blog/denoising-criterion-for-variational-auto-encoding-framework/). The header's molecule samples generated from a variational autoencoder are from [this paper](https://arxiv.org/abs/1802.04364).
 
 *Thanks to Rajesh Ranganath, Andriy Mnih, Ben Poole, Jon Berliner, Cassandra Xia, and Ryan Sepassi for discussions and many concepts in this article. Thanks to [Batuhan Koyuncu](https://bkoyuncu.github.io/) for regenerating the GIFs!*
 
-Discussion on [Hacker News](https://news.ycombinator.com/edit?id=12292576) and [Reddit](https://www.reddit.com/r/MachineLearning/comments/4xv5b5/explainer_of_variational_autoencoders_from_a/). Featured in David Duvenaud's course syllabus on ["Differentiable inference and generative models"](http://www.cs.toronto.edu/~duvenaud/courses/csc2541/).
+Discussion on [Hacker News](https://news.ycombinator.com/edit?id=12292576) and [Reddit](https://www.reddit.com/r/MachineLearning/comments/4xv5b5/explainer_of_variational_autoencoders_from_a/). Featured in David Duvenaud's course syllabus on ["Differentiable inference and generative models"](https://www.cs.toronto.edu/~duvenaud/courses/csc2541/).
 
 Cite this work:
 <a href="https://doi.org/10.5281/zenodo.4462916"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.4462916.svg" alt="DOI" style="max-width: 38%"></a>

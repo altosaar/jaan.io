@@ -57,7 +57,11 @@ const CFG = {
     "Bytespider",
   ],
   thinWords: 120, // WARN below this visible word count
-  thinAllow: ["404.html"], // pages allowed to be thin
+  // Pages allowed to be thin. The three index pages are deliberately sparse:
+  // their content IS the grid of links (photographs, projects, articles), and
+  // the audit counts only prose. Padding them with an intro paragraph to
+  // satisfy a word count would be writing for the linter, not the reader.
+  thinAllow: ["404.html", "index.html", "images.html", "projects.html"],
   // Standalone HTML artifacts that are EMBEDDED in a page, never navigated to.
   // These are the interactive D3/Plotly figures the blog posts iframe from
   // /files/ — generated output kept at its original URL so the old posts keep
