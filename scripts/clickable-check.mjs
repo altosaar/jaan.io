@@ -161,11 +161,19 @@ for (const [engine, launcher] of Object.entries({ chromium, firefox, webkit })) 
 
       // The success copy is the only outward sign the whole path ran, which is
       // the same thing a visitor has to go on.
-      const cardHeight = () =>
-        page.locator(".newsletter__card").evaluate((n) => n.getBoundingClientRect().height);
-      let before = 0;
+      // The card AND the Turnstile widget inside it, because only one of the two
+      // is this site's to hold still — see the noshift case below.
+      const measure = () =>
+        page.evaluate(() => {
+          const h = (sel) => {
+            const el = document.querySelector(sel);
+            return el ? el.getBoundingClientRect().height : 0;
+          };
+          return { card: h(".newsletter__card"), widget: h(".cf-turnstile") };
+        });
+      let before = { card: 0, widget: 0 };
       results.submit = await check("no status", async () => {
-        before = await cardHeight();
+        before = await measure();
         await page.fill("#newsletter-email", "clickable-check@example.invalid");
         await button.click({ timeout: 4000 });
         // Generous: waitForToken in NewsletterSignup.astro will sit for up to
@@ -186,10 +194,21 @@ for (const [engine, launcher] of Object.entries({ chromium, firefox, webkit })) 
       // the layout together and collapsed the card to one line — so the page
       // jumped at the exact moment it was telling you something had worked.
       // Measured rather than eyeballed, because the whole failure was geometric.
+      //
+      // NET OF THE TURNSTILE WIDGET, which is the one part of the card whose
+      // height is not this site's to decide. A visitor the challenge is unsure
+      // about is shown the checkbox, and the container goes from 0 to ~70px
+      // when that happens — every automated client on the deployed site, which
+      // is why this cannot simply compare the card with itself. What must hold
+      // is that the success state accounts for none of the difference.
       results.noshift = await check("card resized", async () => {
-        const after = await cardHeight();
-        if (Math.abs(after - before) < 0.5) return true;
-        console.log(`        card ${before}px -> ${after}px`);
+        const after = await measure();
+        const moved = after.card - before.card - (after.widget - before.widget);
+        if (Math.abs(moved) < 0.5) return true;
+        console.log(
+          `        card ${before.card} -> ${after.card}, ` +
+            `widget ${before.widget} -> ${after.widget}, unaccounted ${moved.toFixed(1)}px`,
+        );
         return false;
       });
 
