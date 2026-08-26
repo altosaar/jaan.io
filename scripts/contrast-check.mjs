@@ -63,7 +63,9 @@ const PAIRS = [
     fg: "--text",
     bg: "--field",
     min: 4.5,
-    what: "A typed address, its label, and the white focus ring drawn inside the field",
+    what:
+      "A typed address, its label, the white focus ring drawn inside the field, and — " +
+      "once signed up — the confirmation in that same box and the spent Sign up button under it",
   },
 ];
 

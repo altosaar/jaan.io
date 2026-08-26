@@ -161,7 +161,11 @@ for (const [engine, launcher] of Object.entries({ chromium, firefox, webkit })) 
 
       // The success copy is the only outward sign the whole path ran, which is
       // the same thing a visitor has to go on.
+      const cardHeight = () =>
+        page.locator(".newsletter__card").evaluate((n) => n.getBoundingClientRect().height);
+      let before = 0;
       results.submit = await check("no status", async () => {
+        before = await cardHeight();
         await page.fill("#newsletter-email", "clickable-check@example.invalid");
         await button.click({ timeout: 4000 });
         // Generous: waitForToken in NewsletterSignup.astro will sit for up to
@@ -175,6 +179,18 @@ for (const [engine, launcher] of Object.entries({ chromium, firefox, webkit })) 
           { timeout: 15000 },
         );
         return true;
+      });
+
+      // Confirming a signup must not move the page. This used to set
+      // `form.hidden`, which took the field, the widget and the button out of
+      // the layout together and collapsed the card to one line — so the page
+      // jumped at the exact moment it was telling you something had worked.
+      // Measured rather than eyeballed, because the whole failure was geometric.
+      results.noshift = await check("card resized", async () => {
+        const after = await cardHeight();
+        if (Math.abs(after - before) < 0.5) return true;
+        console.log(`        card ${before}px -> ${after}px`);
+        return false;
       });
 
       results.palette = await check("no palette", async () => {

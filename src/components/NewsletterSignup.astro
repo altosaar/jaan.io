@@ -104,6 +104,21 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
       </div>
 
       {
+        /* THE ONE MESSAGE LINE, and it lives HERE — directly after the field,
+           inside the form — because on success it has to take the field's
+           place. The success state hides the field and gives this element the
+           field's exact geometry, so the confirmation appears in the box the
+           address was typed into and the card's height does not change. Sitting
+           outside the form it could only ever appear underneath it.
+
+           role="status" is what makes every one of these lines reach a screen
+           reader: the region is in the DOM from the start and empty, so filling
+           it later is an announcement. Building the line after submit instead
+           would insert it silently. */
+      }
+      <p class="newsletter__status" role="status" aria-live="polite" data-newsletter-status></p>
+
+      {
         /* Honeypot. Off-screen rather than display:none — a field that is not
            rendered at all is one a headless browser can see is not rendered, and
            some autofillers skip it too. aria-hidden + tabindex="-1" keep it away
@@ -156,14 +171,6 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
 
       <button class="cta-primary newsletter__submit" type="submit">Sign up</button>
     </form>
-
-    {
-      /* role="status" is what makes the success and error lines reach a screen
-         reader: the region is in the DOM from the start and empty, so filling it
-         later is an announcement. Building the line after submit instead would
-         insert it silently. */
-    }
-    <p class="newsletter__status" role="status" aria-live="polite" data-newsletter-status></p>
   </div>
 </section>
 
@@ -223,7 +230,7 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
   }
 
   for (const form of document.querySelectorAll<HTMLFormElement>("form[data-newsletter]")) {
-    const status = form.parentElement?.querySelector<HTMLElement>("[data-newsletter-status]");
+    const status = form.querySelector<HTMLElement>("[data-newsletter-status]");
     const submit = form.querySelector<HTMLButtonElement>("button[type=submit]");
 
     form.addEventListener("submit", async (event) => {
@@ -258,10 +265,21 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
       }
 
       if (ok) {
-        // The form goes away on success. Leaving it up invites a second
-        // submission that would silently do nothing (the row already exists),
-        // which reads as the first one having failed.
-        form.hidden = true;
+        // ONE ATTRIBUTE, and the stylesheet does the rest — the field gives up
+        // its place to the message and the button settles onto the field's own
+        // grey. Deliberately not `form.hidden = true`, which is what this used
+        // to be: that took the field, the widget and the button out of the
+        // layout in one go and collapsed the card to the height of a single
+        // line, so the page jumped at the exact moment it was confirming
+        // something. The form still must not be submitted twice — the row
+        // already exists, so a second POST would report an error for a signup
+        // that worked — but `disabled` on the button below is what prevents
+        // that, and it does it without moving anything.
+        //
+        // It lasts until the page is reloaded, and no further: nothing is
+        // written to storage, so this is the state of one form on one screen
+        // rather than a claim about the visitor that has to be kept true later.
+        form.dataset.state = "done";
         if (status) status.textContent = COPY.success;
         return;
       }
@@ -471,11 +489,59 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
   }
 
   /* Empty until something has happened, so it must not reserve space or leave a
-     gap above the microcopy while it is blank. */
+     gap while it is blank. It sits between the field and the button, which is
+     where a line about the field belongs — and where it has to be for the
+     success state below to be able to put it in the field's place. */
   .newsletter__status:not(:empty) {
     margin-top: 1rem;
     font-size: var(--fs-base);
     color: var(--text);
+  }
+
+  /* ── Signed up ─────────────────────────────────────────────────────────────
+     The field stands down and the message takes its box.
+
+     THE SAME BOX, ARRIVED AT THE SAME WAY rather than measured off the rendered
+     page: --fs-body and 1.35 are the input's own type, 2rem + 0.5rem is its own
+     vertical padding, and box-sizing is border-box site-wide — so
+     `2.5rem + 1.35em` is exactly the height the input had (72.4px today) and
+     follows it if either number ever moves. That is the whole point of writing
+     it this way: the card is the same height signed up as it was before, and
+     nothing on the page moves at the moment it is confirming something.
+
+     Centred in the box rather than left sitting on the input's baseline. A
+     confirmation is a statement about the box, not a value in it — and with the
+     label gone there is no longer anything above it to make room for. */
+  .newsletter__form[data-state="done"] .newsletter__field {
+    display: none;
+  }
+
+  .newsletter__form[data-state="done"] .newsletter__status {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    min-height: calc(2.5rem + 1.35em);
+    padding-inline: 1rem;
+    font-size: var(--fs-body);
+    background: var(--field);
+  }
+
+  /* SPENT, and saying so in the vocabulary the box already has: the button
+     drops off the light fill onto --field, the grey the input was wearing. So
+     the card settles into two plates of one surface — the message where the
+     address was, the button under it — rather than leaving a lit control
+     inviting a second press that would do nothing but report an error for a
+     signup that worked. .cta-primary already transitions background and colour,
+     so the drop is the same 120ms as every other state change on the site.
+     :hover and :focus-visible are restated because .cta-primary lights both in
+     the accent, and a disabled button still matches them both. */
+  .newsletter__form[data-state="done"] .newsletter__submit,
+  .newsletter__form[data-state="done"] .newsletter__submit:hover,
+  .newsletter__form[data-state="done"] .newsletter__submit:focus-visible {
+    background: var(--field);
+    color: var(--text);
+    opacity: 1;
+    cursor: default;
   }
 
   .newsletter__note {
