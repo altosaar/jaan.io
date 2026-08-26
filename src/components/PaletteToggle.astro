@@ -200,6 +200,28 @@ const { home = false } = Astro.props;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+
+    /* THE BOX IS NOT THE MARKS, and until this line it was swallowing every
+       click that landed in it. Being the chrome column is what fixes the marks
+       to the nav's right edge (see above) — but it also makes this a box the
+       full width of that column and the height of all three hit areas, and
+       `align-items: flex-end` only decides where the 28px buttons are DRAWN
+       inside it. A transparent box still hit-tests: `background: none` paints
+       nothing and blocks everything.
+       Fixed to the bottom of the viewport at z-index 200, that is an invisible
+       1354 × 84px bar lying across the foot of every desktop screen, over the
+       page. Measured on the deployed site at 1440 × 900: elementFromPoint at
+       the centre of the newsletter's Sign up button returned `div.palette-corner`,
+       and /about/ is short enough that the button could not be scrolled out
+       from under it — the form was unclickable, permanently. It was the only
+       control the bar could reach, because it is the only one that sits at the
+       foot of a page; everything else on the site is in the chrome or in the
+       prose, well clear of the bottom 84px.
+       So the box stops taking pointer events and the three controls take them
+       back. Same pattern, and the same reason, as .index-mark in
+       IndexMark.astro: `pointer-events` inherits, so one line here and one on
+       the children is the whole of it. */
+    pointer-events: none;
   }
 
   /* The column's edge is where the ARTICLES pill ends, and what has to meet it
@@ -272,6 +294,10 @@ const { home = false } = Astro.props;
     display: grid;
     place-items: center;
     cursor: pointer;
+    /* Taken back from the box above, which gave up pointer events so that the
+       empty width of the column would stop intercepting them. The 28px of hit
+       area is the part that was ever meant to be clickable. */
+    pointer-events: auto;
   }
 
   /* The mark itself, drawn as a pseudo-element rather than as the button's own
