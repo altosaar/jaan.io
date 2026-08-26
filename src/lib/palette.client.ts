@@ -38,14 +38,20 @@ const familyOf = (name: string): Family => (name.endsWith(LIGHT) ? "light" : "da
 /**
  * Every palette the loaded CSS defines, with its accent.
  *
- * Walks the CSSOM rather than fetching and parsing anything: the rules are
- * already there by the time a deferred module runs. `cssRules` THROWS on a
- * cross-origin stylesheet with no CORS grant, hence the try — this site serves
- * its own CSS, but a browser extension's injected sheet lands in the same list.
+ * Walks the CSSOM rather than fetching and parsing anything. It can come back
+ * EMPTY, and that is not the same as "there are no palettes": a deferred module
+ * is only guaranteed to run after the document is parsed, not after every
+ * stylesheet has reached document.styleSheets, and WebKit takes that liberty on
+ * a page small enough to finish parsing first. See the startup block below,
+ * which is what turns an empty answer into a retry instead of a verdict.
+ *
+ * `cssRules` THROWS on a cross-origin stylesheet with no CORS grant, hence the
+ * try — this site serves its own CSS, but a browser extension's injected sheet
+ * lands in the same list.
  *
  * Reading `selectorText` covers dev and prod alike: `astro dev` injects the
  * file as a <style> and the build emits a <link>, and both are ordinary sheets
- * here.
+ * here. The <link> is the one that can be late.
  *
  * The accents come off the same rules as the names, which is the only way to
  * know a palette's colour WITHOUT applying it: `[data-palette]` matches the root
@@ -199,18 +205,55 @@ const buttons: Record<Family, HTMLButtonElement | null> = {
   dark: document.querySelector("[data-palette-dark]"),
 };
 const clear = document.querySelector<HTMLButtonElement>("[data-palette-clear]");
-const { names, accents } = readPalettes();
 
-// A family with nothing in it means palettes.css did not load, or its light half
-// was dropped. Controls that cannot do anything are worse than no controls, so
-// the corner removes itself rather than sitting there absorbing clicks.
-if (corner && clear && buttons.light && buttons.dark) {
+/**
+ * Wire the marks up, if the stylesheet is there to read.
+ *
+ * Returns false when the scan finds nothing to offer — which means either that
+ * palettes.css is genuinely gone, or that it simply has not landed yet.
+ */
+function start(
+  corner: HTMLElement,
+  clear: HTMLButtonElement,
+  buttons: Record<Family, HTMLButtonElement>,
+): boolean {
+  const { names, accents } = readPalettes();
   const pools: Record<Family, string[]> = {
     light: names.filter((n) => familyOf(n) === "light"),
     dark: names.filter((n) => familyOf(n) === "dark"),
   };
-  if (!pools.light.length || !pools.dark.length) corner.remove();
-  else wire(corner, clear, buttons as Record<Family, HTMLButtonElement>, pools);
+  if (!pools.light.length || !pools.dark.length) return false;
+  wire(corner, clear, buttons, pools, accents);
+  return true;
+}
+
+// A family with nothing in it means palettes.css did not load, or its light half
+// was dropped. Controls that cannot do anything are worse than no controls, so
+// the corner removes itself rather than sitting there absorbing clicks.
+//
+// BUT AN EMPTY SCAN IS NOT PROOF OF THAT, and treating it as proof is what took
+// the marks off the home page in Safari while leaving them on every other route.
+// A deferred module runs once the document is parsed; whether the external
+// stylesheet has reached document.styleSheets by then is up to the engine, and
+// WebKit finishes parsing a one-screen page before the CSS is in. Chrome and
+// Firefox happened to be in the other order, so the same build worked in two
+// browsers out of three — and the colours, which come from the inline restore in
+// <head> and the cascade, kept working in all three, which is exactly the shape
+// the bug reached me in.
+//
+// So: ask again each frame until the answer means something. `readyState`
+// reaching "complete" is that point — every stylesheet has loaded or failed by
+// then — and only an empty scan at that moment is a real verdict.
+if (corner && clear && buttons.light && buttons.dark) {
+  const marks = buttons as Record<Family, HTMLButtonElement>;
+  if (!start(corner, clear, marks)) {
+    const retry = () => {
+      if (start(corner, clear, marks)) return;
+      if (document.readyState === "complete") corner.remove();
+      else requestAnimationFrame(retry);
+    };
+    requestAnimationFrame(retry);
+  }
 }
 
 function wire(
@@ -218,8 +261,11 @@ function wire(
   clear: HTMLButtonElement,
   buttons: Record<Family, HTMLButtonElement>,
   pools: Record<Family, string[]>,
+  accents: Map<string, string>,
 ) {
   const root = document.documentElement;
+  /** Every palette the stylesheet actually defines, both families. */
+  const known = [...pools.light, ...pools.dark];
   const accentOf = (name: string) => accents.get(name);
   const draw: Record<Family, (avoid: (string | undefined)[]) => string> = {
     light: dealer(pools.light, accentOf),
@@ -237,7 +283,7 @@ function wire(
     const name = root.getAttribute("data-palette") ?? "";
     // A stored palette that no longer exists in the CSS applies nothing, so it
     // is not the palette on screen either.
-    return names.includes(name) ? name : "";
+    return known.includes(name) ? name : "";
   };
   const shown = (family: Family) => {
     const now = applied();
