@@ -59,12 +59,10 @@ interface Props {
    * somewhere else — see PALETTE_USED_KEY in src/lib/palette.ts for why that is a
    * separate, sticky flag and not just "a palette is applied".
    *
-   * It also changes where they sit at phone widths. Everywhere else the mobile
-   * marks are in normal flow at the foot of the page; the home page is locked to
-   * one screen (html.is-fullscreen in base.css, overflow hidden), so anything in
-   * flow after <main> is below the fold on a page that cannot scroll — present,
-   * clipped, unreachable. On that one route they stay fixed to the viewport,
-   * centred, just up from the bottom edge.
+   * At phone widths it also trims the margins: the home page's lock makes <main>
+   * yield exactly the height the row needs, so the row sits at the bottom of that
+   * one screen with only the gap below it stated. See the stylesheet — being in
+   * flow there is what keeps the marks clear of a phone's browser chrome.
    */
   home?: boolean;
 }
@@ -465,17 +463,28 @@ const { home = false } = Astro.props;
       margin-block: var(--space-block);
     }
 
-    /* …except on the home page, which has no foot to sit in: it is locked to a
-       single screen, so a row in normal flow after <main> would be pushed past
-       the bottom edge and clipped. Fixed to the viewport instead, centred on the
-       page rather than tucked into a corner, one --edge up from the bottom. The
-       row itself is unchanged — same size, same spacing, same choreography. */
+    /* The home page stays in flow with the rest of them, and only trades its
+       margins. It looked at first like the one page that could not: it is locked
+       to a single screen (html.is-fullscreen in base.css), so a row after <main>
+       reads like something pushed past the bottom edge. It is not — that lock is
+       `height: 100svh` on a flex column whose <main> is `flex: 1; min-height: 0`,
+       so <main> yields the 35px and the row lands inside the locked screen like
+       any other child.
+
+       AND IN FLOW IS THE ONLY PLACE IT IS SAFE. Fixed to the viewport, with a
+       `bottom` offset, the marks were positioned against the layout viewport —
+       which on a phone extends underneath the browser's own bottom toolbar. On
+       every other route that never showed, because those pages scroll and the
+       marks sit at the end of the document; on the one page that cannot scroll,
+       they had nowhere to go but behind the chrome. 100svh is BY DEFINITION the
+       viewport with that chrome showing, so laying them out inside it is what
+       puts them on screen — the page's own lock doing the work, rather than a
+       second guess at where the bottom of the screen is.
+
+       No top margin: <main> is already absorbing the leftover height, so the
+       only gap that has to be stated is the one below. */
     .palette-corner--home {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: var(--edge);
-      margin-block: 0;
+      margin-block: 0 var(--edge);
     }
 
     /* THE ROW OPENS OUT FROM ITS CENTRE. A centred row of three that drops to
