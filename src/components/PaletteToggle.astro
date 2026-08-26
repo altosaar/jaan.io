@@ -375,20 +375,6 @@ const { home = false } = Astro.props;
       visibility 0s;
   }
 
-  /* Set for one frame by palette.client.ts, to move the HIDDEN off mark to the
-     slot it is about to rise from without animating the move. Zeroing the
-     durations rather than writing `transition: none` on the marks is what keeps
-     it out of a specificity fight with the two rules above: this rule sets
-     custom properties on the corner itself, and they are what those rules are
-     written in terms of. */
-  .palette-corner[data-moving] {
-    --dot-in-move: 0s;
-    --dot-in-fade: 0s;
-    --dot-out-move: 0s;
-    --dot-out-fade: 0s;
-    --dot-out-tail: 0s;
-  }
-
   /* Nothing grows on hover. The marks hold one size, and the only thing that
      answers a keyboard is the global :focus-visible ring in base.css, which
      draws around the 28px button rather than resizing the 12px square inside it.
@@ -418,23 +404,27 @@ const { home = false } = Astro.props;
      and would then be one more selector to keep in step. At 0s the marks simply
      appear where they belong — and the visibility delay, which is written in the
      same variable, collapses with them. */
-  /* Reduced motion. The travel goes and the FADE STAYS — what is being asked
-     for is relief from movement, and a crossfade is the substitute those
-     guidelines name, not another instance of the problem. The palette's own
-     colour crossfade (palettes.css) is kept for the same reason. Zeroing the
-     move durations at their source, rather than overriding `transition` on the
-     marks, keeps this out of a specificity fight with the rules above; the
-     visibility delay follows the fade, since that is now the last thing running.
+  /* REDUCED MOTION IS NOT ANSWERED HERE, and that is a decision rather than an
+     omission. It used to zero the travel, which on a phone with Reduce Motion
+     switched on — a common setting, far more common than on a desktop — left the
+     marks jumping between slots while the page crossfaded around them: the same
+     control behaving two different ways on two devices, which is what this is
+     meant not to do.
 
-     The marks themselves need no exception: with the hover growth gone, the only
-     thing they transition is a colour. */
-  @media (prefers-reduced-motion: reduce) {
-    .palette-corner {
-      --dot-in-move: 0s;
-      --dot-out-move: 0s;
-      --dot-out-tail: var(--dot-out-fade);
-    }
-  }
+     What that setting exists to spare people is large-area movement — parallax,
+     full-screen slides, spin. This is three 12px squares travelling fourteen
+     pixels (seventeen on a phone) over a quarter of a second, inside a 28px
+     corner. It is an order of magnitude below the threshold, and the fade that
+     accompanies it is the substitute those same guidelines recommend for motion
+     rather than an instance of it.
+
+     Everything else on the site still answers the preference: the smooth
+     scrolling in base.css, the portrait's blink, the carousel. This one control
+     is the exception, and putting it back is one block:
+       @media (prefers-reduced-motion: reduce) {
+         .palette-corner { --dot-in-move: 0s; --dot-out-move: 0s;
+                           --dot-out-tail: var(--dot-out-fade); }
+       } */
 
   /* THE HOME PAGE ASKS FIRST. Hidden there until the visitor has pressed one of
      these somewhere else, which is what data-palette-used on <html> records —

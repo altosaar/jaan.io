@@ -276,21 +276,34 @@ function wire(
    * interpolates from the style the browser last computed, so writing the new
    * slot and the new palette in one go would make the mark rise from its OLD
    * slot — a 42px sweep up the stack instead of a 14px step into place. Setting
-   * the slot with the durations zeroed (`data-moving`), reading a layout
-   * property to force the style through, and only then applying the palette
-   * makes the short move the one that animates.
+   * the slot with transitions switched off, forcing the style through, and only
+   * then applying the palette makes the short move the one that animates.
    *
    * Only while it is hidden. With a palette already on, the mark is visible and
    * changing families should be seen: it glides to its new slot while the light
    * square glides the other way, and the two cross.
+   *
+   * THE SUPPRESSION IS INLINE AND THE FLUSH IS PER ELEMENT. Both used to go
+   * through the stylesheet — an attribute on the corner that zeroed the duration
+   * custom properties, then one `offsetWidth` read on the corner to force the
+   * style through. That asks an engine to resolve a chain (attribute → custom
+   * property → the `transition` shorthand that references it → the durations of
+   * three descendants) inside a single task, and to have resolved it before the
+   * next mutation is seen, which is the kind of thing engines are entitled to
+   * disagree about. `transition-property: none` set straight on each element is
+   * the one form none of them can misread, and reading back the very property
+   * that will animate is the narrowest way to prove the new value has landed.
    */
   function aim(family: Family, hidden: boolean) {
-    if (hidden) corner.dataset.moving = "";
-    corner.dataset.family = family;
-    if (hidden) {
-      void corner.offsetWidth;
-      delete corner.dataset.moving;
+    if (!hidden) {
+      corner.dataset.family = family;
+      return;
     }
+    const marks = [clear, buttons.light, buttons.dark];
+    for (const mark of marks) mark.style.transitionProperty = "none";
+    corner.dataset.family = family;
+    for (const mark of marks) void getComputedStyle(mark).translate;
+    for (const mark of marks) mark.style.transitionProperty = "";
   }
 
   function apply(name: string) {
