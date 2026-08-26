@@ -10,6 +10,7 @@
     "check": "astro check && tsc -p functions/tsconfig.json",
     "audit": "node scripts/seo-audit.mjs dist",
     "a11y": "node scripts/contrast-check.mjs",
+    "palettes:light": "node scripts/gen-light-palettes.mjs",
     "test:newsletter": "node scripts/newsletter-check.mjs",
     "pages:dev": "wrangler pages dev",
     "fonts:check": "node scripts/fonts-check.mjs",

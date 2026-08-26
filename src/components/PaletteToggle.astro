@@ -1,0 +1,524 @@
+---
+// PALETTE TEST — three tiny marks stacked in the bottom-right corner that
+// recolour the site. The accent, the background, the three surface steps, both
+// text colours and the selection colour all move together; the palettes are in
+// src/styles/palettes.css.
+//
+//   ▫  off    clear, back to the site's own palette
+//   ▪  light  a light palette, drawn at random
+//   ▪  dark   a dark palette, drawn at random
+//
+// Off comes FIRST because it is the exit, and because it is the one that comes
+// and goes: it is displayed only while a palette is applied — an off switch for
+// something already off is a mark that does nothing. It is CSS that hides it
+// (`:root[data-palette]` below), not script, so it is never briefly visible on a
+// page that loads with no palette.
+//
+// It also ARRIVES rather than appearing. In the corner it rises half a slot into
+// place; in the footer row it comes out from behind the pair travelling left
+// while they travel right, and the three settle centred. Both on the site's own
+// critically damped spring, both reversed on the way out. The rules and the
+// reasoning are at the foot of this file.
+//
+// TWO PLACEMENTS, ONE COMPONENT. Above 1024px — the width at which the nav
+// stops collapsing into a hamburger, so the same line the rest of the chrome
+// changes on — the marks are a fixed vertical stack in the bottom-right corner,
+// on top of the page and reachable without scrolling. Below it they leave the
+// corner entirely and become a centred row at the FOOT of the page, in normal
+// flow after <main>: on a phone a floating control sits over the writing on a
+// screen that has no room to spare, and the reader has to hit a 35px target
+// they did not ask for. In the footer it is found by whoever goes looking, which
+// is the right audience for a colour toy, and everything about it — the hit
+// area, the marks, the spacing — is a quarter larger for a thumb.
+//
+// THE OFF MARK IS THE ONE COLOUR ON SCREEN, not a preview: an outline in
+// var(--accent), the accent it is about to take away, with nothing inside it.
+// The two filled marks below wear the accent of the palette THEY will apply —
+// see src/lib/palette.client.ts, which sets --palette-dot-light/-dark and holds
+// the rest of the reasoning.
+//
+// Rendered on every route, INCLUDING the home page — but on the home page only
+// for a visitor who has already pressed one of these somewhere else. That page
+// is one composed screen with a single idea on it, and three more things in the
+// corner are exactly what it is built not to have; someone arriving for the
+// first time meets it in the site's own colours. Someone who went and picked a
+// palette keeps it here, controls and all. The `home` prop below carries the
+// difference, and Base.astro is the only file that mounts this.
+//
+// THE WHOLE FEATURE IS THIS FILE, palettes.css, src/lib/palette*.ts, and the
+// marked lines in Base.astro. The stylesheet is imported HERE rather than in
+// Base or in tokens.css, so deleting this component takes the CSS with it.
+import "../styles/palettes.css";
+
+interface Props {
+  /**
+   * Rendered on the home page, where the marks are conditional.
+   *
+   * They are in the markup on every route, but on the home page they are hidden
+   * until `data-palette-used` says this visitor has pressed one of them
+   * somewhere else — see PALETTE_USED_KEY in src/lib/palette.ts for why that is a
+   * separate, sticky flag and not just "a palette is applied".
+   *
+   * It also changes where they sit at phone widths. Everywhere else the mobile
+   * marks are in normal flow at the foot of the page; the home page is locked to
+   * one screen (html.is-fullscreen in base.css, overflow hidden), so anything in
+   * flow after <main> is below the fold on a page that cannot scroll — present,
+   * clipped, unreachable. On that one route they stay fixed to the viewport,
+   * centred, just up from the bottom edge.
+   */
+  home?: boolean;
+}
+const { home = false } = Astro.props;
+---
+
+{
+  /* Buttons, not divs with handlers: these are controls, so they need to be tab
+    stops, respond to Enter and Space, and announce themselves. All three
+    accessible names are rewritten by palette.client.ts on every change, because
+    the name is where the current palette is stated for anyone who cannot see the
+    colour. The names here are the fallback for the moment before the script runs
+    — and for the case where it never does, in which case the whole corner is
+    removed rather than left inert.
+
+    DOM order is top-to-bottom on screen, so tab order and reading order are the
+    same thing. */
+}
+<div class:list={["palette-corner", home && "palette-corner--home"]} data-palette-corner>
+  <button
+    type="button"
+    class="palette-dot palette-dot--off"
+    data-palette-clear
+    aria-label="Clear the colour palette"></button>
+  <button
+    type="button"
+    class="palette-dot palette-dot--light"
+    data-palette-light
+    aria-label="Apply a light colour palette"></button>
+  <button
+    type="button"
+    class="palette-dot palette-dot--dark"
+    data-palette-dark
+    aria-label="Apply a dark colour palette"></button>
+</div>
+
+<script>
+  import "../lib/palette.client";
+</script>
+
+<style>
+  /* `position: fixed` puts the stack above the page rather than at the end of
+     it, so it is reachable without scrolling to the bottom of a long post.
+     z-index 200 clears the content and the header's own layers (chrome.css: 50,
+     300) but stays under the mobile menu (400) and the skip link (1000) — a
+     colour toy must never sit on top of the navigation or the first tab stop on
+     the page.
+
+     IT STANDS IN THE CHROME COLUMN, not at the edge of the window. Offset from
+     the right of the viewport, the marks sat on a different vertical line from
+     one page to the next: the home page cannot scroll and so has no scrollbar,
+     every page that can scroll has one, and a scrollbar narrows the box a fixed
+     element measures `right` against — sliding the marks inward by its full
+     width. The nav does not follow them, because it is not measured that way:
+     `width: var(--site-w); margin-inline: auto` (chrome.css) centres a 94vw
+     column in that box, so the same scrollbar moves its right edge by half as
+     much. Two elements, two different answers, a visible drift between them.
+
+     So: be the same column. Same width, same `margin-inline: auto`, marks
+     pushed to its end — the mechanism chrome.css chose over padding precisely to
+     avoid a 100vw/scrollbar mismatch, and the one Carousel.astro already uses to
+     land its arrows "on the same right edge as the nav's last button".
+     --chrome-w and NOT --site-w: identical at :root, but main.is-centered
+     narrows --site-w to the reading measure, and tokens.css keeps --chrome-w for
+     exactly this case — something that has to line up with the header. */
+  .palette-corner {
+    /* The geometry, in one place: a hit area, and the mark drawn inside it. The
+       mobile block at the foot of this file re-states these two and nothing
+       else — every rule between here and there is written in terms of them, so
+       one scale factor moves the lot, the alignment overhang included. */
+    --dot-hit: 1.75rem;
+    --dot-mark: 0.75rem;
+    /* How far the off mark travels, and — on mobile — how far the pair slides to
+       make room for it. HALF A SLOT is not a taste decision: three marks centred
+       and two marks centred differ by exactly half a slot, so this is the
+       distance the pair has to cover, and giving the off mark the same travel is
+       what makes the two halves of the move read as one gesture. */
+    --dot-shift: calc(var(--dot-hit) / 2);
+
+    /* THE SLOT EACH MARK STANDS IN, counted from its own natural place in the
+       stack. The off mark takes the slot immediately above (desktop) or to the
+       left of (mobile) whichever square is applied, so:
+
+         light applied   off 0  light 0     ▫ ▪light ▪dark   — nobody moves
+         dark applied    off 1  light −1    ▪light ▫ ▪dark   — light is pushed clear
+
+       Two numbers rather than a `flex-direction` reshuffle or a change of
+       `order`, because neither of those can be animated: a reordered flex line
+       jumps. These feed a `translate`, which is a compositor-friendly property
+       and the one thing here that CAN carry the push. */
+    --off-place: 0;
+    --light-place: 0;
+    /* Mobile only: with nothing applied the row is still three slots wide, so
+       the pair sits half a slot left of its slots to be centred on its own. */
+    --pair-rest: calc(var(--dot-shift) * -1);
+
+    /* The site's spring, the same linear() curve the mobile menu slides on
+       (--menu-spring in chrome.css) and the carousel panel rises on
+       (--panel-spring): a critically damped spring, stiffness 500, mass 1 —
+       springy off the mark, easing in, stopping dead on target with no overshoot
+       and no bounce. Copied rather than promoted to tokens.css because that file
+       says tuned curves stay next to the thing they animate.
+       No overshoot is the point at this size. A 14px mark that overran its place
+       and settled back would read as a wobble, not as juice; the spring's long
+       tail is where the smoothness lives.
+
+       THE FALLBACK IS NOT DECORATION. linear() arrived in Safari 17.4 (March
+       2024), and on an engine that does not know it the custom property still
+       parses — it is a custom property, anything parses — and then poisons every
+       `transition` shorthand that references it: invalid at computed-value time
+       takes the WHOLE shorthand to its initial value, which is a duration of 0s.
+       Not a plainer curve: no animation at all, on that device only. So the
+       default here is an ordinary bezier of the same shape and the spring is
+       swapped in only where @supports can prove the engine parses it. */
+    --dot-spring: cubic-bezier(0.22, 0.9, 0.24, 1);
+
+    /* Travel and fade are timed apart, so the mark is never a ghost drifting
+       through the middle of its own journey: it is fully painted well before it
+       lands. Arriving takes the longer curve, leaving gets out of the way.
+       --dot-out-tail is the longer of the two exit numbers and nothing else —
+       the delay on `visibility` below, which has to outlast the slide. */
+    --dot-in-move: 0.3s;
+    --dot-in-fade: 0.18s;
+    --dot-out-move: 0.24s;
+    --dot-out-fade: 0.16s;
+    --dot-out-tail: 0.24s;
+
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0.55rem;
+    width: var(--chrome-w);
+    margin-inline: auto;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  /* The column's edge is where the ARTICLES pill ends, and what has to meet it
+     is the 12px MARK — not the 28px of tap target around it, which would leave
+     the squares eight pixels short of the line, reading as almost aligned. So
+     the hit areas overhang the column by their own padding. Desktop only: 1025px
+     is where chrome.css puts the nav links on screen, and below it there is no
+     nav edge to answer to — the row is centred on the page instead. */
+  @media (min-width: 1025px) {
+    .palette-dot {
+      margin-right: calc((var(--dot-mark) - var(--dot-hit)) / 2);
+    }
+  }
+
+  /* Only where the engine can prove it parses linear() — see --dot-spring
+     above. Same physics as chrome.css's --menu-spring. */
+  @supports (transition-timing-function: linear(0 0%, 1 100%)) {
+    .palette-corner {
+      --dot-spring: linear(
+        0 0%,
+        0.095 6%,
+        0.276 11%,
+        0.458 17%,
+        0.611 22%,
+        0.728 28%,
+        0.814 33%,
+        0.875 39%,
+        0.917 44%,
+        0.946 50%,
+        0.964 56%,
+        0.977 61%,
+        0.985 67%,
+        0.991 72%,
+        0.994 78%,
+        0.996 83%,
+        0.998 89%,
+        1 100%
+      );
+    }
+  }
+
+  /* Which slot the off mark is heading for. The applied rules come second and
+     out-specify the memory: while a palette is on, the arrangement is read
+     straight off <html> — no script involved, so a page that loads with a
+     palette already restored paints it in the right place on the first frame.
+     [data-family] on the corner is only the MEMORY of the last family used, and
+     it only decides where the hidden mark waits, which is why a stale value can
+     never show up as a wrong layout. */
+  :root[data-palette]:not([data-palette$="-light"]) .palette-corner {
+    --off-place: 1;
+    --light-place: -1;
+  }
+  .palette-corner[data-family="dark"] {
+    --off-place: 1;
+  }
+  :root[data-palette] .palette-corner {
+    --pair-rest: 0px;
+  }
+
+  /* 28px of button around a 12px mark: the mark is the design, the padding is
+     the hit target. WCAG 2.5.8 asks for 24px, and a 12px tap target on a phone
+     is a coin toss regardless of what the spec says. The hit areas sit flush
+     against one another, which is what puts 16px of air between the marks. */
+  .palette-dot {
+    width: var(--dot-hit);
+    height: var(--dot-hit);
+    padding: 0;
+    border: 0;
+    background: none;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+
+  /* The mark itself, drawn as a pseudo-element rather than as the button's own
+     background so that a fill and an empty outline can be the same 12px square —
+     a border on the button would outline the 28px hit area instead. All three
+     are that one size and hold it: nothing here grows, on hover or otherwise.
+
+     Three bare squares, no hairline around them. A filled mark shows the accent
+     of a palette that is NOT on screen, so a dark palette's bright accent can
+     land on a light page — 1.72:1 at worst, the number `npm run a11y` prints —
+     and the fill is now the whole of the mark, so that is the contrast the
+     control has in that one combination. Everywhere else it is 7:1 or better.
+     Whoever restores the boundary: it was `outline: 1px solid var(--text-muted)`
+     here, and --text-muted is gated at 4.5:1 on every surface of every palette. */
+  .palette-dot::before {
+    content: "";
+    width: var(--dot-mark);
+    height: var(--dot-mark);
+  }
+
+  /* --palette-dot-light / --palette-dot-dark are set on .palette-corner by
+     palette.client.ts. The fallback is the accent in force, so a corner whose
+     script has not run yet (or never runs) still shows marks of the right kind
+     in a colour that belongs to the page. */
+  .palette-dot--light::before {
+    background: var(--palette-dot-light, var(--accent));
+  }
+  .palette-dot--dark::before {
+    background: var(--palette-dot-dark, var(--accent));
+  }
+
+  /* Off: the same square with its middle taken out, in the accent it is about to
+     clear — the one mark whose colour is guaranteed to clear 3:1 on the page it
+     sits on, because it IS the page's accent. Box-sizing is border-box site-wide
+     (base.css), so the 2px edge is drawn inside the same 12px as the other two
+     and all three squares measure the same. */
+  .palette-dot--off::before {
+    border: 2px solid var(--accent);
+  }
+
+  /* ── The off mark comes and goes ─────────────────────────────────────────
+     Keyed on <html>, the same attribute every palette in palettes.css is keyed
+     on, so there is one source of truth for "a palette is on" and no class for a
+     script to forget to remove.
+
+     `visibility`, not `display`. Both take the button out of the tab order — an
+     invisible control must never be a tab stop that appears to go nowhere — but
+     display cannot be transitioned, and the pair below has to be able to slide
+     over while this one arrives. Its slot in the layout is therefore always
+     there; what changes is whether anything is painted in it. On the desktop
+     stack that costs nothing, because the corner hangs from a fixed bottom edge
+     and an empty slot at the top of it moves neither of the marks below.
+
+     The visibility switch itself is instantaneous either way — it is the DELAY
+     that matters. Going out, it waits the full --dot-out so the mark stays
+     painted through its own slide; the same trick, for the same reason, as
+     .card__panel in Carousel.astro. Shorter and it would blink out mid-move;
+     longer and it would stay focusable after it had gone. */
+  .palette-dot--off {
+    visibility: hidden;
+    opacity: 0;
+    /* Waiting half a slot BELOW the slot it is heading for, so it always rises
+       the same short distance into place — whether that place is the top of the
+       stack or the gap it has to open between the two squares. The mobile block
+       at the foot of this file sends it sideways instead. */
+    translate: 0 calc(var(--off-place) * var(--dot-hit) + var(--dot-shift));
+  }
+  :root[data-palette] .palette-dot--off {
+    visibility: visible;
+    opacity: 1;
+    translate: 0 calc(var(--off-place) * var(--dot-hit));
+  }
+
+  /* Pushed clear when the off mark lands between the two squares. Same curve,
+     same milliseconds, so the arrival and the shove are one movement. */
+  .palette-dot--light {
+    translate: 0 calc(var(--light-place) * var(--dot-hit));
+  }
+
+  /* The choreography, and the reason all three marks share one declaration:
+     they move as one object. On mobile the pair slides right by exactly the
+     distance the off mark slides left, on the same curve over the same
+     milliseconds, so what you see is a group of three opening out from the
+     centre rather than three elements each doing something.
+
+     Gated on [data-ready] like the colour transitions above: on first paint the
+     off state — or the on state, if a palette came back from storage — is simply
+     how the page renders, with nothing to animate from. */
+  .palette-corner[data-ready] .palette-dot {
+    transition:
+      translate var(--dot-out-move) var(--dot-spring),
+      opacity var(--dot-out-fade) linear,
+      visibility 0s linear var(--dot-out-tail);
+  }
+  :root[data-palette] .palette-corner[data-ready] .palette-dot {
+    transition:
+      translate var(--dot-in-move) var(--dot-spring),
+      opacity var(--dot-in-fade) ease-out,
+      visibility 0s;
+  }
+
+  /* Set for one frame by palette.client.ts, to move the HIDDEN off mark to the
+     slot it is about to rise from without animating the move. Zeroing the
+     durations rather than writing `transition: none` on the marks is what keeps
+     it out of a specificity fight with the two rules above: this rule sets
+     custom properties on the corner itself, and they are what those rules are
+     written in terms of. */
+  .palette-corner[data-moving] {
+    --dot-in-move: 0s;
+    --dot-in-fade: 0s;
+    --dot-out-move: 0s;
+    --dot-out-fade: 0s;
+    --dot-out-tail: 0s;
+  }
+
+  /* Nothing grows on hover. The marks hold one size, and the only thing that
+     answers a keyboard is the global :focus-visible ring in base.css, which
+     draws around the 28px button rather than resizing the 12px square inside it.
+     (A hover-size change was also a sticky-hover trap on touch, where :hover
+     latches after a tap and does not let go until something else is tapped.) */
+
+  /* Only once the script has set the real accents (see palette.client.ts): the
+     first assignment is a correction from the fallback above, and a mark fading
+     from one colour to another on every page load reads as a bug. After that,
+     changes ride the site-wide colour transition, so the corner recolours at the
+     same rate as everything it just recoloured.
+
+     The size change is not gated the same way — it can only ever come from a
+     hover or a focus, which cannot happen before the script runs. */
+  /* Only the fill, and only for the one change it has: a mark that is not the
+     applied one repaints when its family draws a new offer, and that is a jump
+     from one hex to another with nothing interpolating it. The off mark's border
+     needs no entry here — it is var(--accent), and palettes.css crossfades the
+     token itself, so a second transition on top would only lag behind it. */
+  .palette-corner[data-ready] .palette-dot::before {
+    transition: background-color var(--dur-fast) var(--ease-out);
+  }
+
+  /* Reduced motion. The durations are zeroed at their source rather than by a
+     `transition: none` override, because the rules above are specific enough
+     (`:root[data-palette] …`) that an override would have to out-specify them
+     and would then be one more selector to keep in step. At 0s the marks simply
+     appear where they belong — and the visibility delay, which is written in the
+     same variable, collapses with them. */
+  /* Reduced motion. The travel goes and the FADE STAYS — what is being asked
+     for is relief from movement, and a crossfade is the substitute those
+     guidelines name, not another instance of the problem. The palette's own
+     colour crossfade (palettes.css) is kept for the same reason. Zeroing the
+     move durations at their source, rather than overriding `transition` on the
+     marks, keeps this out of a specificity fight with the rules above; the
+     visibility delay follows the fade, since that is now the last thing running.
+
+     The marks themselves need no exception: with the hover growth gone, the only
+     thing they transition is a colour. */
+  @media (prefers-reduced-motion: reduce) {
+    .palette-corner {
+      --dot-in-move: 0s;
+      --dot-out-move: 0s;
+      --dot-out-tail: var(--dot-out-fade);
+    }
+  }
+
+  /* THE HOME PAGE ASKS FIRST. Hidden there until the visitor has pressed one of
+     these somewhere else, which is what data-palette-used on <html> records —
+     set before first paint by the inline script in Base.astro, so the marks are
+     never briefly present on a page that should open as one clean screen.
+     `display: none` rather than opacity or visibility: this is not a hidden
+     control, it is a control that is not offered, and it should be out of the
+     accessibility tree and the tab order entirely. */
+  :root:not([data-palette-used]) .palette-corner--home {
+    display: none;
+  }
+
+  /* ── Phones and tablets: out of the corner, into the footer ──────────────
+     1024px is the site's own line between the two chromes (chrome.css: the nav
+     links vanish and the hamburger takes over at exactly this width), so the
+     marks change place when everything else does rather than at a number of
+     their own.
+
+     `position: static` is the whole move — the row goes back into normal flow
+     after <main>, which is the end of the document, and `main { flex: 1 }` in
+     base.css means a page too short to scroll still pushes it to the bottom of
+     the screen instead of leaving it under the last paragraph. The bottom margin
+     is what keeps it off the edge of the viewport, where a thumb resting on the
+     phone would find it by accident. */
+  @media (max-width: 1024px) {
+    .palette-corner {
+      /* A quarter larger, both numbers: 28 → 35px of hit area, 12 → 15px of
+         mark. Because the hit areas sit flush, scaling the hit area is also what
+         spaces the marks a quarter further apart — 28 → 35px centre to centre —
+         so there is no separate gap to keep in step with the size. */
+      --dot-hit: 2.1875rem;
+      --dot-mark: 0.9375rem;
+
+      position: static;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      margin-block: var(--space-block);
+    }
+
+    /* …except on the home page, which has no foot to sit in: it is locked to a
+       single screen, so a row in normal flow after <main> would be pushed past
+       the bottom edge and clipped. Fixed to the viewport instead, centred on the
+       page rather than tucked into a corner, one --edge up from the bottom. The
+       row itself is unchanged — same size, same spacing, same choreography. */
+    .palette-corner--home {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: var(--edge);
+      margin-block: 0;
+    }
+
+    /* THE ROW OPENS OUT FROM ITS CENTRE. A centred row of three that drops to
+       two would re-centre and jump sideways every time a palette went on or
+       off. Instead the layout is always three slots wide and the marks are
+       offset inside it: with no palette applied the pair sits half a slot to the
+       left, which puts the two of them dead centre and leaves the off mark's
+       slot empty on the right of them; applying one sends the pair right to
+       their true slots and the off mark left into its own, and the three are
+       centred again.
+
+       So the off mark arrives travelling LEFT, out from behind the pair, while
+       the pair travels right — one symmetrical spread rather than an insertion
+       that shoves the others along. Clearing plays it backwards. */
+    .palette-dot--off {
+      translate: calc(var(--off-place) * var(--dot-hit) + var(--dot-shift)) 0;
+    }
+    :root[data-palette] .palette-dot--off {
+      translate: calc(var(--off-place) * var(--dot-hit)) 0;
+    }
+    .palette-dot--light {
+      translate: calc(var(--light-place) * var(--dot-hit) + var(--pair-rest)) 0;
+    }
+    .palette-dot--dark {
+      translate: var(--pair-rest) 0;
+    }
+  }
+
+  /* Controls that cannot be clicked on paper, printing over whatever is in the
+     bottom-right corner of the last page. */
+  @media print {
+    .palette-corner {
+      display: none;
+    }
+  }
+</style>

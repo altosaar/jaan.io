@@ -6,9 +6,11 @@ import "../styles/chrome.css";
 import SiteHeader from "../components/SiteHeader.astro";
 import MobileMenu from "../components/MobileMenu.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import PaletteToggle from "../components/PaletteToggle.astro"; // PALETTE TEST
 import { getImage } from "astro:assets";
 import { featured, OG_SIZE, OG_QUALITY, type ShareImage } from "../lib/og";
 import { FAVICON_PICKER } from "../lib/favicon";
+import { PALETTE_RESTORE } from "../lib/palette"; // PALETTE TEST
 import { SITE } from "../site.config";
 
 interface Props {
@@ -155,6 +157,19 @@ const shareImageUrl = new URL(shareImage.src, Astro.site).href;
 const cleanPath = Astro.url.pathname.replace(/index\.html$/, "").replace(/\.html$/, "");
 const canonicalURL = new URL(cleanPath, Astro.site);
 
+// PALETTE TEST — the corner marks that recolour the site
+// (src/components/PaletteToggle.astro). On every route now, the home page
+// included; what the home page does with them is the component's business, not
+// this file's — they are hidden there until the visitor has used them elsewhere
+// (PALETTE_USED_KEY in src/lib/palette.ts).
+//
+// Keyed off the path already computed above rather than a prop, because a prop
+// would mean a second edit in index.astro and a third to take the whole test
+// back out. "/" is what cleanPath gives the home page under build.format
+// "file" — the same normalisation canonical and og:url are built from, so this
+// cannot drift from what the home page's own URL is.
+const paletteHome = cleanPath === "/";
+
 // Sitewide organization identity for search/AI engines. Emitted once per page as
 // JSON-LD; the homepage URL + logo are absolute so they resolve off any host.
 // Every value is from SITE.schema (src/site.config.ts). `areaServed` is dropped
@@ -203,6 +218,15 @@ const orgSchema = {
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <script is:inline set:html={FAVICON_PICKER} />
+    {
+      /* PALETTE TEST — reapply the visitor's chosen palette before the page
+        paints, and say whether they have used the control before. In <head> and
+        inline for the same reason as the favicon picker above: a deferred script
+        would paint the site's own colours first and correct them a beat later.
+        On every route, home included — the home page honours a palette that was
+        chosen elsewhere. src/lib/palette.ts carries the rest. */
+    }
+    <script is:inline set:html={PALETTE_RESTORE} />
     <noscript><link rel="icon" href="/favicon.svg" type="image/svg+xml" /></noscript>
     <meta property="og:type" content={ogType} />
     {
@@ -251,6 +275,8 @@ const orgSchema = {
       <slot />
     </main>
     {footer && <SiteFooter />}
+    {/* PALETTE TEST — the corner marks; last in the body, above nothing. */}
+    <PaletteToggle home={paletteHome} />
 
     <script>
       // The other half of `scroll-behavior: smooth` in src/styles/base.css.

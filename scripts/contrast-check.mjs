@@ -22,7 +22,7 @@
  * only knows about the pairings listed here.
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 // ---------------------------------------------------------------- config ---
 // Every foreground/background pairing the stylesheets actually produce.
@@ -99,13 +99,13 @@ for (const m of rootBlock[1].matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) tokens.set(
 
 // Follow `--a: var(--b)` chains to the literal colour. Depth-capped so a
 // self-referential token reports instead of hanging.
-function resolve(name, seen = new Set()) {
+function resolve(name, map = tokens, seen = new Set()) {
   if (seen.has(name)) return null;
   seen.add(name);
-  const raw = tokens.get(name);
+  const raw = map.get(name);
   if (!raw) return null;
   const alias = raw.match(/^var\(\s*(--[\w-]+)/);
-  return alias ? resolve(alias[1], seen) : raw;
+  return alias ? resolve(alias[1], map, seen) : raw;
 }
 
 // sRGB parsing: #rgb, #rrggbb, and rgb()/rgba() with integer channels. Anything
@@ -180,6 +180,80 @@ for (const { token, note } of BACKGROUND_ONLY) {
     });
 }
 
+// ------------------------------------------------- PALETTE TEST (optional) ---
+// src/styles/palettes.css defines alternate palettes as `[data-palette="…"]`
+// blocks, each redefining the colour tokens wholesale (see that file's header
+// and src/components/PaletteToggle.astro). A visitor can put any of them on the
+// page, so every one of them has to clear the SAME pairings as the default —
+// the ratios in their comments come from the tool that generated them and are
+// not this gate's word for anything.
+//
+// Guarded on the file existing, and read only when the tokens file being
+// checked is the site's own: delete palettes.css and this section goes quiet,
+// which is what makes the test revertible in one step.
+const PALETTES_FILE = "src/styles/palettes.css";
+const paletteRows = [];
+if (file === "src/styles/tokens.css" && existsSync(PALETTES_FILE)) {
+  const palettesCss = readFileSync(PALETTES_FILE, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const block of palettesCss.matchAll(/\[data-palette="([^"]+)"\]\s*\{([\s\S]*?)\}/g)) {
+    const [, name, body] = block;
+    // Layered over the defaults, not replacing them: a palette that redefines
+    // eight tokens still inherits --btn-light (`var(--text)`, and so its own
+    // text colour) and everything else from :root, exactly as the cascade does.
+    const map = new Map(tokens);
+    for (const m of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) map.set(m[1], m[2].trim());
+
+    let worst = null;
+    for (const { fg, bg, min, what } of PAIRS) {
+      const fgRgb = toRgb(resolve(fg, map) ?? "");
+      const bgRgb = toRgb(resolve(bg, map) ?? "");
+      if (!fgRgb || !bgRgb) {
+        failures.push(`palette ${name}: cannot measure ${fg} on ${bg}`);
+        continue;
+      }
+      const r = ratio(fgRgb, bgRgb);
+      if (r < min)
+        failures.push(
+          `palette ${name}: ${fg} on ${bg} is ${r.toFixed(2)}:1 — needs ${min}:1 (${what})`,
+        );
+      // The tightest pair in the palette, as a multiple of its own threshold, so
+      // one number says how much headroom the whole palette has.
+      if (!worst || r / min < worst.r / worst.min) worst = { r, min, label: `${fg} on ${bg}` };
+    }
+    paletteRows.push({ name, worst, accent: resolve("--accent", map), bg: resolve("--bg", map) });
+  }
+}
+
+// The corner marks are the one place a colour from one palette is drawn on top
+// of another: each wears the accent of a palette that is NOT on screen, so a
+// dark palette's bright accent can land on a light page and the reverse. This
+// sweep is every accent over every background, and the worst of them is the
+// number the component's hairline exists for.
+//
+// INFORMATION, NOT A GATE, and worth knowing rather than acting on. The marks
+// carry no border, so in the worst combination the number below IS the contrast
+// of that 12px square against the page — under the 3:1 that WCAG 1.4.11 asks of
+// a control. It applies to one mark, in one direction (a bright dark-palette
+// accent previewed on a light page), while the other two marks and every other
+// pairing sit at 7:1 or better; the control it belongs to is a colour toy whose
+// whole state is also announced in its accessible name. Gating on it would mean
+// throwing away every bright accent in the dark corpus, or putting the hairline
+// back — `outline: 1px solid var(--text-muted)` in PaletteToggle.astro, which is
+// where this measurement stops mattering.
+const swatch = { r: Infinity, fg: null, bg: null };
+if (paletteRows.length) {
+  const defaults = { name: "(site palette)", accent: resolve("--accent"), bg: resolve("--bg") };
+  for (const fg of [defaults, ...paletteRows]) {
+    for (const bg of [defaults, ...paletteRows]) {
+      const a = toRgb(fg.accent ?? "");
+      const b = toRgb(bg.bg ?? "");
+      if (!a || !b) continue;
+      const r = ratio(a, b);
+      if (r < swatch.r) Object.assign(swatch, { r, fg: fg.name, bg: bg.name });
+    }
+  }
+}
+
 const width = Math.max(...rows.map((row) => row.label.length));
 for (const row of rows) {
   const mark = row.ok === null ? "·" : row.ok ? "✔" : "✖";
@@ -192,6 +266,25 @@ for (const row of rows) {
 console.log(
   `\n${rows.filter((r) => r.ok !== null).length} pairs checked · ${failures.length} failing`,
 );
+
+if (paletteRows.length) {
+  const pw = Math.max(...paletteRows.map((p) => p.name.length));
+  console.log(`\n${PALETTES_FILE} — the same ${PAIRS.length} pairs, per palette (tightest shown):`);
+  for (const { name, worst } of paletteRows) {
+    const bad = worst && worst.r < worst.min;
+    console.log(
+      `${bad ? "✖" : "✔"} ${name.padEnd(pw)}  ${worst.r.toFixed(2).padStart(6)}:1 ${`(≥${worst.min})`.padStart(7)}  ${worst.label}`,
+    );
+  }
+  if (swatch.fg) {
+    console.log(
+      `\n· corner marks, every accent over every background · worst ` +
+        `${swatch.r.toFixed(2)}:1 — ${swatch.fg} accent on ${swatch.bg} background ` +
+        `(the marks carry no border: this is the mark itself against the page)`,
+    );
+  }
+  console.log(`\n${paletteRows.length} palettes checked`);
+}
 if (failures.length) {
   console.error("\nFix the token values in " + file + ", or the pairing in the stylesheet:");
   for (const f of failures) console.error(`  ✖ ${f}`);
