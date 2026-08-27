@@ -66,6 +66,33 @@ import MicroliteIcon from "../assets/projects/microlite.svg";
 //     it inherits to every path, and the mark follows the theme and lights with
 //     the row like the others.
 import NotOnSpotifyIcon from "../assets/projects/notonspotify.svg";
+// The Trash Club raccoon — and the ONE MARK ON THIS PAGE THAT IS NOT AN SVG.
+//
+// plgcleanup.org's own mascot (its src/assets/raccoon-maple.webp), which arrives
+// as a full-colour cartoon: a rust-brown raccoon with a white belly and black
+// outlines. Two things had to happen to it before it could sit in this column.
+//
+// IT WAS CONVERTED TO INK ON TRANSPARENCY, with ImageMagick: composited onto
+// white, desaturated, and NEGATED, so the result's alpha is the original's
+// DARKNESS — black outlines and pupils come through solid, the brown body at
+// about half, the white belly at nothing. IndexMark then paints that alpha in
+// the page's own colour like any other mark, so the raccoon follows the theme
+// and takes the accent when the row lights.
+//
+// Negating rather than masking the silhouette is the whole point: a mask over
+// the file's OWN alpha would have been the outline of a raccoon filled solid —
+// no face, no stripes, no tail, a blob. Taking the drawing's darkness as the
+// alpha keeps every line in it.
+//
+// AND IT WAS TRIMMED to its ink (296 x 242 -> 253 x 221) for the reason written
+// out on `thumb` in src/content.config.ts: transparent margin left in the file
+// is margin inside the fixed box, and the mark reads small beside one that has
+// none.
+//
+// Imported as an IMAGE, not as a component like the two above — it is raster,
+// so it goes through Astro's pipeline and reaches IndexMark as a `mask` URL.
+// Same route the /articles thumbs take; see the note there.
+import RaccoonMark from "../assets/projects/trash-club-raccoon.png";
 
 export interface Project {
   /**
@@ -102,6 +129,18 @@ export interface Project {
    * mapping stays in src/data/visualizations.ts, where it already lives.
    */
   vizMark?: string;
+  /**
+   * A raster mark, painted as a shape rather than placed as a picture — the
+   * third and last way an entry can carry an icon, and an alternative to the
+   * two above rather than an addition to either.
+   *
+   * For a mark that arrives as a drawing instead of as a logo. It must already
+   * be INK ON TRANSPARENCY and trimmed to that ink: IndexMark uses the file's
+   * alpha as a mask over the page's colour, so whatever is opaque in it is what
+   * gets drawn. See the note on the import at the top of this file for how
+   * one gets made.
+   */
+  maskMark?: ImageMetadata;
 }
 
 export const PROJECTS: Project[] = [
@@ -128,5 +167,12 @@ export const PROJECTS: Project[] = [
     description:
       "In service of excellent music not on Spotify. Please send me any more you've found :)",
     icon: NotOnSpotifyIcon,
+  },
+  {
+    href: "https://plgcleanup.org",
+    title: "Trash Club",
+    description:
+      "Claude and I made this website for the neighborhood cleanup group I volunteer at; they are fantastic.",
+    maskMark: RaccoonMark,
   },
 ];

@@ -12,6 +12,7 @@
 // spaced the way they are.
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { getImage } from "astro:assets";
 import Base from "../layouts/Base.astro";
 import Section from "../components/Section.astro";
 import NewsletterSignup from "../components/NewsletterSignup.astro";
@@ -45,30 +46,46 @@ const MARK_SIZE = "clamp(3.25rem, 7vw, 5rem)";
 // An entry pointing off this site gets the external treatment: a new tab and
 // the arrow beside the headline. Worked out from the href rather than declared,
 // so adding an external entry is one line in the data file and nothing here.
-const projects = PROJECTS.map((project) => {
-  const external = /^https?:\/\//.test(project.href);
+const projects = await Promise.all(
+  PROJECTS.map(async (project) => {
+    const external = /^https?:\/\//.test(project.href);
 
-  // A named mark that cannot be found is worth saying out loud rather than
-  // rendering the row silently without it: it means either the slug no longer
-  // matches src/data/visualizations.ts, or the charts have not been built in
-  // this checkout. Neither should ship unnoticed, and neither is worth blocking
-  // someone reading the page over. (An earlier version of the /visualizations
-  // index treated a missing mark as nothing at all, and shipped a production
-  // build with all seven quietly absent.)
-  let mark: string | null = null;
-  if (project.vizMark) {
-    const viz = VISUALIZATIONS.find((v) => v.slug === project.vizMark);
-    const file = viz && join(thumbDir, `${viz.thumb}.svg`);
-    if (file && existsSync(file)) mark = readFileSync(file, "utf8");
-    else console.warn(`[projects] no mark for vizMark "${project.vizMark}" — run \`npm run viz\``);
-  }
+    // A named mark that cannot be found is worth saying out loud rather than
+    // rendering the row silently without it: it means either the slug no longer
+    // matches src/data/visualizations.ts, or the charts have not been built in
+    // this checkout. Neither should ship unnoticed, and neither is worth blocking
+    // someone reading the page over. (An earlier version of the /visualizations
+    // index treated a missing mark as nothing at all, and shipped a production
+    // build with all seven quietly absent.)
+    let mark: string | null = null;
+    if (project.vizMark) {
+      const viz = VISUALIZATIONS.find((v) => v.slug === project.vizMark);
+      const file = viz && join(thumbDir, `${viz.thumb}.svg`);
+      if (file && existsSync(file)) mark = readFileSync(file, "utf8");
+      else
+        console.warn(`[projects] no mark for vizMark "${project.vizMark}" — run \`npm run viz\``);
+    }
 
-  return {
-    ...project,
-    external,
-    mark,
-  };
-});
+    // The raster mark, as a URL rather than as an <img>: IndexMark paints it as
+    // a mask over the page's own colour, which is what lets it take the accent
+    // on hover like every other mark here. getImage() rather than the raw
+    // `.src`, so it still goes through Astro's pipeline and lands in _astro/
+    // hashed. No width asked for, for the same reason /articles asks for none —
+    // the file is trimmed to its ink and already finer than this box can show.
+    const maskSrc = project.maskMark ? (await getImage({ src: project.maskMark })).src : null;
+
+    return {
+      ...project,
+      external,
+      mark,
+      maskSrc,
+      // The drawing's own proportions, which is what makes the mark a hover
+      // target the size of the raccoon rather than the size of its box. See
+      // `inkRatio` in IndexMark.
+      inkRatio: project.maskMark ? project.maskMark.width / project.maskMark.height : 1,
+    };
+  }),
+);
 ---
 
 <Base
@@ -82,19 +99,20 @@ const projects = PROJECTS.map((project) => {
   <Section bottom="gap">
     <ul class="projects" role="list">
       {
-        projects.map(({ href, title, description, external, mark, icon: Icon }) => (
-          <li class="project">
-            {/* ONE LINK PER ENTRY, wrapping the mark, the headline and the
+        projects.map(
+          ({ href, title, description, external, mark, maskSrc, inkRatio, icon: Icon }) => (
+            <li class="project">
+              {/* ONE LINK PER ENTRY, wrapping the mark, the headline and the
                 description — so the description is clickable rather than dead
                 text beside a link. Which part LIGHTS is decided by which part
                 the pointer is actually over; see the stylesheet. */}
-            <a
-              href={href}
-              class="project__link"
-              target={external ? "_blank" : undefined}
-              rel={external ? "noopener noreferrer" : undefined}
-            >
-              {/* Two sources, ONE BOX — which is the point of IndexMark. A
+              <a
+                href={href}
+                class="project__link"
+                target={external ? "_blank" : undefined}
+                rel={external ? "noopener noreferrer" : undefined}
+              >
+                {/* Two sources, ONE BOX — which is the point of IndexMark. A
                   borrowed chart mark is read off disk and inlined; a project's
                   own icon is imported and rendered as a component. They are
                   different shapes (the charts are 8:5, the logos square) and
@@ -102,50 +120,58 @@ const projects = PROJECTS.map((project) => {
                   the headline beside each one to a different place. Both are now
                   contained inside the same square, so the column of headlines is
                   straight whatever a future entry turns out to look like. */}
-              {mark ? (
-                /* aria-hidden is set on the SVG itself by the loader: the mark
+                {mark ? (
+                  /* aria-hidden is set on the SVG itself by the loader: the mark
                    is a drawing of the charts whose name is sitting right beside
                    it, so announcing it would say everything twice. */
-                <IndexMark size={MARK_SIZE} set:html={mark} />
-              ) : Icon ? (
-                <IndexMark size={MARK_SIZE}>
-                  <Icon aria-hidden="true" focusable="false" />
-                </IndexMark>
-              ) : null}
-              <div class="project__body">
-                <h2 class="project__title">
-                  {title}
-                  {external && (
-                    <>
-                      {/* The arrow is decorative — it repeats, as a picture,
+                  <IndexMark size={MARK_SIZE} set:html={mark} />
+                ) : Icon ? (
+                  <IndexMark size={MARK_SIZE}>
+                    <Icon aria-hidden="true" focusable="false" />
+                  </IndexMark>
+                ) : maskSrc ? (
+                  /* Painted as a shape, not placed as a picture — the same route
+                   the /articles thumbs take, and for the same two reasons: it
+                   takes the page's colour and lights with the row, and a mask
+                   has no alt text to get wrong. The headline is right beside
+                   it. */
+                  <IndexMark size={MARK_SIZE} mask={maskSrc} inkRatio={inkRatio} />
+                ) : null}
+                <div class="project__body">
+                  <h2 class="project__title">
+                    {title}
+                    {external && (
+                      <>
+                        {/* The arrow is decorative — it repeats, as a picture,
                           what the sr-only text says in words. A screen reader
                           gets the sentence; everyone else gets the glyph. */}
-                      <svg
-                        class="project__out"
-                        viewBox="0 0 12 12"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        {/* No stroke-linecap or stroke-linejoin: SVG's defaults
+                        <svg
+                          class="project__out"
+                          viewBox="0 0 12 12"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          {/* No stroke-linecap or stroke-linejoin: SVG's defaults
                             are `butt` and `miter`, which is a flat end and a
                             sharp corner. Naming either as "round" is what puts
                             a radius on this, and there is none here. */}
-                        <path
-                          d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.4"
-                        />
-                      </svg>
-                      <span class="sr-only"> (opens in a new tab)</span>
-                    </>
-                  )}
-                </h2>
-                <p class="project__desc">{description}</p>
-              </div>
-            </a>
-          </li>
-        ))
+                          <path
+                            d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.4"
+                          />
+                        </svg>
+                        <span class="sr-only"> (opens in a new tab)</span>
+                      </>
+                    )}
+                  </h2>
+                  <p class="project__desc">{description}</p>
+                </div>
+              </a>
+            </li>
+          ),
+        )
       }
     </ul>
   </Section>
