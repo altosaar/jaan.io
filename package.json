@@ -4,13 +4,14 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "node scripts/build-visualizations.mjs --if-missing && node scripts/gen-og-cards.mjs --if-missing && astro dev",
-    "build": "node scripts/build-visualizations.mjs && node scripts/gen-og-cards.mjs && astro build && node scripts/check-pages-limits.mjs",
+    "build": "node scripts/build-visualizations.mjs && node scripts/gen-og-cards.mjs && astro build && node scripts/check-pages-limits.mjs && node scripts/check-math-css.mjs",
     "photos": "node scripts/prep-photos.mjs",
     "marks": "node scripts/prep-paper-marks.mjs",
     "preview": "astro preview",
     "check": "astro check && tsc -p functions/tsconfig.json",
     "audit": "node scripts/seo-audit.mjs dist",
     "limits": "node scripts/check-pages-limits.mjs",
+    "math:check": "node scripts/check-math-css.mjs",
     "a11y": "node scripts/contrast-check.mjs",
     "palettes:light": "node scripts/gen-light-palettes.mjs",
     "test:newsletter": "node scripts/newsletter-check.mjs",
@@ -31,13 +32,14 @@
   "dependencies": {
     "astro": "^7.2.2",
     "embla-carousel": "^8.6.0",
-    "katex": "^0.18.4",
+    "katex": "0.16.47",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
     "sharp": "^0.35.3"
   },
   "overrides": {
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.1",
+    "katex": "0.16.47"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
