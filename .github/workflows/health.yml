@@ -48,7 +48,14 @@ concurrency:
 env:
   # Slash-less on purpose: public/_redirects ends with a `/*/ → /:splat` 301, so
   # a trailing slash here would measure the redirect instead of the endpoint.
-  HEALTH_URL: https://jaan-io.pages.dev/api/health
+  #
+  # jaan.io, not jaan-io.pages.dev: since the cutover this is the hostname
+  # visitors reach the form on, so it is the one worth knowing is up. It also
+  # covers strictly more — the custom domain, its certificate and the DNS record
+  # in front of Pages are all in the path here and none of them are on the
+  # pages.dev URL, so a broken domain now shows up as a red check rather than as
+  # signups quietly stopping.
+  HEALTH_URL: https://jaan.io/api/health
   TITLE: "Newsletter health check is failing"
 
 jobs:

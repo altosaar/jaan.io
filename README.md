@@ -1,13 +1,22 @@
 # jaan.io
 
-The Astro rebuild of [jaan.io](https://jaan.io), which has run on a 2013-era
-Jekyll site (`../jaan.io-old`) served from a plain S3 bucket ever since.
+[jaan.io](https://jaan.io), rebuilt in Astro. It ran on a 2013-era Jekyll site
+(`../jaan.io-old`) served from a plain S3 bucket from 2013 until the cutover.
 
-**This is not live at jaan.io yet, and must not be pointed there until the
-checklist below is finished.** The old site earns 20–30k organic visits a
-month, concentrated in a handful of long-form technical posts. Every URL it
-serves has to keep working — the same path, the same content — or that traffic
-goes away and does not come back.
+**This is live.** `jaan.io` is a Cloudflare Pages custom domain on the
+`jaan-io` project, deployed from `main` by CI, with `www.jaan.io` 301ing to it
+through a Cloudflare Redirect Rule. All 44 cases in `npm run test:redirects`
+pass against the live site.
+
+The old site earned 20–30k organic visits a month, concentrated in a handful of
+long-form technical posts, and every URL it served still has to work — the same
+path, the same content — or that traffic goes away and does not come back.
+That is what §2 and `scripts/redirect-check.mjs` are for, and it is still the
+constraint on every future change: **the filename of a post is its URL, and it
+is not yours to rename.**
+
+The S3 buckets behind the old apex and the old `www` redirect are the rollback
+path and have not been deleted.
 
 ## Running it
 
@@ -351,34 +360,59 @@ compliance footer.
 
 ---
 
-# Phase 4 — before jaan.io points here
+# Phase 4 — the cutover, and what it left behind
 
-Everything below is what stands between this repo and a DNS cutover. Nothing
-here is cosmetic: each item is a URL that is live today and would break, or a
-signal that would be lost. Tick them off in any order, but **all of them before
-the DNS change**.
+**Done.** `jaan.io` points here. Everything below was what stood between the
+repo and the DNS change; it is kept because most of it is not a task list but a
+record of what a URL does and why, which is the thing that has to survive.
 
-## Where this stands
+Sections 1–5 are finished. What is still open:
 
-Sections 1–5 and 7 are done. What is left is two manual checks and a handful of
-things that are post-cutover or optional by nature:
+| Still open                                      | Where                   |
+| ----------------------------------------------- | ----------------------- |
+| The New York map does not render in production  | §7 — see the note there |
+| Heading anchors spot-checked against live pages | §6                      |
+| iMessage / Slack unfurl of a post and a chart   | §6                      |
+| Sitemap re-submitted in Search Console          | §5 — in progress        |
+| Third-party uptime monitor                      | Newsletter — optional   |
+| Four external `/projects/` entries              | §1 — deferred           |
 
-| Still open                                        | When          | Blocks DNS? |
-| ------------------------------------------------- | ------------- | ----------- |
-| Heading anchors spot-checked against live pages   | §6            | **yes**     |
-| iMessage / Slack unfurl of a post and a chart URL | §6            | **yes**     |
-| Re-submit the sitemap in Search Console           | §5, after     | no          |
-| Third-party uptime monitor                        | Newsletter    | no          |
-| Four external `/projects/` entries                | §1 — deferred | no          |
+Three decisions are recorded rather than pending, and each gives up a URL that
+was live on the old site: `/consulting` is not ported, `/impact`'s Figma file
+is gone, and the radicalization post stays unpublished so its redirect went
+with it. All three return an intended 404 that `redirect-check.mjs` asserts.
 
-Three decisions are recorded rather than pending, and each removes a URL that
-is live today: `/consulting` is not ported, `/impact`'s Figma file is gone, and
-the radicalization post stays unpublished so its redirect went with it. All
-three now return an intended 404 that `redirect-check.mjs` asserts.
+The one command that covers the most ground, before or after any deploy:
 
-Before touching DNS, the one command that covers the most ground is
-`npm run test:redirects -- https://jaan-io.pages.dev` against a preview deploy:
+```sh
+npm run test:redirects -- https://jaan.io
+```
+
 44 cases, every legacy URL, and it fails on any chain longer than one hop.
+
+## How the domain is wired, none of which is in this repo
+
+Four things outside the codebase put the site at `jaan.io`. Nothing here would
+recreate them, and each is a single click away from taking the site down, so
+they are written down rather than left in a dashboard.
+
+- **The Pages custom domain.** `jaan.io` is a custom domain on the `jaan-io`
+  Pages project. Adding it replaced the apex DNS record with a proxied CNAME to
+  `jaan-io.pages.dev` — that replacement _was_ the cutover, and putting the old
+  record back is the rollback. CI deploys `main`; there is no Cloudflare build.
+- **`www.jaan.io` → `jaan.io`**, as a Cloudflare **Redirect Rule**, not as a
+  DNS record and not in `_redirects`. The `www` record only has to stay
+  **proxied** — the rule fires before any origin is reached, so what it points
+  at is irrelevant. The old site did this with a second S3 bucket that answered
+  `301 → http://jaan.io/…`, which cost three hops once the scheme upgrade and
+  the trailing-slash rule were counted. The rule does it in one.
+- **The R2 bucket** behind `data.jaan.io` — §7, and `viz/README.md` for the
+  setup, including the CORS policy, which is **origin-exact** and lists
+  `jaan.io` explicitly.
+- **Turnstile, D1 and the Pages secrets** — see the Newsletter section above.
+
+The old S3 buckets, behind both the old apex and the old `www` redirect, are
+the rollback path and have not been deleted.
 
 ## 1. Content that exists on jaan.io and not here
 
@@ -599,12 +633,16 @@ because Search Console and Bing verify by fetching a page of their choosing.
 
 ## 6. Cutover checks
 
-Run these against the Pages preview URL before touching DNS, and again after.
+These were run against the Pages preview URL before DNS moved and again against
+`https://jaan.io` after. The two still open are worth doing now that the real
+URLs exist.
 
 - [x] Every live URL returns 200 or an intended 301 — not a 404. Checked by
-      hand against `jaan.io-old/_site/`. Three paths now return an **intended**
-      404: `/consulting` (§1), `/impact` and `/dont-become-data-for-AI` (§2).
-      Those three are asserted in `redirect-check.mjs` so the intent survives.
+      hand against `jaan.io-old/_site/`, and all 44 cases in
+      `npm run test:redirects -- https://jaan.io` pass on the live site. Three
+      paths return an **intended** 404: `/consulting` (§1), `/impact` and
+      `/dont-become-data-for-AI` (§2). Those three are asserted in
+      `redirect-check.mjs` so the intent survives.
 - [x] No redirect chains longer than one hop. Now enforced rather than
       spot-checked: `redirect-check.mjs` follows exactly one hop and fails on a
       second, which is what caught the `/unreasonable-confusion` chain.
@@ -660,15 +698,28 @@ Two consequences worth knowing before the cutover:
 
 ### Also outstanding
 
-- [x] **The New York map paints in a real browser.** Confirmed by hand, which
-      is the only way: the network layer checks out automatically (the PMTiles
-      archive answers `206`, and the Protomaps style, sprites and fonts all
-      return 200) but headless Chrome renders WebGL through software GL and
-      produces a blank canvas, so nothing automated reaches the last step.
+- [ ] **The New York map does not render on jaan.io.** The other seven pages
+      do. This is the one known-broken thing on the live site. **What has been
+      ruled out, so the next person does not re-check it.** R2 is fine: the
+      PMTiles archive answers `206` to a ranged `GET` with
+      `access-control-allow-origin: https://jaan.io` and the right
+      `content-range` over the full 101 MB. The page itself is a 200. The
+      Protomaps style is a 200 **from a browser on jaan.io** — see the key
+      below. So the failure is downstream of the data, the CORS policy and the
+      basemap style, in the chart module or in what it does with them. Note
+      that nothing automated can confirm the fix either: headless Chrome
+      renders WebGL through software GL and produces a blank canvas, so this
+      one is checked by opening it.
+
 - [x] `viz/src/charts/new-york-real-estate.js` carries a **Protomaps API key**
-      inline. **Decided: left as it is.** It was already public in the
+      inline. **Decided: left as it is** — it was already public in the
       `jaanli/jaan.li` repo this was ported from, so rotating it here would not
-      un-publish it, and it is scoped to basemap tiles.
+      un-publish it. Do not read a bare `curl` of that style URL as the map's
+      problem. The key is **origin-restricted**, so a request with no `Referer`
+      gets `403 Invalid origin for API key` while the same request with a
+      `jaan.io` or `jaan.li` referer gets a 200. The restriction is why the key
+      being public matters less than it looks like it does.
+
 - [ ] The four Jekyll `/projects/` entries are still unported — see §1.
       Deferred on purpose; `/projects` itself serves, so no URL breaks.
 
