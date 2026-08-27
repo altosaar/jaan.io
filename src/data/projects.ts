@@ -172,7 +172,7 @@ export const PROJECTS: Project[] = [
     href: "https://plgcleanup.org",
     title: "Trash Club",
     description:
-      "Claude and I made this website for the neighborhood cleanup group I volunteer at; they are fantastic.",
+      "Claude and I made this website and help maintain community infrastructure for the neighborhood group I volunteer at; they are fantastic.",
     maskMark: RaccoonMark,
   },
 ];
