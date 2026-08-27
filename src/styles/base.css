@@ -100,6 +100,28 @@ html.is-fullscreen main {
   min-height: 0;
 }
 
+/* ── The blur-up placeholder, undone when nothing can undo it ───────────────
+   src/lib/lqip.ts paints a blurred 16px preview as an <img>'s own background
+   and sets `color: transparent` beside it, so the alt text does not sit over
+   the blur while the photo decodes. src/lib/blur-up.client.ts strips that
+   inline style on `load` — and on `error`, so a photo that never arrives shows
+   its alt text rather than nothing.
+
+   With scripting off neither event is listened for and the inline style is
+   permanent. A photo that loads is still fine: it paints over its own
+   placeholder. A photo that FAILS is not — it leaves a bordered box with
+   invisible alt text inside it, which is an empty outlined box and nothing
+   else. Same for a browser that declines to paint the data: URI the
+   placeholder is (a strict CSP, an old engine).
+
+   `.js` is added to <html> by an inline script in Base.astro before first
+   paint, so this never applies to a scripted visitor. `!important` because the
+   thing it overrides is an inline style, which is all it can lose to. */
+html:not(.js) img[data-blur-up] {
+  color: inherit !important;
+  background-image: none !important;
+}
+
 /* Inline links (no class) — underline flush with bg bottom, smooth hover */
 a:not([class]) {
   color: inherit;

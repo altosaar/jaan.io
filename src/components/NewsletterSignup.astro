@@ -84,7 +84,25 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
     }
     <h2 id="newsletter-title" class="newsletter__title">Newsletter</h2>
 
-    <form class="newsletter__form" data-newsletter>
+    {
+      /* method AND action, even though the script below calls preventDefault on
+         every submit and posts JSON itself. They are the no-JavaScript
+         behaviour, and the default was actively harmful: a <form> with neither
+         is a GET to the CURRENT PAGE, so submitting without scripting reloaded
+         /about with `?email=someone@example.com` in the address bar. That address
+         then sits in browser history, in the Referer header of the next
+         navigation, and in every access log along the way — for a site whose
+         subscribe endpoint deliberately stores no IP and whose alerts
+         deliberately carry no address (see README, Newsletter).
+
+         POSTing to the real endpoint puts it in a request body instead. The
+         submission still cannot SUCCEED without scripting — Turnstile has no
+         way to mint a token, so the endpoint answers 400 — and that is the
+         honest outcome rather than a hidden one. Verified it is a clean 400:
+         the handler parses `request.json()` inside a try/catch, so a
+         form-encoded body is rejected without touching the alert path. */
+    }
+    <form class="newsletter__form" method="post" action="/api/subscribe" data-newsletter>
       <div class="newsletter__field">
         {
           /* Still a real <label>, still always visible — it just lives on top
@@ -170,6 +188,18 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
       </div>
 
       <button class="cta-primary newsletter__submit" type="submit">Sign up</button>
+
+      {
+        /* Said out loud rather than left to be discovered. The form needs
+           scripting to work at all — Turnstile's token is minted in the browser
+           — so without it the button leads to a bare 400. One line and a real
+           address is a better answer than a control that looks live and is not. */
+      }
+      <noscript>
+        <p class="newsletter__note">
+          This form needs JavaScript. Email <a href="mailto:j@jaan.io">j@jaan.io</a> to be added instead.
+        </p>
+      </noscript>
     </form>
   </div>
 </section>
