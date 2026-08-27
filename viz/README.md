@@ -80,33 +80,73 @@ one year and one microdata area pulls the row groups it needs rather than the
 whole 45 MB file. PMTiles is a range-request format for the same reason. Both
 are faster this way than as baked attachments.
 
-### One-time bucket setup
+### The bucket — set up, and how
+
+**This is done.** `jaan-io-data` exists, holds the three files, and answers on
+`https://data.jaan.io`. It is written down because none of it lives in code:
+nothing in this repo would recreate it, and it would all have to be redone by
+hand against a different Cloudflare account.
 
 ```sh
 npx wrangler r2 bucket create jaan-io-data
+
+# The custom domain. The dashboard does this too (R2 → jaan-io-data → Settings
+# → Public access → Custom domains), but it is one command, and jaan.io is a
+# zone on the same account. Ownership goes active in about a minute.
+npx wrangler r2 bucket domain add jaan-io-data \
+  --domain data.jaan.io --zone-id <the jaan.io zone id>
 ```
 
-Then, in the Cloudflare dashboard, attach the custom domain **`data.jaan.io`**
-to the bucket (R2 → jaan-io-data → Settings → Public access → Custom domains).
-That hostname is what `DATA_BASE` in `src/charts/config.js` points at; change
+`data.jaan.io` is what `DATA_BASE` in `src/charts/config.js` points at; change
 one and change the other.
+
+#### CORS, and the two JSON shapes that are not interchangeable
 
 `data.jaan.io` and `jaan.io` are different origins, so the bucket needs a CORS
 policy. Allowing the `Range` request header and exposing `Content-Range`,
 `Content-Length` and `ETag` is the part that matters — without those, DuckDB and
-PMTiles fall back to fetching whole files, or fail outright:
+PMTiles fall back to fetching whole files, or fail outright.
+
+**The dashboard and `wrangler` do not accept the same JSON**, which costs a
+confusing minute if you paste one into the other. The dashboard's editor takes
+the S3-style array (`AllowedOrigins`, `AllowedMethods`, …); `wrangler r2 bucket
+cors set --file` takes the R2 API shape and rejects the S3 one outright:
+
+```
+✘ [ERROR] The CORS configuration file must contain a 'rules' array
+```
+
+This is the policy that is actually on the bucket, in the shape `wrangler`
+wants:
 
 ```json
-[
-  {
-    "AllowedOrigins": ["https://jaan.io"],
-    "AllowedMethods": ["GET", "HEAD"],
-    "AllowedHeaders": ["range", "if-match"],
-    "ExposeHeaders": ["content-range", "content-length", "etag"],
-    "MaxAgeSeconds": 3600
-  }
-]
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": ["https://jaan.io", "https://jaan-io.pages.dev", "https://*.jaan-io.pages.dev"],
+        "methods": ["GET", "HEAD"],
+        "headers": ["range", "if-match"]
+      },
+      "exposeHeaders": ["content-range", "content-length", "etag"],
+      "maxAgeSeconds": 3600
+    }
+  ]
+}
 ```
+
+```sh
+npx wrangler r2 bucket cors set jaan-io-data --file r2-cors.json
+npx wrangler r2 bucket cors list jaan-io-data   # reads it back
+```
+
+The two `pages.dev` origins are not decoration. The root README's §6 asks for
+the cutover checks to be run against the Pages preview URL _before_ DNS moves,
+and these three pages cannot be checked there unless the preview origin is
+allowed. The wildcard covers per-branch previews (`test.jaan-io.pages.dev`),
+which is the form `wrangler pages deploy --branch=…` produces. R2 accepts a
+wildcard in the subdomain position; an origin not on the list gets no
+`access-control-allow-origin` back at all, which is the intended answer.
 
 ### Uploading the data
 
@@ -127,7 +167,36 @@ npx wrangler r2 object put jaan-io-data/income-histogram-historical-new-york-are
   --content-type application/vnd.apache.parquet --remote
 ```
 
-### Running all seven before the bucket exists
+The content types matter to DuckDB and PMTiles no more than the bytes do, but
+they are what a browser and a CDN log show, so they are set rather than left as
+`application/octet-stream` for everything.
+
+`wrangler r2 object get` writes the object into the **current directory** under
+its own name. That is a 45 MB parquet landing in the repo root if you run it
+there to check something; prefer `curl` against `data.jaan.io`, below.
+
+### Verifying it
+
+A range request must come back `206`, not `200`. A `200` means the charts still
+work but download the whole file — 101 MB on the map page.
+
+```sh
+curl -sI -r 0-99 -H "Origin: https://jaan.io" \
+  https://data.jaan.io/income-histogram-historical-new-york-area.parquet \
+  | grep -iE "^HTTP|content-range|access-control-allow-origin"
+```
+
+Expect `HTTP/2 206`, `content-range: bytes 0-99/45686449`, and the origin
+echoed back. All three files were checked this way, and the byte totals match
+the source files.
+
+If that fails with `Could not resolve host` right after attaching the domain,
+it is a **local** negative DNS cache, not a provisioning failure — the record is
+live the moment `ownership_status` goes `active`. Check the authoritative answer
+rather than waiting: `dig +short @1.1.1.1 data.jaan.io`, and pass
+`--resolve data.jaan.io:443:<that IP>` to `curl` in the meantime.
+
+### Running all seven against local copies instead
 
 ```sh
 npm run viz:local   # copies the three files out of ../jaan.li, rebuilds against localhost

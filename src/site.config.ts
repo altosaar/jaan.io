@@ -184,6 +184,60 @@ export const SITE = {
     ],
   },
 
+  // ── Analytics & webmaster verification ─────────────────────────────────────
+  // Ported from the Jekyll site so the properties that have been collecting
+  // since 2013 keep collecting across the DNS cutover — a new property would
+  // start the history over on the one week it matters most. Any value here set
+  // to null stops its tag being emitted; nothing else needs editing.
+  analytics: {
+    /**
+     * GA4 measurement ID.
+     *
+     * The old site also carried Universal Analytics `UA-34129661-2`. That is
+     * NOT ported: UA properties stopped processing hits in July 2023, so the
+     * tag is now a script download and a beacon to an endpoint that discards
+     * it. Two analytics libraries, one of them collecting nothing.
+     */
+    ga4: "G-65ZYPYCLQE" as string | null,
+
+    /**
+     * Hostnames GA4 is allowed to load on. Everywhere else it is not requested
+     * at all — no script, no cookie, no beacon.
+     *
+     * This is here because of what happens either side of the cutover. §6 of
+     * the README asks for the whole site to be walked on a Pages preview URL
+     * before DNS moves and again after, and the fortnight after cutover is
+     * spent watching this exact property to see whether the port kept its
+     * traffic. Test traffic from `*.pages.dev` and from localhost lands in the
+     * same reports and is indistinguishable from the real thing at the moment
+     * it is least affordable to misread.
+     *
+     * THE FAILURE MODE, since it is silent: serve the site from a hostname
+     * that is not on this list — `www.jaan.io`, a new domain — and analytics
+     * quietly stops. Add the hostname here, not in Base.astro.
+     */
+    hosts: ["jaan.io"] as readonly string[],
+
+    /** Bing Webmaster Tools. Carried over from the old site unchanged. */
+    bing: "B3B21CDB59D1FC75DFE9B0D0CC329C8C" as string | null,
+
+    /**
+     * Google Search Console.
+     *
+     * The old site's tag is MALFORMED and has been for years: the token
+     * appears twice, joined by a `#` — `content="LTwv…IT5HU#LTwv…IT5HU"`.
+     * Search Console matches the attribute exactly, so that tag verifies
+     * nothing; whatever verified the property was some other method.
+     *
+     * This is the first half on its own, which is the shape a real token has.
+     * If Search Console still refuses it after cutover, issue a fresh one from
+     * the property rather than trying to repair this string — and note that
+     * §5's "re-submit the sitemap" step depends on the property being verified
+     * first.
+     */
+    google: "LTwvMh1s7cdUyjaHqQYsBg-I4ZPy0wm_TKUoU0IT5HU" as string | null,
+  },
+
   // ── Feature switches ───────────────────────────────────────────────────────
   // Everything here can be turned off without touching any other file.
   features: {

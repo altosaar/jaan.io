@@ -22,9 +22,9 @@ npm run preview  # serves dist/ on localhost:4322
 `npm run dev` and `npm run build` both build the `/visualizations` charts first
 (see §7 and `viz/README.md`), then draw the social share cards from their marks
 and from each post's thumb (`npm run og`; see **Share images** below). `npm run
-viz` forces a rebuild of both after editing a chart. Three of the seven read
-their data from R2, so until that bucket exists they need `npm run viz:local`
-once to run against local copies.
+viz` forces a rebuild of both after editing a chart. Three of the eight read
+their data from R2 at `data.jaan.io`, which is live — they need no extra setup.
+`npm run viz:local` points them at local copies instead, for working offline.
 
 There is no test framework by design. These are the tests, and CI runs all but
 the last one:
@@ -94,19 +94,20 @@ and brings the wordmark back, and nothing else needs touching.
 
 ## Where things live
 
-|                                      |                                             |
-| ------------------------------------ | ------------------------------------------- |
-| Name, nav, social, feature switches  | `src/site.config.ts`                        |
-| Colours, type, spacing               | `src/styles/tokens.css`                     |
-| Blog posts — **filename is the URL** | `src/content/posts/*.md`                    |
-| Long-form page content               | `src/content/pages/*.md`                    |
-| Gallery photos + alt text            | `src/data/gallery.ts`                       |
-| Papers, talks, and their BibTeX      | `src/data/papers.ts`, `talks.ts`, `bibtex/` |
-| Trailing-slash and legacy redirects  | `public/_redirects`                         |
-| Newsletter form                      | `src/components/NewsletterSignup.astro`     |
-| Newsletter endpoints + D1 bindings   | `functions/api/`, `wrangler.toml`           |
-| Share images (og:image)              | `src/lib/og.ts`, `scripts/gen-og-cards.mjs` |
-| The Atom feed                        | `src/pages/feed.xml.ts`                     |
+|                                      |                                              |
+| ------------------------------------ | -------------------------------------------- |
+| Name, nav, social, feature switches  | `src/site.config.ts`                         |
+| Colours, type, spacing               | `src/styles/tokens.css`                      |
+| Blog posts — **filename is the URL** | `src/content/posts/*.md`                     |
+| Long-form page content               | `src/content/pages/*.md`                     |
+| Gallery photos + alt text            | `src/data/gallery.ts`                        |
+| Papers, talks, and their BibTeX      | `src/data/papers.ts`, `talks.ts`, `bibtex/`  |
+| Trailing-slash and legacy redirects  | `public/_redirects`                          |
+| Newsletter form                      | `src/components/NewsletterSignup.astro`      |
+| Newsletter endpoints + D1 bindings   | `functions/api/`, `wrangler.toml`            |
+| Share images (og:image)              | `src/lib/og.ts`, `scripts/gen-og-cards.mjs`  |
+| The Atom feed                        | `src/pages/feed.xml.ts`                      |
+| GA4 + webmaster verification tags    | `src/site.config.ts`, `src/lib/analytics.ts` |
 
 ## Share images
 
@@ -314,11 +315,13 @@ cannot pass silently with no way through, and Cloudflare makes it a condition
 that the site's privacy policy reference their Turnstile Privacy Addendum,
 which means writing one first.
 
-Still open, and neither blocks the form from working:
+One of these is done and one is still open; neither blocks the form from
+working:
 
-1. **An end-to-end test against the real widget.** The testing keys cannot
-   exercise the actual Turnstile challenge, and no browser has driven this form
-   yet — only the endpoint has been tested. Deploy a preview and submit it once:
+1. ~~**An end-to-end test against the real widget.**~~ **Done** — a real browser
+   has driven the form against the live widget and the submission landed. The
+   procedure is kept because it is the one to repeat after any change to
+   `NewsletterSignup.astro` or to the Turnstile configuration:
 
    ```sh
    npm run build && npx wrangler pages deploy dist --project-name=jaan-io --branch=test
@@ -355,37 +358,67 @@ here is cosmetic: each item is a URL that is live today and would break, or a
 signal that would be lost. Tick them off in any order, but **all of them before
 the DNS change**.
 
+## Where this stands
+
+Sections 1–5 and 7 are done. What is left is two manual checks and a handful of
+things that are post-cutover or optional by nature:
+
+| Still open                                        | When          | Blocks DNS? |
+| ------------------------------------------------- | ------------- | ----------- |
+| Heading anchors spot-checked against live pages   | §6            | **yes**     |
+| iMessage / Slack unfurl of a post and a chart URL | §6            | **yes**     |
+| Re-submit the sitemap in Search Console           | §5, after     | no          |
+| Third-party uptime monitor                        | Newsletter    | no          |
+| Four external `/projects/` entries                | §1 — deferred | no          |
+
+Three decisions are recorded rather than pending, and each removes a URL that
+is live today: `/consulting` is not ported, `/impact`'s Figma file is gone, and
+the radicalization post stays unpublished so its redirect went with it. All
+three now return an intended 404 that `redirect-check.mjs` asserts.
+
+Before touching DNS, the one command that covers the most ground is
+`npm run test:redirects -- https://jaan-io.pages.dev` against a preview deploy:
+44 cases, every legacy URL, and it fails on any chain longer than one hop.
+
 ## 1. Content that exists on jaan.io and not here
 
 Nine of the ten real articles are ported and verified. What remains:
 
-- [ ] **`/blog/`** — the article index, live today. This site calls it
-      `/articles`, so `/blog/` needs a 301 (see §2). Decide whether `/blog`
-      should also keep working as an alias rather than only redirecting.
-- [ ] **`/projects/`** — the index now exists and carries one entry,
-      Visualizations (see §7). Still to port: the four published external
-      entries from the Jekyll tree, which are links rather than pages — a
-      thumbnail and a blurb pointing straight out to Flickr, CANImmunize,
+- [x] **`/blog/`** — done, and the question it asked is answered: BOTH forms
+      301 to `/articles`, each in a single hop, so `/blog` keeps working as an
+      address without existing as a second page. See §2.
+- [ ] **`/projects/`** — **deferred, deliberately, and NOT a cutover blocker.**
+      The index exists and carries one entry, Visualizations (see §7); the URL
+      itself therefore keeps working, which is what the cutover is protecting.
+      What is missing is content, not a path. Still to port: the four published
+      external entries from the Jekyll tree, which are links rather than pages
+      — a thumbnail and a blurb pointing straight out to Flickr, CANImmunize,
       Useful Science and the One Fact Foundation. Their copy is in
-      `jaan.io-old/_posts/projects/`. `npm run audit` flags /projects as a thin
-      page at 53 words until they land.
+      `jaan.io-old/_posts/projects/` (five files there; Couchometer is
+      `published: false` and is not one of them).
+
 - [x] **`/papers/`** — done. 14 entries in `src/data/papers.ts`, BibTeX in
       `src/data/bibtex/*.bib`, marks in `src/assets/papers/` (see
       `scripts/prep-paper-marks.mjs`). `output: false` in the Jekyll tree, so
       there are no per-paper pages and none were invented — the index links to
       the PDFs in §4. Six links that were broken on jaan.io are fixed; they are
       listed at the top of `src/data/papers.ts`.
-- [ ] **`/consulting/`** — one long page of prose, six bulleted engagements.
-      Check with Jaan whether the copy is still current before porting it
-      verbatim; it describes past availability.
+- [x] **`/consulting/`** — **decided: not ported.** The copy describes an
+      availability that no longer holds, and a stale offer left up is worse
+      than no page. This is the one URL the port knowingly gives up: it returns
+      200 on jaan.io today and will 404 here. That is a decision, not an
+      oversight, and `redirect-check.mjs` asserts the 404 so it reads as one
+      later. If it should land somewhere instead, `/about` is the obvious
+      candidate and it is one line in `_redirects` plus one changed case in
+      that script.
 - [x] **`/talks/`** — done. Three entries in `src/data/talks.ts`, over the talk
       PDFs in §4. `npm run audit` flags it as a thin page at 95 words, which is
       what a three-entry index is.
-- [ ] **`/my-friend-radicalized-this-made-me-rethink-how-i-build-AI/`** — the
-      one unported article. It is `published: false` in the Jekyll tree and
-      **404s on jaan.io right now**, so this is not a regression, but a live
-      301 still points at it (see §2). Either restore the post or repoint that
-      redirect; leaving both as they are ships a dead-ending redirect.
+- [x] **`/my-friend-radicalized-this-made-me-rethink-how-i-build-AI/`** —
+      **decided: stays unpublished.** It is `published: false` in the Jekyll
+      tree and 404s on jaan.io today, so nothing is lost. The dead-ending
+      `/dont-become-data-for-AI` redirect that pointed at it was therefore not
+      carried over either (see §2), which turns a hop-into-a-404 into a plain 404.
 
 `/about/` is already here, deliberately rewritten rather than ported — the old
 page's closing sections (Useful Science, the Protonmail contact instructions,
@@ -393,35 +426,58 @@ the social row, the colophon) were dropped on purpose.
 
 ## 2. Redirects
 
-`public/_redirects` currently carries the trailing-slash rule and one legacy
-redirect. The rest of `jaan.io-old/s3_website.yml` still has to move over.
+**Done — every rule from `jaan.io-old/s3_website.yml` is now accounted for**,
+either carried over or explicitly declined below. `npm run test:redirects`
+covers all of them, 44 cases, and is the thing to re-run against a preview
+deploy before DNS moves.
+
 **Order matters** — Cloudflare Pages takes the first matching rule, so anything
 specific belongs above the `/*/ /:splat` catch-all at the bottom of the file.
+Everything added here sits above it, and every rule is listed in **both** its
+slashed and slash-less form so that an inbound link is one hop from wherever it
+points rather than two through the catch-all.
 
-- [ ] `/blog/` → `/articles` (301). The index URL is the one that changes in
-      this port; the post URLs do not.
-- [ ] `/feedback` → `https://goo.gl/forms/UolGIq1bpHJeK8dJ2` — verified 200.
-- [ ] `/zoom` → the Zoom room. Also fix `public/robots.txt`, which still says
-      `Disallow: /zoom/` with a trailing slash; this site serves `/zoom`, so
-      the rule as written no longer matches what it is meant to hide.
-- [ ] `/guest` → the Dropbox `thinkspace.md` — verified 200.
-- [ ] `/impact` → the Figma community file. `curl` gets a 403 from Figma, which
-      is probably bot-blocking rather than a dead link — **check it in a real
-      browser before shipping**, and drop the rule if it is gone.
-- [ ] `/unreasonable-confusion` → **collapse the two-hop chain.** Live today it
-      301s to `/what-is-variational-autoencoder-vae`, which 301s again to
-      `/what-is-variational-autoencoder-vae-tutorial`. Point it at the tutorial
-      directly, in one hop.
-- [ ] `/what-is-variational-autoencoder-vae` → the tutorial (one hop, as now).
-- [ ] `/dont-become-data-for-AI` → currently the radicalization post, which
-      404s. Blocked on the decision in §1.
-- [ ] The `…/index.html` twins. S3 static hosting needed a separate rule for
-      each of `/unreasonable-confusion/index.html`,
-      `/what-is-variational-autoencoder-vae/index.html` and
-      `/dont-become-data-for-AI/index.html`. They are distinct paths that may
-      have been indexed, and the rules cost nothing to carry over.
-- [x] `/variational-autoencoder-perspectives.md/` → the VAE tutorial. Done —
-      this was a `.md.bak` file Jekyll published by accident, not a page.
+- [x] `/blog/` → `/articles` (301). Both forms, each a single hop. The index
+      URL is the one that changes in this port; the post URLs do not.
+- [x] `/variational-autoencoder-perspectives.md/` → the VAE tutorial — a
+      `.md.bak` file Jekyll published by accident, not a page.
+- [x] **The VAE tutorial's two earlier names, and the two-hop chain collapsed.**
+      `/unreasonable-confusion` 301s straight to
+      `/what-is-variational-autoencoder-vae-tutorial` now, rather than through
+      `/what-is-variational-autoencoder-vae` as it does live today;
+      `/what-is-variational-autoencoder-vae` goes there directly too. Nothing
+      points at the middle name any more. This is the most-linked writing on
+      the site, so the hop that was dropped is the one that mattered most.
+- [x] **The `…/index.html` twins** for both of those names. S3 static hosting
+      needed a rule per path, so they were distinct indexable URLs for a
+      decade. They do **not** fall through the catch-all — that rule matches
+      only paths ending in a slash — so they carry their own rules.
+- [x] `/feedback`, `/zoom`, `/guest` → **302, not 301**, and this is a
+      deliberate change from what jaan.io serves today. They are vanity
+      shortcuts at other people's services, not moved content: a 301 is cached
+      by the browser near-permanently, so the day the Zoom room or the form
+      changes, everyone who followed the old one is stuck with no way to clear
+      it. These paths carry no ranking worth preserving, so permanence buys
+      nothing. `/feedback` also points at the **Google Form itself** rather
+      than the `goo.gl` short link `s3_website.yml` used. That shortener still
+      resolves, but Google has been retiring goo.gl, and a link that dies
+      quietly inside a redirect is precisely what this file exists to prevent.
+- [x] `public/robots.txt` no longer says `Disallow: /zoom/`. The trailing slash
+      meant it matched nothing this site serves; `Disallow: /zoom` prefix-matches
+      both forms.
+- [x] `/impact` → **dropped. The Figma file is gone.** The old note guessed
+      that curl's 403 was bot-blocking. It is not: with a browser User-Agent
+      that file id returns **404** while `figma.com/community` returns 200. A
+      redirect onto a 404 is worse than a 404 — the visitor waits a hop to
+      arrive nowhere. The rule to paste back, if the file reappears, is in
+      `_redirects`.
+- [x] `/dont-become-data-for-AI` → **dropped**, along with its `/index.html`
+      twin, following the §1 decision to leave the radicalization post
+      unpublished. It pointed at a 404 either way.
+
+Both dropped paths, plus `/consulting`, are asserted as 404s in
+`redirect-check.mjs` rather than simply left out — so a later reader can tell
+"decided against" from "forgot".
 
 ## 3. Feeds and sitemaps
 
@@ -435,9 +491,13 @@ specific belongs above the `/*/ /:splat` catch-all at the bottom of the file.
       turns the physics post into several hundred equations of gibberish in a
       reader. Autodiscovery `<link>` is in Base.astro; the Atom content type is
       in `public/_headers`.
-- [ ] **`/sitemap.xml`** — live and 200 today, and the path search engines
-      already know. `@astrojs/sitemap` emits `sitemap-index.xml` instead, and
-      `public/robots.txt` points at that. Serve or redirect the old path.
+- [x] **`/sitemap.xml`** — done. 301 to `/sitemap-index.xml`, which is what
+      `@astrojs/sitemap` emits and what `public/robots.txt` already points at.
+      A redirect rather than a second copy of the file: two sitemaps at two
+      URLs are two things to keep in step, and a 301 is something a crawler
+      follows and then remembers. Without it the path both crawlers re-request
+      on their own schedule starts 404ing at cutover, which Search Console
+      reports as a sitemap that has been removed rather than one that moved.
 
 ## 4. Static assets that must keep their exact paths
 
@@ -447,8 +507,27 @@ people's pages — so the paths are not ours to change.
 - [x] **`/papers/*.pdf`** — all 14 are here, at the Jekyll filenames. 19 MB.
 - [x] **`/talks/*.pdf`** — all 4 are here. **20 MB, not the 41 MB on jaan.io**;
       see the note below.
-- [ ] **`/files/*`** — two are missing and both 200 on jaan.io today:
-      `UsefulScience-press-photo.jpg` and `rankfromsets-arxiv.html`.
+- [x] **`/files/*`** — done. `UsefulScience-press-photo.jpg` and
+      `rankfromsets-arxiv.html` copied over; all seven files now serve.
+
+### The `.html` ones arrive via one automatic hop, and that is not fixable here
+
+`/files/rankfromsets-arxiv.html` does not return 200. It returns **308** to
+`/files/rankfromsets-arxiv`, which then returns the file. So do the two
+food2vec embeddings and the Ising magnetization page, and so would any `.html`
+under `public/`.
+
+This is Cloudflare Pages stripping `.html` itself — its `html_handling`
+behaviour, applied before anything in `_redirects` and not configurable on
+Pages. Nothing in this repo causes it and no rule here overrides it.
+
+It is fine, and it is worth knowing anyway. Fine because 308 preserves the
+method and every browser and crawler follows it, so a URL printed in a paper or
+a CV still lands on the document — the promise this section makes. Worth
+knowing because from the outside a 308 on a hotlinked URL looks exactly like a
+path that broke, and someone spot-checking these during a cutover will see it.
+`redirect-check.mjs` asserts the hop and the 200 at the end of it, so the
+distinction is written down rather than rediscovered.
 
 ### These stay on Pages, and one of them had to shrink
 
@@ -482,44 +561,71 @@ of the 18 files have no problem that would pay for either.
 
 ## 5. Analytics and webmaster verification
 
-None of this is in the build yet.
+All three tags are in the build. The values live in `SITE.analytics`
+(`src/site.config.ts`); the GA4 bootstrap is `src/lib/analytics.ts`, injected by
+`Base.astro`. Setting any of them to `null` removes its tag and nothing else
+needs editing.
 
-- [ ] **GA4 `G-65ZYPYCLQE`** only. The old site also carries Universal
-      Analytics `UA-34129661-2`, which stopped collecting in 2023 — do not
-      port it.
-- [ ] **Bing** `msvalidate.01` = `B3B21CDB59D1FC75DFE9B0D0CC329C8C`, carried
+- [x] **GA4 `G-65ZYPYCLQE`** only. Universal Analytics `UA-34129661-2` is
+      deliberately not ported — UA stopped processing hits in July 2023, so
+      that tag is a script download and a beacon to an endpoint that discards
+      it.
+- [x] **Bing** `msvalidate.01` = `B3B21CDB59D1FC75DFE9B0D0CC329C8C`, carried
       over as-is.
-- [ ] **Google** `google-site-verification` — the old value is **malformed**:
-      the token is repeated, joined by a `#`. Take the half before the `#`, or
-      re-issue it from Search Console.
+- [x] **Google** `google-site-verification`. The old tag was malformed — the
+      token twice, joined by a `#` — so it verified nothing, and whatever
+      verified that property was some other method. What ships is the first
+      half alone, which is the shape a real token has. If Search Console
+      refuses it, issue a fresh one rather than repairing the string; the
+      re-submit step below depends on the property being verified.
 - [ ] Re-submit the sitemap in Search Console after cutover, and watch Coverage
-      for a week.
+      for a week. **Post-cutover by nature** — the sitemap has to be reachable
+      at jaan.io first.
+
+**GA4 loads only on the hostnames in `SITE.analytics.hosts`, currently just
+`jaan.io`.** On localhost, on `npm run preview`, and on every `*.pages.dev`
+deployment, `gtag.js` is not requested at all — no script, no cookie, no
+beacon. The reason is the cutover itself: §6 has the whole site walked by hand
+on a preview URL, and the fortnight afterwards is spent reading this one
+property to judge whether the port held its traffic. Hand-testing writes into
+the same reports and cannot be separated out later.
+
+The failure mode is silent, so it is worth saying plainly: **serve the site
+from a hostname not on that list — `www.jaan.io`, a new domain — and analytics
+stops.** Add it in `site.config.ts`, not in `Base.astro`.
+
+The two verification tags are emitted everywhere, on every page and every host,
+because Search Console and Bing verify by fetching a page of their choosing.
 
 ## 6. Cutover checks
 
 Run these against the Pages preview URL before touching DNS, and again after.
 
-- [ ] Every live URL returns 200 or an intended 301 — not a 404. The full list
-      is `jaan.io-old/_site/`, one directory per URL.
-- [ ] No redirect chains longer than one hop.
+- [x] Every live URL returns 200 or an intended 301 — not a 404. Checked by
+      hand against `jaan.io-old/_site/`. Three paths now return an **intended**
+      404: `/consulting` (§1), `/impact` and `/dont-become-data-for-AI` (§2).
+      Those three are asserted in `redirect-check.mjs` so the intent survives.
+- [x] No redirect chains longer than one hop. Now enforced rather than
+      spot-checked: `redirect-check.mjs` follows exactly one hop and fails on a
+      second, which is what caught the `/unreasonable-confusion` chain.
 - [ ] Spot-check heading anchors on the ported posts against the live pages.
       They matched exactly at port time; a later heading edit silently breaks
       external deep links, as happened once already with food2vec.
-- [ ] Canonical, `og:url` and the sitemap all agree on the slash-less form.
-      `npm run audit` fails the build if they drift.
+- [x] Canonical, `og:url` and the sitemap all agree on the slash-less form —
+      `npm run audit` passes with 0 errors and fails the build if they drift.
 - [ ] Paste a post URL and a `/visualizations/…` URL into iMessage and Slack and
       confirm each previews as its own picture, not as the portrait. The audit
       checks the tags; only a real unfurl checks the crawlers.
-- [ ] Keyboard pass over the carousel: Tab in, arrows, Home/End, and confirm
-      off-screen slides are not focusable. No script tests this.
+- [x] Keyboard pass over the carousel: Tab in, arrows, Home/End, off-screen
+      slides not focusable. Confirmed by hand — no script tests this.
 
-## 7. /visualizations — three of the eight need the R2 bucket
+## 7. /visualizations — the R2 bucket is up
 
 Eight pages are deployed under `/visualizations/…` — seven ported from
 `../jaan.li`, plus the NYU Langone hospital-price dashboard from
 `../payless.health` (its 1.1 MB extract ships with the site, so it needs
-nothing). Five work now. **Three do not, and will not, until the R2 bucket
-below exists:**
+nothing). Three of them read a dataset too big for Pages' 25 MiB per-file
+ceiling, so those datasets are served from R2 instead:
 
 | Page                                                       | Dataset                                                            | Size   |
 | ---------------------------------------------------------- | ------------------------------------------------------------------ | ------ |
@@ -527,82 +633,46 @@ below exists:**
 | `/visualizations/american-community-survey/new-york-area`  | `income-histogram-historical-new-york-area.parquet`                | 45 MB  |
 | `/visualizations/american-community-survey/income-by-race` | `income-histogram-historical-new-york-area-by-race.parquet`        | 25 MB  |
 
-All three are over Cloudflare Pages' 25 MiB per-file ceiling, so they cannot be
-served from the site itself. Each page currently renders its headline, prose and
-source note, then replaces the chart with "This chart could not be loaded" —
-it fails visibly rather than blanking, and the other four pages are unaffected.
+- [x] **Bucket, domain, data and CORS — done.** `jaan-io-data` holds all three
+      files and answers on `https://data.jaan.io`. A ranged `GET` returns `206`
+      with the right `content-range`, the byte totals match the source files,
+      and `access-control-allow-origin` comes back for `jaan.io` and for the
+      Pages preview origins but not for anything else. The full setup, the
+      commands, and the one real trap in them (the dashboard and `wrangler`
+      take **different CORS JSON shapes**) are in `viz/README.md`.
 
-**No rebuild or redeploy is needed afterwards.** The deployed modules already
-request `https://data.jaan.io/<file>`; those three pages start working the
-moment the bucket answers.
+**No rebuild or redeploy was needed.** The deployed modules already request
+`https://data.jaan.io/<file>`, so those three pages started working the moment
+the bucket answered — which also means the fastest check on a live deploy is to
+open them, not to rebuild anything.
 
-### The runbook
+Two consequences worth knowing before the cutover:
 
-```sh
-# 1. Create the bucket.
-npx wrangler r2 bucket create jaan-io-data
-
-# 2. Upload the three datasets, from this repo's root.
-SRC=../jaan.li/src
-npx wrangler r2 object put jaan-io-data/new_york_real_estate_MapPLUTO_data_min_zoom_0_max_zoom_g.pmtiles \
-  --file "$SRC/data/new_york_real_estate_MapPLUTO_data_min_zoom_0_max_zoom_g.pmtiles" \
-  --content-type application/octet-stream --remote
-npx wrangler r2 object put jaan-io-data/income-histogram-historical-new-york-area.parquet \
-  --file "$SRC/american-community-survey/data/income-histogram-historical-new-york-area.parquet" \
-  --content-type application/vnd.apache.parquet --remote
-npx wrangler r2 object put jaan-io-data/income-histogram-historical-new-york-area-by-race.parquet \
-  --file "$SRC/american-community-survey/data/income-histogram-historical-new-york-area-by-race.parquet" \
-  --content-type application/vnd.apache.parquet --remote
-```
-
-3. **Attach the custom domain `data.jaan.io`** in the dashboard: R2 →
-   `jaan-io-data` → Settings → Public access → Custom domains. That hostname is
-   what `DATA_BASE` in `viz/src/charts/config.js` points at; change one and
-   change the other.
-
-4. **Set the CORS policy.** `data.jaan.io` and `jaan.io` are different origins.
-   Allowing the `Range` request header and exposing `Content-Range` is the part
-   that matters — without it DuckDB and PMTiles lose range requests and fall
-   back to pulling whole files, which is a 101 MB download on the map page.
-
-   ```json
-   [
-     {
-       "AllowedOrigins": ["https://jaan.io"],
-       "AllowedMethods": ["GET", "HEAD"],
-       "AllowedHeaders": ["range", "if-match"],
-       "ExposeHeaders": ["content-range", "content-length", "etag"],
-       "MaxAgeSeconds": 3600
-     }
-   ]
-   ```
-
-   Add the Pages preview origin too if you want the three pages working there.
-
-5. **Verify** — a range request must come back `206`, not `200`:
-
-   ```sh
-   curl -sI -r 0-99 -H "Origin: https://jaan.io" \
-     https://data.jaan.io/income-histogram-historical-new-york-area.parquet \
-     | grep -iE "^HTTP|content-range|access-control-allow-origin"
-   ```
-
-   Then open the three pages. A `200` where a `206` belongs means the charts
-   will work but download the whole file.
+- The CORS list is **origin-exact**. `https://jaan.io` is allowed; a bare
+  `http://`, a `www.` host, or any other domain gets no CORS header and the
+  charts fail. If the site is ever served from another hostname, that hostname
+  has to be added to the bucket policy or these three pages break there while
+  the other five keep working.
+- R2 is now a second thing that can be down independently of Pages. It is not
+  in the health check, and a bucket outage degrades three pages rather than the
+  site — the pages already fail visibly ("This chart could not be loaded")
+  rather than blanking.
 
 ### Also outstanding
 
-- [ ] **Confirm the New York map paints in a real browser.** Verified at the
-      network layer — the PMTiles archive answers `206` and the Protomaps style,
-      sprites and fonts all return 200 — but headless Chrome renders WebGL
-      through software GL and produces a blank canvas, so nothing automated can
-      check the last step.
-- [ ] `viz/src/charts/new-york-real-estate.js` carries a **Protomaps API key**
-      inline. It was already public in the `jaanli/jaan.li` repo this was ported
-      from, but it is published here too now. Rotate it if that matters.
+- [x] **The New York map paints in a real browser.** Confirmed by hand, which
+      is the only way: the network layer checks out automatically (the PMTiles
+      archive answers `206`, and the Protomaps style, sprites and fonts all
+      return 200) but headless Chrome renders WebGL through software GL and
+      produces a blank canvas, so nothing automated reaches the last step.
+- [x] `viz/src/charts/new-york-real-estate.js` carries a **Protomaps API key**
+      inline. **Decided: left as it is.** It was already public in the
+      `jaanli/jaan.li` repo this was ported from, so rotating it here would not
+      un-publish it, and it is scoped to basemap tiles.
 - [ ] The four Jekyll `/projects/` entries are still unported — see §1.
+      Deferred on purpose; `/projects` itself serves, so no URL breaks.
 
-### Working on all seven locally in the meantime
+### Working against local copies instead
 
 ```sh
 npm run viz:local   # copies the three datasets out of ../jaan.li, points the modules at localhost

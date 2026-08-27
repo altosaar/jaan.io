@@ -10,6 +10,7 @@ import PaletteToggle from "../components/PaletteToggle.astro"; // PALETTE TEST
 import { featured, OG_SIZE, type ShareImage } from "../lib/og";
 import { FAVICON_PICKER } from "../lib/favicon";
 import { PALETTE_RESTORE } from "../lib/palette"; // PALETTE TEST
+import { ga4Snippet } from "../lib/analytics";
 import { SITE } from "../site.config";
 
 interface Props {
@@ -183,6 +184,20 @@ const orgSchema = {
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
     {
+      /* Webmaster verification, ported from the Jekyll site. Both are emitted
+         on EVERY page and on every host, unlike the GA4 tag below: Search
+         Console and Bing verify by fetching a page and reading the tag, and
+         which page that is, is their choice — a tag present only on the home
+         page is a verification that fails the day either of them decides to
+         check a different one. They are inert markup, so there is no cost to
+         carrying them on a preview deployment. Values and the story behind the
+         malformed Google one are in site.config.ts. */
+      SITE.analytics.google && (
+        <meta name="google-site-verification" content={SITE.analytics.google} />
+      )
+    }
+    {SITE.analytics.bing && <meta name="msvalidate.01" content={SITE.analytics.bing} />}
+    {
       /* THE TAB CARRIES A DIFFERENT PORTRAIT EVERY DAY.
          public/favicons/ holds one line-drawn face per portrait; this script
          picks today's and appends the <link> itself. The reasoning — why the
@@ -216,6 +231,23 @@ const orgSchema = {
     />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    {
+      /* Marks the document as scripted, before anything paints. `html:not(.js)`
+         in base.css is what undoes the blur-up placeholder for a visitor with
+         no JavaScript — the reasoning is on that rule.
+
+         A CLASS SET BY A SCRIPT rather than a <noscript><style> here, which is
+         what this was first. prettier-plugin-astro could not parse a <style>
+         nested inside <noscript> inside <head>: it rewrote the file with a
+         stray </head> immediately after og:type and dedented everything below
+         it, so og:title, og:description, og:url, twitter:card and the canonical
+         were all emitted into the BODY, where no crawler reads them. The page
+         looked perfectly normal; `npm run audit` reported it as 12 errors and
+         137 warnings. */
+    }
+    <script is:inline>
+      document.documentElement.classList.add("js");
+    </script>
     <script is:inline set:html={FAVICON_PICKER} />
     {
       /* PALETTE TEST — reapply the visitor's chosen palette before the page
@@ -275,6 +307,21 @@ const orgSchema = {
       ))
     }
     <script type="application/ld+json" is:inline set:html={JSON.stringify(orgSchema)} />
+    {
+      /* GA4. `is:inline` for the same reason as FAVICON_PICKER and
+         PALETTE_RESTORE above — a processed module script is deferred, and this
+         has to have queued its first hit before the visitor can leave.
+
+         It requests gtag.js only on the hostnames in SITE.analytics.hosts, so
+         localhost, `npm run preview` and every *.pages.dev deployment send
+         nothing at all. src/lib/analytics.ts has the why; the summary is that
+         the weeks either side of the cutover are spent reading this property to
+         judge whether the port held its traffic, and hand-testing a preview
+         deployment would write into the same reports. */
+      SITE.analytics.ga4 && (
+        <script is:inline set:html={ga4Snippet(SITE.analytics.ga4, SITE.analytics.hosts)} />
+      )
+    }
     {/* Page-specific <head> content — e.g. join.astro's Event JSON-LD. */}
     <slot name="head" />
   </head>
