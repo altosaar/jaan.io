@@ -65,6 +65,42 @@ const { Content } = await render(page);
   </div>
 
   {
+    /* THE SAME LIST AS THE RAIL, for the screens the rail cannot serve.
+       Toc.astro hides itself below 1400px — the gutter it lives in is gone by
+       then (see the note at the bottom of that file) — which left a phone with
+       no way to reach any of these at all. This is that list stacked in the
+       flow instead: not a second set of links, the same `SITE.contact`, drawn
+       where there is room for it.
+
+       Rendered as its own markup rather than by giving Toc.astro an inline
+       mode: that component is a fixed-position rail from its first line down —
+       viewport centring, a height cap, its own scrolling — and none of it
+       survives being put in the flow. What the two share is the LINK, and a
+       link is a font, a fill and some padding, which is cheaper to restate
+       than to make configurable. The one thing that must stay in step is the
+       breakpoint: the media query below is the exact complement of the rail's,
+       so at every width exactly one of them is in the document. */
+  }
+  <nav class="contact" aria-label="Elsewhere">
+    <ul class="contact__list">
+      {
+        SITE.contact.map((link) => (
+          <li>
+            <a
+              class="contact__link"
+              href={link.href}
+              target={link.external ? "_blank" : undefined}
+              rel={link.external ? "noopener noreferrer" : undefined}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  {
     /* Below the bio, not inside it: .about is centred on the viewport and sized
        to one screen, so anything added to it would push the portrait off-centre.
        Here it is the thing you find by scrolling past the page you came for,
@@ -146,6 +182,82 @@ const { Content } = await render(page);
     /* The border lives here; PortraitBlink clips its own frames to the box.
        Square corners are deliberate site-wide — see --hover-radius. */
     border: 1px solid var(--line);
+  }
+
+  /* The stacked contact list. NOT DRAWN BY DEFAULT: above 1400px the rail in
+     the gutter is the one that shows, and two copies of the same five links on
+     one screen is a bug. The query below is the complement of Toc.astro's
+     `@media (max-width: 1400px) { display: none }` — the two breakpoints are
+     the same number written twice and have to move together, so there is a
+     pointer back here in that file. `display: none` and not `visibility` or an
+     off-screen shove, because it also takes the duplicate out of the
+     accessibility tree: at any width a screen reader finds exactly one list
+     labelled "Elsewhere". */
+  .contact {
+    display: none;
+  }
+
+  @media (max-width: 1400px) {
+    .contact {
+      display: block;
+      /* --space-block, not --space-section: the newsletter below already pays
+         a --space-section for its own top gap, and the reader should read
+         these as the tail of the bio rather than as a third section floating
+         between two. */
+      padding-top: var(--space-block);
+      padding-inline: var(--edge);
+    }
+
+    /* One column, centred. `align-items: center` and not `text-align`, so each
+       box shrink-wraps its own label and the fills come out as a centred
+       stack of five different widths — the rail's object, turned on its side.
+       Stretching them to one width would make a menu, which is a heavier thing
+       than this list is. */
+    .contact .contact__list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    /* The rail's link, restated. Same chrome face, same fill, same square
+       corners and same hover inversion as .toc__link in Toc.astro — the two
+       are the same control in two places, and if one of them changes the other
+       should. Slightly roomier padding is the one difference: this one is
+       tapped rather than pointed at, so the row is ~40px tall instead of ~28. */
+    .contact .contact__link {
+      display: inline-block;
+      font-family: var(--font-chrome);
+      font-size: 0.95rem;
+      font-weight: 400;
+      line-height: 1.35;
+      letter-spacing: 0.01em;
+      color: var(--text);
+      background: var(--surface);
+      text-decoration: none;
+      box-shadow: none;
+      padding: 0.6rem 0.9rem;
+      border-radius: var(--hover-radius);
+      transition:
+        background-color var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out);
+    }
+
+    .contact .contact__link:hover,
+    .contact .contact__link:focus-visible {
+      background: var(--accent);
+      color: var(--bg);
+      outline: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .contact .contact__link {
+        transition: none;
+      }
+    }
   }
 
   @media (min-width: 720px) {

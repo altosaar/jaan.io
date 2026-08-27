@@ -263,7 +263,15 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
 
      This threshold moved out from 1200px when the measure was widened 25% —
      a wider column is a narrower gutter, and the rail pays for it. Hidden
-     rather than reflowed inline; see the note in the report. */
+     rather than reflowed inline; see the note in the report.
+
+     ONE PAGE PICKS THE HIDDEN LIST BACK UP: /about/ draws the same
+     `SITE.contact` links as a centred stack in the flow, under `.contact` in
+     src/pages/about.astro, behind the exact complement of this query. The two
+     numbers are one number written twice — move this one and that one moves
+     with it, or /about/ shows the rail and the stack at once. Nothing else on
+     the site does this; the articles' contents rail is a scroll affordance
+     with nothing to be inside of once it is inline. */
   @media (max-width: 1400px) {
     .toc {
       display: none;

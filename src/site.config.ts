@@ -121,6 +121,11 @@ export const SITE = {
     { label: "EMAIL ME", href: "mailto:j@jaan.io" },
     { label: "GITHUB", href: "https://github.com/altosaar", external: true },
     { label: "LINKEDIN", href: "https://www.linkedin.com/in/jaanaltosaar", external: true },
+    {
+      label: "SCHOLAR",
+      href: "https://scholar.google.com/citations?user=95Q3cPQAAAAJ",
+      external: true,
+    },
     { label: "X", href: "https://x.com/thejaan", external: true },
   ] as SiteLink[],
 
