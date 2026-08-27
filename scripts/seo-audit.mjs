@@ -20,6 +20,7 @@
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, posix } from "node:path";
+import { PORTRAIT_PATH } from "../src/lib/og-card.mjs";
 
 // ---------------------------------------------------------------- config ---
 const CFG = {
@@ -654,13 +655,26 @@ for (const page of htmlFiles) {
 {
   const entries = [...ogImages];
 
-  // ── The fallback itself still resolves ────────────────────────────────────
+  // ── The fallback itself still resolves, AT ITS FIXED PATH ─────────────────
   // Checked on the home page specifically. It is the one route that must never
   // carry a picture of its own, so if its share image is not the portrait, the
   // sitewide default has broken rather than been overridden.
+  //
+  // Compared against PORTRAIT_PATH — the exact string — rather than a pattern
+  // like /portrait-open/. That is the stricter test and it is the one that
+  // matters: this used to be `/_astro/portrait-open.<hash>.jpeg`, and a pattern
+  // match happily passed every time the hash moved. A hash in an og:image is a
+  // silent break, because every preview a crawler already cached points at the
+  // old URL and starts 404ing after the next deploy while the site itself looks
+  // perfectly fine. Importing the constant means this check fails if the path
+  // is ever made variable again.
   const home = ogImages.get("index.html");
-  if (home && !/portrait-open/.test(home.url))
-    err("index.html", `og:image is not the portrait: ${home.url} — the sitewide fallback broke.`);
+  if (home && new URL(home.url).pathname !== PORTRAIT_PATH)
+    err(
+      "index.html",
+      `og:image is ${new URL(home.url).pathname}, expected the fixed ${PORTRAIT_PATH} — ` +
+        "the sitewide fallback broke, or went back to a hashed path.",
+    );
 
   // ── The pages that should differ, do ──────────────────────────────────────
   // Every chart page gets its own card. Derived from the URL rather than from a

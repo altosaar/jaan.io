@@ -51,7 +51,7 @@ import { basename, dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
-import { CARD, CARD_INK, CARD_MARK } from "../src/lib/og-card.mjs";
+import { CARD, CARD_INK, CARD_MARK, PORTRAIT_PATH, PORTRAIT_SIZE } from "../src/lib/og-card.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(root, "public", "og");
@@ -307,6 +307,34 @@ for (const name of readdirSync(postsDir).filter((f) => f.endsWith(".md"))) {
   }
   const bytes = await writeCard(join(outDir, "articles", `${slug}.png`), await articleMark(thumb));
   built.push([`articles/${slug}`, bytes]);
+}
+
+// ── The sitewide portrait ────────────────────────────────────────────────────
+// Every route without a picture or a mark of its own shares this: /about,
+// /articles, /papers, /talks, /projects, /images, the home page.
+//
+// Drawn HERE rather than by Astro's image service, so it lands at one fixed URL
+// that survives a re-export of the portrait and an upgrade of Astro — see
+// PORTRAIT_PATH in src/lib/og-card.mjs for why a hashed og:image quietly rots
+// every preview already pasted somewhere.
+//
+// `position: "attention"` is Sharp's saliency crop, which keeps the face in
+// frame when squaring a 1571 × 1600 source. `withoutEnlargement` is deliberately
+// NOT set: the tags in src/lib/og.ts declare PORTRAIT_SIZE, and a crawler that
+// lays the card out against a declared size the file does not have draws the
+// preview wrong. The source is large enough that nothing is invented.
+const portraitSrc = join(root, "src", "assets", "portrait-open.webp");
+if (!existsSync(portraitSrc)) {
+  problems.push(`portrait not found at ${portraitSrc} — every share falls back to nothing`);
+} else {
+  const dest = join(root, "public", PORTRAIT_PATH.replace(/^\//, ""));
+  await mkdir(dirname(dest), { recursive: true });
+  const buf = await sharp(portraitSrc)
+    .resize(PORTRAIT_SIZE, PORTRAIT_SIZE, { fit: "cover", position: "attention" })
+    .jpeg({ quality: 82, mozjpeg: true })
+    .toBuffer();
+  await writeFile(dest, buf);
+  built.push([PORTRAIT_PATH.replace(/^\//, "").replace(/\.jpg$/, ""), buf.length]);
 }
 
 const total = built.reduce((n, [, b]) => n + b, 0);

@@ -82,30 +82,63 @@ if (post.data.ogImage) {
   ogType="article"
   publishedTime={post.data.date.toISOString()}
 >
-  {
-    /* Before the article in DOM order so a screen reader meets the outline
-       first, and inside its own labelled <nav> landmark so anyone who does not
-       want twenty links can skip past it in one move. */
-  }
-  <Toc headings={headings} />
-
   <Prose>
     <h1>{post.data.title}</h1>
+    {
+      /* AFTER THE TITLE IN DOM ORDER, and that is the whole reason it sits
+         here rather than above <Prose> where it used to.
+
+         The rail is `position: fixed` in the left gutter (and display:none
+         below 1400px), so its position on screen has nothing to do with where
+         it appears in the document. Which means putting it first cost nothing
+         visually and cost something real to anyone not looking at the screen:
+         a skip link to #main, a screen reader entering the article, and the
+         first Tab after the header all landed on twenty section links instead
+         of on the headline. Now the first thing in the article is what the
+         article is called, and the outline is the next stop after it — which
+         is also the right place for it in the tab order.
+
+         It stays a <nav aria-label="On this page"> rather than gaining an
+         <aside> wrapper: it is a list of links, which is what <nav> is for,
+         it is already a labelled landmark that can be skipped in one move, and
+         nesting it inside a second landmark would have a screen reader
+         announce two regions for one rail. */
+    }
+    <Toc headings={headings} />
     {
       /* The dateline: under the headline, above the first paragraph, which is
          where a reader of anything already looks for it.
 
-         The YEAR alone is shown, but `datetime` carries the whole date. That
-         split is the point of the element — a person gets the resolution that
-         is useful to them (2016 places the piece; the 18th of July does not),
-         and a machine still gets the exact day for sorting, feeds and rich
-         results. Written out rather than derived from the visible text,
-         because the visible text is deliberately lossy. */
+         The YEAR alone for the original date — 2016 places the piece, the 18th
+         of July does not — while `datetime` carries the whole date, so a
+         machine still gets the exact day for sorting, feeds and rich results.
+         That split is the point of the element.
+
+         THE REVISION DATE IS SHOWN IN FULL, and that asymmetry is deliberate.
+         A year on its own answers "how old is this"; a revision answers "is
+         this still being looked after", and "updated August 2026" carries that
+         where a bare "2026" beside a bare "2016" just looks like two numbers.
+         It only appears on a post that sets `updated` — see the note on that
+         field in src/content.config.ts for why it is set by hand. */
     }
     <p class="prose-dateline">
       <time datetime={post.data.date.toISOString().slice(0, 10)}>
         {post.data.date.getUTCFullYear()}
       </time>
+      {
+        post.data.updated && (
+          <>
+            {" · updated "}
+            <time datetime={post.data.updated.toISOString().slice(0, 10)}>
+              {post.data.updated.toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
+                timeZone: "UTC",
+              })}
+            </time>
+          </>
+        )
+      }
     </p>
     <Content />
   </Prose>

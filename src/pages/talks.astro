@@ -1,0 +1,198 @@
+---
+// /talks — the invited-talk list.
+//
+// NOTE ON THE URL: this is the URL the Jekyll site served (`permalink:
+// /talks/index.html`), and it is still live today, so it is kept exactly. The
+// trailing-slash form redirects onto it through the catch-all rule at the
+// bottom of public/_redirects. The slide decks are in public/talks/ under the
+// filenames that site used, and /papers links into the same folder.
+//
+// The list is src/data/talks.ts. Same shape as every other index page here — a
+// mark, a headline, a line — and laid out like /papers rather than like
+// /articles: the mark is a SIBLING of the text column rather than sitting
+// inside the link with it.
+//
+// That is forced by the third line. Where a talk was given is a sentence full
+// of links to the institutions that hosted it, and an anchor cannot contain
+// another anchor, so it has to live outside the entry link. Left in the
+// /articles arrangement it then lands below the MARK — which is taller than a
+// title and a year — and reads as a caption floating under the entry rather
+// than as the last line of it.
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
+import IndexMark from "../components/IndexMark.astro";
+import { TALKS } from "../data/talks";
+import { getImage } from "astro:assets";
+
+// The mark box. The value /articles, /projects and /papers share.
+const MARK_SIZE = "clamp(3.25rem, 7vw, 5rem)";
+
+// As URLs rather than as <img> elements: IndexMark paints them as a mask over
+// the page's own colour, which is what lets them take the accent on hover like
+// every other mark on the site.
+const talks = await Promise.all(
+  TALKS.map(async (talk) => ({
+    ...talk,
+    mark: (await getImage({ src: talk.mark })).src,
+    inkRatio: talk.mark.width / talk.mark.height,
+  })),
+);
+---
+
+<Base
+  title="Talks"
+  description="Invited talks on variational inference and machine learning, at Imperial College London, The New York Times, Bloomberg, and NIPS — with the slides."
+>
+  <Section as="header" top="section" bottom="block">
+    <h1 class="sr-only">Talks</h1>
+  </Section>
+
+  <Section bottom="gap">
+    <ul class="talks" role="list">
+      {
+        talks.map((talk) => (
+          <li class="talk" id={talk.slug}>
+            {/* ONE LINK PER ENTRY, wrapping the mark, the headline and the year
+                — so all of it is clickable rather than being dead text beside a
+                link. Which part LIGHTS is decided by which part the pointer is
+                actually over; see the stylesheet.
+
+                It goes to the SLIDES. There is nothing else for a talk to be —
+                no paper page, no recording — and a title that is not a link to
+                the thing it names is a title you have to hunt underneath. */}
+            {/* Painted as a shape, not placed as a picture — see IndexMark.
+                Nothing announces it: the mark restates the title sitting right
+                beside it, and a mask has no alt text to get wrong. */}
+            <IndexMark size={MARK_SIZE} mask={talk.mark} inkRatio={talk.inkRatio} />
+
+            <div class="talk__body">
+              {/* The link goes to the SLIDES. There is nothing else for a talk
+                  to be — no paper page, no recording — and a title that is not
+                  a link to the thing it names is a title you have to hunt
+                  underneath. */}
+              <h2 class="talk__title">
+                <a href={`/talks/${talk.slides}`} class="talk__headline">
+                  {talk.title}
+                </a>
+              </h2>
+              <p class="talk__year">{talk.year}</p>
+              {/* OUTSIDE the link, because it contains links of its own — see
+                  the note at the top of this file. */}
+              <p class="talk__where" set:html={talk.where} />
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <Section bottom="gap">
+    <p class="talks__aside">
+      The papers behind these, with code and BibTeX, are on <a href="/papers">papers</a>.
+    </p>
+  </Section>
+
+  <NewsletterSignup />
+</Base>
+
+<style>
+  /* Three entries. Spaced like /articles rather than like /visualizations —
+     at this length the list should read as deliberate rather than as a list,
+     and there is nothing here to scroll past. */
+  .talks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: var(--reading-w);
+    display: flex;
+    flex-direction: column;
+    gap: 5rem;
+  }
+
+  /* Mark left, text right — the arrangement every index page on this site uses.
+     On the LI, because unlike /articles the link here wraps the headline only;
+     see the note at the top of this file. */
+  .talk {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(1rem, 3vw, 1.75rem);
+    /* The mark's RESTING weight, handed down. Set here rather than on the mark,
+       because these are custom properties and inherit — which is the only way a
+       page can reach into IndexMark; see the note in that file. */
+    --mark-opacity: 0.85;
+  }
+
+  .talk__body {
+    /* Without this a long unbroken title sets the flex item's minimum width and
+       pushes the row wider than the measure. */
+    min-width: 0;
+  }
+
+  /* HOVER THE HEADLINE and the mark lights with it — the same rule /papers
+     uses, and written the same way for the same reason. `:has()` on the row,
+     because the mark is a SIBLING of the title rather than a descendant, so
+     there is no link wrapping both to hang this on. The mark is decoration
+     here rather than part of the link, so it is not itself a hover target; the
+     note on the matching rule in src/pages/papers.astro has the full argument,
+     including why the selector that would do it cannot be written. */
+  .talk:has(.talk__headline:hover),
+  .talk:has(.talk__headline:focus-visible) {
+    --lit: var(--accent);
+    --mark-opacity: 1;
+    --mark-color: var(--accent);
+  }
+
+  .talk__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  /* CLASSED ON PURPOSE. base.css gives every UNCLASSED link the site's
+     inline-link treatment — a box-shadow underline, and the whole word filled
+     with the accent on hover — which is right inside a sentence and wrong on a
+     headline. The institutions in .talk__where below are sentences, so they
+     stay unclassed and keep it. */
+  .talk__headline {
+    color: var(--lit, inherit);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  /* The year, in the register /papers uses for its citations — small, muted,
+     chrome-faced. It is a fact about the entry rather than part of its name. */
+  .talk__year {
+    margin-top: 0.5rem;
+    font-family: var(--font-chrome);
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+  }
+
+  .talk__where {
+    margin-top: 0.9rem;
+    font-size: var(--fs-base);
+    line-height: 1.6;
+    color: var(--text-muted);
+    max-width: var(--reading-w-tight);
+  }
+
+  /* The links inside are left UNCLASSED, so base.css gives them the site's
+     inline-link treatment. These are institutions named mid-sentence, which is
+     exactly what that idiom is for. */
+
+  .talks__aside {
+    font-size: var(--fs-base);
+    color: var(--text-muted);
+    max-width: var(--reading-w-tight);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .talk__headline {
+      transition: none;
+    }
+  }
+</style>

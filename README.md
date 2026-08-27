@@ -33,13 +33,22 @@ the last one:
 npm run check            # astro check over src/, tsc over functions/ — strict
 npm run a11y             # contrast-check.mjs against tokens.css
 npm run audit            # seo-audit.mjs over dist/ — titles, descriptions, canonicals
+npm run limits           # check-pages-limits.mjs over dist/ — Pages' size caps
 npm run format:check
 npm run test:newsletter  # posts to a running `npm run pages:dev` — see Newsletter
+npm run test:redirects   # legacy URLs, against a running `npm run pages:dev`
 ```
 
-`test:newsletter` is the odd one out: it needs a live Functions runtime and a
-local D1, which the other four do not, so it stays out of CI and is run by hand
-before touching anything under `functions/`.
+`npm run limits` also runs as the last step of `npm run build`, so a file Pages
+will reject fails the build rather than a deploy. It is listed here because it
+is worth running on its own against a `dist/` you are about to hand over.
+
+`test:newsletter` and `test:redirects` are the odd ones out: both need a live
+`wrangler pages dev`, which the others do not, so they stay out of CI and are
+run by hand. `test:newsletter` before touching anything under `functions/`;
+`test:redirects` before a deploy, because `public/_redirects` is a Pages feature
+that `astro preview` ignores completely — every rule in it would appear to work
+locally and 404 in production.
 
 `npm run photos` re-syncs `src/assets/gallery/` from
 `~/Pictures/_jaan.io-picpicks` (see `src/data/gallery.ts`). `npm run deploy`
@@ -92,10 +101,12 @@ and brings the wordmark back, and nothing else needs touching.
 | Blog posts — **filename is the URL** | `src/content/posts/*.md`                    |
 | Long-form page content               | `src/content/pages/*.md`                    |
 | Gallery photos + alt text            | `src/data/gallery.ts`                       |
+| Papers, talks, and their BibTeX      | `src/data/papers.ts`, `talks.ts`, `bibtex/` |
 | Trailing-slash and legacy redirects  | `public/_redirects`                         |
 | Newsletter form                      | `src/components/NewsletterSignup.astro`     |
 | Newsletter endpoints + D1 bindings   | `functions/api/`, `wrangler.toml`           |
 | Share images (og:image)              | `src/lib/og.ts`, `scripts/gen-og-cards.mjs` |
+| The Atom feed                        | `src/pages/feed.xml.ts`                     |
 
 ## Share images
 
@@ -112,8 +123,17 @@ reasoning is in `src/lib/og.ts`:
    1200 × 630 by `scripts/gen-og-cards.mjs` into `public/og/` (gitignored,
    rebuilt every `npm run build`). No type on the card — the platform already
    prints the title beside it, and text would mean a font no CI runner has.
-3. **The portrait.** Every other route — `/about`, `/articles`, `/projects`,
-   `/images`, the home page — shares one square 1536² face.
+3. **The portrait.** Every other route — `/about`, `/articles`, `/papers`,
+   `/talks`, `/projects`, `/images`, the home page — shares one square 1536²
+   face, at the FIXED path `/og/portrait.jpg`.
+
+   Fixed is the whole point. It used to be an `import` handed to `getImage()`,
+   which shipped `/_astro/portrait-open.<hash>.jpeg` — and a content hash moves
+   whenever the image, the encoder settings, or Astro's naming changes. Nothing
+   breaks visibly when it does: every link already pasted into iMessage, Slack
+   or a tweet keeps pointing at the URL the crawler cached, and those go blank
+   one by one after the next deploy. `gen-og-cards.mjs` draws it alongside the
+   other cards; see `PORTRAIT_PATH` in `src/lib/og-card.mjs`.
 
 `npm run audit` is the guard. It checks each declared size against the file that
 shipped, that every chart page carries its own card, and that no generated card
@@ -349,13 +369,18 @@ Nine of the ten real articles are ported and verified. What remains:
       Useful Science and the One Fact Foundation. Their copy is in
       `jaan.io-old/_posts/projects/`. `npm run audit` flags /projects as a thin
       page at 53 words until they land.
-- [ ] **`/papers/`** — the publication list, driven by 14 entries in
-      `jaan.io-old/_papers/`. `output: false` there, so there are no
-      per-paper pages — the index links to the PDFs in §4.
+- [x] **`/papers/`** — done. 14 entries in `src/data/papers.ts`, BibTeX in
+      `src/data/bibtex/*.bib`, marks in `src/assets/papers/` (see
+      `scripts/prep-paper-marks.mjs`). `output: false` in the Jekyll tree, so
+      there are no per-paper pages and none were invented — the index links to
+      the PDFs in §4. Six links that were broken on jaan.io are fixed; they are
+      listed at the top of `src/data/papers.ts`.
 - [ ] **`/consulting/`** — one long page of prose, six bulleted engagements.
       Check with Jaan whether the copy is still current before porting it
       verbatim; it describes past availability.
-- [ ] **`/talks/`** — index over the talk PDFs in §4.
+- [x] **`/talks/`** — done. Three entries in `src/data/talks.ts`, over the talk
+      PDFs in §4. `npm run audit` flags it as a thin page at 95 words, which is
+      what a three-entry index is.
 - [ ] **`/my-friend-radicalized-this-made-me-rethink-how-i-build-AI/`** — the
       one unported article. It is `published: false` in the Jekyll tree and
       **404s on jaan.io right now**, so this is not a regression, but a live
@@ -400,10 +425,16 @@ specific belongs above the `/*/ /:splat` catch-all at the bottom of the file.
 
 ## 3. Feeds and sitemaps
 
-- [ ] **`/feed.xml`** — live and 200 today. Atom, full content, the 20 most
-      recent posts, with `<updated>` from `modified` where a post has one.
-      Nothing emits it here yet. Subscribers are invisible in analytics, so a
-      404 at this path is a silent loss.
+- [x] **`/feed.xml`** — done, at `src/pages/feed.xml.ts`. Atom, full content,
+      the 20 most recent, `<updated>` from the post's `updated` where it has
+      one. Reproduced against the feed the old site actually built, not just
+      its template: the entry `<id>`s are byte-identical to the old ones, so
+      no subscriber's reader redelivers a decade of posts. Math is converted
+      back from KaTeX to `$…$` source — the old feed carried LaTeX because
+      Jekyll rendered math in the browser, and shipping KaTeX's markup instead
+      turns the physics post into several hundred equations of gibberish in a
+      reader. Autodiscovery `<link>` is in Base.astro; the Atom content type is
+      in `public/_headers`.
 - [ ] **`/sitemap.xml`** — live and 200 today, and the path search engines
       already know. `@astrojs/sitemap` emits `sitemap-index.xml` instead, and
       `public/robots.txt` points at that. Serve or redirect the old path.
@@ -413,15 +444,41 @@ specific belongs above the `/*/ /:splat` catch-all at the bottom of the file.
 These are hotlinked from outside the site — from papers, from CVs, from other
 people's pages — so the paths are not ours to change.
 
-- [ ] **`/papers/*.pdf`** — 14 files, 19 MB. Only
-      `altosaar-2020-thesis.pdf` is here so far; the thesis is the one linked
-      externally, but the other 13 are all live.
-- [ ] **`/talks/*.pdf`** — 4 files, 41 MB. Only the food2vec slides are here.
+- [x] **`/papers/*.pdf`** — all 14 are here, at the Jekyll filenames. 19 MB.
+- [x] **`/talks/*.pdf`** — all 4 are here. **20 MB, not the 41 MB on jaan.io**;
+      see the note below.
 - [ ] **`/files/*`** — two are missing and both 200 on jaan.io today:
       `UsefulScience-press-photo.jpg` and `rankfromsets-arxiv.html`.
 
-60 MB of PDFs is worth a thought before it goes into git. If they move to R2 or
-another bucket instead, the paths still have to resolve as `jaan.io/papers/…`.
+### These stay on Pages, and one of them had to shrink
+
+Cloudflare Pages rejects any file over **25 MiB**, and the thesis slide deck was
+34.4 MiB — the only asset in the whole build past the ceiling. Nothing caught
+it: `scripts/build-visualizations.mjs` enforces the same limit but walks only
+its own output, so `npm run build` passed and the failure would have arrived at
+`wrangler pages deploy`, after the upload. `scripts/check-pages-limits.mjs` now
+walks the finished `dist/` and fails the build instead.
+
+The deck was 34 MiB because Keynote exported 94 near-uncompressed bitmaps, not
+because it contains much. It was re-encoded at 300 dpi and is now 14.6 MiB:
+
+```sh
+gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 -dPDFSETTINGS=/printer \
+   -dNOPAUSE -dQUIET -dBATCH -sOutputFile=out.pdf in.pdf
+```
+
+64 pages, same page size, `qpdf --check` clean, and indistinguishable from the
+original at a 100% crop on the image-heavy slides. **The 36 MB original is still
+in `../jaan.io-old/talks/`**, so this is reversible and nothing was thrown away.
+
+**They do NOT go to R2, and that is the distinction worth keeping.** R2 is right
+for the three chart datasets in §7: those are _data_, fetched by JS, and this
+repo chooses the URL they are fetched from. These are _documents_, hotlinked
+from other people's pages, from CVs and from the PDFs themselves — so
+`jaan.io/papers/…` is not a path this repo gets to change. Serving them from R2
+would mean either a redirect (which moves the visible URL to `data.jaan.io`) or
+a proxy Function (which spends a Workers invocation on every download), and 17
+of the 18 files have no problem that would pay for either.
 
 ## 5. Analytics and webmaster verification
 

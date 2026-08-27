@@ -68,7 +68,15 @@ try {
 // index page, /about (the shortest, and the one where the bug was unscrollable),
 // and one article. Height is what decides whether a bottom-fixed overlay covers
 // the button, so the set is chosen for page LENGTH rather than for coverage.
-const PAGES = ["/about", "/articles", "/projects", "/visualizations", "/info-overload"];
+const PAGES = [
+  "/about",
+  "/articles",
+  "/papers",
+  "/talks",
+  "/projects",
+  "/visualizations",
+  "/info-overload",
+];
 
 // 1025px is the site's own line between the two chromes (chrome.css), and it is
 // also where .palette-corner leaves the corner for the footer — so the set has

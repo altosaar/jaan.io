@@ -65,6 +65,7 @@ export const SITE = {
   nav: {
     /** Header links, shown to the right of the logo on desktop. */
     header: [
+      { label: "Papers", href: "/papers" },
       { label: "Projects", href: "/projects" },
       { label: "Images", href: "/images" },
       { label: "About", href: "/about" },
@@ -77,6 +78,8 @@ export const SITE = {
 
     /** Links inside the mobile slide-over menu. */
     mobile: [
+      { label: "Papers", href: "/papers" },
+      { label: "Talks", href: "/talks" },
       { label: "Projects", href: "/projects" },
       { label: "Images", href: "/images" },
       { label: "About", href: "/about" },
@@ -91,6 +94,8 @@ export const SITE = {
     footer: [
       [
         { label: "Articles", href: "/articles" },
+        { label: "Papers", href: "/papers" },
+        { label: "Talks", href: "/talks" },
         { label: "Projects", href: "/projects" },
         { label: "Images", href: "/images" },
         { label: "About", href: "/about" },
@@ -114,6 +119,15 @@ export const SITE = {
     { label: "LINKEDIN", href: "https://www.linkedin.com/in/jaanaltosaar", external: true },
     { label: "X", href: "https://x.com/thejaan", external: true },
   ] as SiteLink[],
+
+  /**
+   * The X / Twitter handle, with the @, or null for none.
+   *
+   * Emitted as twitter:site and twitter:creator (src/layouts/Base.astro), which
+   * is what puts a "More from @thejaan" byline on a shared card. It is the
+   * handle rather than a URL because that is the format those two tags take.
+   */
+  twitter: "@thejaan" as string | null,
 
   // ── Social & contact ───────────────────────────────────────────────────────
   // Rendered as the footer's second column. Overlaps `sameAs` below on purpose:

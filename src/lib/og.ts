@@ -1,5 +1,4 @@
-import portrait from "../assets/portrait-open.webp";
-import { CARD, cardPath } from "./og-card.mjs";
+import { CARD, cardPath, PORTRAIT_PATH, PORTRAIT_SIZE } from "./og-card.mjs";
 
 // Social share images (Open Graph / Twitter) for iMessage, WhatsApp, Slack, etc.
 //
@@ -23,11 +22,15 @@ import { CARD, cardPath } from "./og-card.mjs";
 // frame specifically: it is the resting frame of the home page's two-frame
 // portrait, so a shared link previews as the face the page settles on.
 //
-// Base.astro renders it through Sharp at OG_SIZE using `fit: "cover"` and
-// `position: "attention"` (Sharp's saliency crop, which keeps the face in frame
-// when squaring a non-square source).
+// It is drawn by scripts/gen-og-cards.mjs, alongside the generated cards, and
+// NOT by Astro's image service. That is a deliberate move: an imported asset
+// handed to `getImage()` ships as /_astro/portrait-open.<hash>.jpeg, and a
+// content hash in an og:image URL means every preview already cached by a
+// crawler — in a thread, a DM, a tweet — starts 404ing the next time the image
+// or the encoder settings change. PORTRAIT_PATH is fixed. The reasoning is
+// written out in full beside it in og-card.mjs.
 export const featured = {
-  image: portrait,
+  src: PORTRAIT_PATH,
   title: "Jaan Altosaar Li",
   // Used verbatim as <meta property="og:image:alt">.
   alt: "Jaan Altosaar Li, smiling in a floral shirt against blurred greenery.",
@@ -54,7 +57,10 @@ export const featured = {
  * this can go up with it; there is headroom, since the largest thing any
  * platform stores is around 2048px.
  */
-export const OG_SIZE = 1536;
+// Re-exported from og-card.mjs so the script that DRAWS the portrait and the
+// tags that DESCRIBE it cannot disagree about its size — the same bargain
+// CARD already makes for the generated cards.
+export const OG_SIZE = PORTRAIT_SIZE;
 
 /**
  * JPEG quality for the share images Astro renders — the portrait, and the five

@@ -168,7 +168,23 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
     z-index: 40;
   }
 
-  .toc__list {
+  /* ── EVERY RULE BELOW IS NESTED UNDER .toc, AND THAT IS LOAD-BEARING ──────
+     The rail is rendered INSIDE <Prose> on a post (src/pages/[slug].astro), so
+     that the article's title comes first in the document. Prose styles rendered
+     Markdown with :global() — `.prose :global(ol)` sets a margin and an indent,
+     and `.prose :global(li)` sets `font-size: var(--fs-body)`, which is 1.5rem.
+     Those select this rail's own <ol> and <li> too.
+
+     Written flat as `.toc__item`, this file's rules and Prose's would both come
+     out at (0,2,0) once Astro adds its scope attribute — a tie, decided by
+     whichever stylesheet the bundler happened to emit second. The rail rendered
+     correctly or at 1.5rem depending on build order, which is not a thing to
+     leave to chance. Nesting under `.toc` makes them (0,3,0) and settles it.
+
+     Prose is not the one to change here: its job is to style whatever Markdown
+     it is handed, and a component dropped inside it defending its own type
+     scale is the smaller and more local rule. */
+  .toc .toc__list {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -183,15 +199,15 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
      list. The number is levels below the post's own top heading, not the tag
      depth — see `top` above — and it stops at two because maxDepth lists three
      levels and anything deeper would be indenting past the tag's own text. */
-  .toc__item--sub1 {
+  .toc .toc__item--sub1 {
     padding-left: 0.75rem;
   }
 
-  .toc__item--sub2 {
+  .toc .toc__item--sub2 {
     padding-left: 1.5rem;
   }
 
-  .toc__link {
+  .toc .toc__link {
     display: inline-block;
     /* Navigation, so it takes the chrome voice rather than the content face —
        see the role tokens in tokens.css. */
@@ -215,8 +231,8 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
       color var(--dur-fast) var(--ease-out);
   }
 
-  .toc__link:hover,
-  .toc__link:focus-visible {
+  .toc .toc__link:hover,
+  .toc .toc__link:focus-visible {
     background: var(--accent);
     color: var(--bg);
     outline: none;
@@ -226,14 +242,14 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
      uses, so "current" reads at a glance down a column of grey. Both pairs are
      covered by npm run a11y: --text on --surface is 11.23:1, --bg on
      --btn-light is 16.21:1. */
-  .toc__link.is-current {
+  .toc .toc__link.is-current {
     background: var(--btn-light);
     color: var(--bg);
   }
 
   /* Hover still wins over current, so pointing at another section previews it. */
-  .toc__link.is-current:hover,
-  .toc__link.is-current:focus-visible {
+  .toc .toc__link.is-current:hover,
+  .toc .toc__link.is-current:focus-visible {
     background: var(--accent);
     color: var(--bg);
   }
@@ -257,7 +273,7 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
   /* The rail is a scroll-following affordance; honouring reduced-motion here
      means not animating the fill as it moves between items. */
   @media (prefers-reduced-motion: reduce) {
-    .toc__link {
+    .toc .toc__link {
       transition: none;
     }
   }

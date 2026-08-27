@@ -45,6 +45,23 @@ const posts = defineCollection({
         // own headline (src/pages/[slug].astro). The full date rides along in the
         // <time datetime> attribute, so machines still get the day.
         date: z.coerce.date(),
+        // When the post was last MEANINGFULLY revised — a correction, a new
+        // section, a rewritten passage. Optional, and deliberately not derived
+        // from git or from the file's mtime.
+        //
+        // Not derived, because every one of these files has been touched in
+        // 2026 by the port: share images added, marks wired up, SEO warnings
+        // cleared. None of that is something a reader would find if they came
+        // back. A date stamped from mtime would say "there is something new
+        // here" on nine posts and be telling the truth about two, which is a
+        // worse signal than no date at all — the point of showing it is that it
+        // can be trusted.
+        //
+        // So it is set by hand, and only when a reader would notice. It is
+        // shown beside the year on the post (src/pages/[slug].astro) and
+        // becomes <updated> in the Atom feed (src/pages/feed.xml.ts), which is
+        // what tells a feed reader to resurface the piece.
+        updated: z.coerce.date().optional(),
         // The little line-art mark beside the post in the /articles list, carried
         // over from the Jekyll site's `image.thumb`. Optional: a post without one
         // simply lists without a mark (see articles.astro), which is better than

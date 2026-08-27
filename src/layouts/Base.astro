@@ -7,8 +7,7 @@ import SiteHeader from "../components/SiteHeader.astro";
 import MobileMenu from "../components/MobileMenu.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import PaletteToggle from "../components/PaletteToggle.astro"; // PALETTE TEST
-import { getImage } from "astro:assets";
-import { featured, OG_SIZE, OG_QUALITY, type ShareImage } from "../lib/og";
+import { featured, OG_SIZE, type ShareImage } from "../lib/og";
 import { FAVICON_PICKER } from "../lib/favicon";
 import { PALETTE_RESTORE } from "../lib/palette"; // PALETTE TEST
 import { SITE } from "../site.config";
@@ -119,30 +118,18 @@ const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
 // fallback is a face, and astro.config.mjs for the encoder settings behind
 // `format: "jpeg"`.
 //
-// The portrait is rendered ONLY when it is actually needed. getImage() registers
-// a transform with the build, so calling it unconditionally would emit the 1536²
-// JPEG even on a build where no page fell back to it.
-let shareImage: ShareImage;
-if (share) {
-  shareImage = share;
-} else {
-  const rendered = await getImage({
-    src: featured.image,
-    width: OG_SIZE,
-    height: OG_SIZE,
-    fit: "cover",
-    position: "attention",
-    format: "jpeg",
-    quality: OG_QUALITY,
-  });
-  shareImage = {
-    src: rendered.src,
-    width: OG_SIZE,
-    height: OG_SIZE,
-    type: "image/jpeg",
-    alt: featured.alt,
-  };
-}
+// The portrait is no longer rendered here at all. It is drawn once by
+// scripts/gen-og-cards.mjs into public/og/portrait.jpg — a FIXED path — because
+// the hashed /_astro/ URL that getImage() produced moves whenever the image or
+// the encoder settings change, and every preview a crawler had already cached
+// against the old URL goes blank. See PORTRAIT_PATH in src/lib/og-card.mjs.
+const shareImage: ShareImage = share ?? {
+  src: featured.src,
+  width: OG_SIZE,
+  height: OG_SIZE,
+  type: "image/jpeg",
+  alt: featured.alt,
+};
 
 // Absolute, because a crawler that finds og:image is often not the browser that
 // loaded the page and cannot resolve a relative path against it. Facebook and
@@ -215,6 +202,18 @@ const orgSchema = {
         competing <link rel="icon"> by document order then land on the SVG, and
         a browser old enough to ignore it falls back to this PNG. */
     }
+    {
+      /* Feed autodiscovery. This is how a reader finds the feed when someone
+         pastes the site's URL into it rather than the feed's, and it is the
+         only thing on the page that points at /feed.xml — the path itself is
+         inherited from the Jekyll site and load-bearing. See feed.xml.ts. */
+    }
+    <link
+      rel="alternate"
+      type="application/atom+xml"
+      title={`${SITE.name} — articles`}
+      href="/feed.xml"
+    />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <script is:inline set:html={FAVICON_PICKER} />
@@ -257,6 +256,19 @@ const orgSchema = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={shareImageUrl} />
     <meta name="twitter:image:alt" content={shareImage.alt} />
+    {
+      /* Attribution on X: the card gets a "More from @thejaan" byline linking
+         the account. `twitter:site` is for the publishing organisation and
+         `twitter:creator` for the author; on a personal site those are the same
+         person, and X reads creator for the byline. Null in site.config.ts
+         removes both, which is the switch rather than deleting this block. */
+      SITE.twitter && (
+        <>
+          <meta name="twitter:site" content={SITE.twitter} />
+          <meta name="twitter:creator" content={SITE.twitter} />
+        </>
+      )
+    }
     {
       SITE.fonts.map((href) => (
         <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
