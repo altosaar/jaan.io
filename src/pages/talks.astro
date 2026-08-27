@@ -9,13 +9,13 @@
 //
 // The list is src/data/talks.ts. Same shape as every other index page here — a
 // mark, a headline, a line — and laid out like /papers rather than like
-// /articles: the mark is a SIBLING of the text column rather than sitting
+// /writing: the mark is a SIBLING of the text column rather than sitting
 // inside the link with it.
 //
 // That is forced by the third line. Where a talk was given is a sentence full
 // of links to the institutions that hosted it, and an anchor cannot contain
 // another anchor, so it has to live outside the entry link. Left in the
-// /articles arrangement it then lands below the MARK — which is taller than a
+// /writing arrangement it then lands below the MARK — which is taller than a
 // title and a year — and reads as a caption floating under the entry rather
 // than as the last line of it.
 import Base from "../layouts/Base.astro";
@@ -25,7 +25,7 @@ import IndexMark from "../components/IndexMark.astro";
 import { TALKS } from "../data/talks";
 import { getImage } from "astro:assets";
 
-// The mark box. The value /articles, /projects and /papers share.
+// The mark box. The value /writing, /projects and /papers share.
 const MARK_SIZE = "clamp(3.25rem, 7vw, 5rem)";
 
 // As URLs rather than as <img> elements: IndexMark paints them as a mask over
@@ -97,7 +97,7 @@ const talks = await Promise.all(
 </Base>
 
 <style>
-  /* Three entries. Spaced like /articles rather than like /visualizations —
+  /* Three entries. Spaced like /writing rather than like /visualizations —
      at this length the list should read as deliberate rather than as a list,
      and there is nothing here to scroll past. */
   .talks {
@@ -111,7 +111,7 @@ const talks = await Promise.all(
   }
 
   /* Mark left, text right — the arrangement every index page on this site uses.
-     On the LI, because unlike /articles the link here wraps the headline only;
+     On the LI, because unlike /writing the link here wraps the headline only;
      see the note at the top of this file. */
   .talk {
     display: flex;

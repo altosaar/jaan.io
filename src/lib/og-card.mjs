@@ -31,7 +31,7 @@ export const CARD = { width: 1200, height: 630 };
  * link goes to. The marks themselves carry no colour of their own: the
  * visualization SVGs are drawn entirely in `currentColor`, and the article
  * thumbs are black line art the site renders with `filter: invert(1)`
- * (see .article__mark in src/pages/articles.astro) — so both have to be told
+ * (see .article__mark in src/pages/writing.astro) — so both have to be told
  * what colour to be, and this is where they are told.
  */
 export const CARD_INK = { bg: "#000000", fg: "#e2e2e2" };

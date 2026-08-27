@@ -222,7 +222,7 @@ main {
 
    The column is sized to --reading-w rather than the wider --main-max-w so it
    IS the measure. Cap it at 900px instead and the blocks that set their own
-   max-width (Prose, the /articles/ list) would sit at the left of a wider
+   max-width (Prose, the /writing/ list) would sit at the left of a wider
    column — centred column, off-centre text — while the uncapped headings above
    them filled it. One width for both is what keeps every page on a single left
    edge, which is also why those blocks now derive their cap from --reading-w

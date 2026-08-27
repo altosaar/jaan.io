@@ -1,5 +1,5 @@
 ---
-// The box every index-list mark is drawn inside — /articles, /projects,
+// The box every index-list mark is drawn inside — /writing, /projects,
 // /visualizations.
 //
 // WHAT IT IS FOR. Those three pages are the same page in three flavours: a mark
@@ -35,12 +35,12 @@
 // WHAT IT CANNOT DO is make two marks look the same SIZE, only occupy the same
 // box — a drawing with empty margin baked into its own frame contains to its
 // margin and reads small. That is why src/assets/thumbs/* are trimmed to their
-// ink (they were not, and the marks on /articles ranged from 27% to 65% of
+// ink (they were not, and the marks on /writing ranged from 27% to 65% of
 // their box); a new thumb has to be trimmed the same way. See the note on
 // `thumb` in src/content.config.ts.
 interface Props {
   /**
-   * The box's width, as any CSS length. The pages set their own — /articles and
+   * The box's width, as any CSS length. The pages set their own — /writing and
    * /projects share one so the two lists line up with each other; the chart
    * index runs larger because its marks carry more detail.
    */

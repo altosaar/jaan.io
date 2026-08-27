@@ -10,7 +10,7 @@
 //
 // The list is src/data/papers.ts; the BibTeX is src/data/bibtex/*.bib.
 //
-// Same shape as /articles and /visualizations — a mark on the left, a headline
+// Same shape as /writing and /visualizations — a mark on the left, a headline
 // and a line of description on the right — because it is the same kind of page.
 // It carries more per entry than either: a citation, sometimes a note about
 // press or invited talks, and up to seven places to go. See the stylesheet for
@@ -36,7 +36,7 @@ const BIBTEX = import.meta.glob<string>("../data/bibtex/*.bib", {
   eager: true,
 });
 
-// The mark box. Deliberately the same value /articles and /projects share, so
+// The mark box. Deliberately the same value /writing and /projects share, so
 // all three index pages line up with each other and not just with themselves.
 const MARK_SIZE = "clamp(3.25rem, 7vw, 5rem)";
 
@@ -227,7 +227,7 @@ const papers = await Promise.all(
 </script>
 
 <style>
-  /* Wider apart than /visualizations' 3.5rem and closer than /articles' 6.75rem.
+  /* Wider apart than /visualizations' 3.5rem and closer than /writing' 6.75rem.
      Fourteen entries would be a page you scroll at the article spacing, but
      each of these is four or five stacked parts rather than two, so it needs
      more air between entries than a chart index does to keep the citation under
@@ -242,7 +242,7 @@ const papers = await Promise.all(
     gap: 4.5rem;
   }
 
-  /* Mark on the left, everything else on the right — the arrangement /articles
+  /* Mark on the left, everything else on the right — the arrangement /writing
      and /visualizations use, so the index pages read as the same kind of page.
      On the LI rather than on a link, because unlike those two this entry cannot
      be one link: it has seven. */
@@ -272,7 +272,7 @@ const papers = await Promise.all(
      a descendant — there is no link wrapping both to hang this on.
 
      THE MARK IS NOT ITSELF A HOVER TARGET, which is the other departure. On
-     /articles and /visualizations the drawing lights because it is inside the
+     /writing and /visualizations the drawing lights because it is inside the
      link and clicking it goes somewhere; here it is decoration beside a title,
      and lighting it under the pointer would promise a click that does nothing.
      (It also cannot be written: `.paper:has(:global(.index-mark):hover)` is not

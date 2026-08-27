@@ -91,7 +91,7 @@ import NotOnSpotifyIcon from "../assets/projects/notonspotify.svg";
 //
 // Imported as an IMAGE, not as a component like the two above — it is raster,
 // so it goes through Astro's pipeline and reaches IndexMark as a `mask` URL.
-// Same route the /articles thumbs take; see the note there.
+// Same route the /writing thumbs take; see the note there.
 import RaccoonMark from "../assets/projects/trash-club-raccoon.png";
 
 export interface Project {
@@ -110,7 +110,7 @@ export interface Project {
    * The project's own mark, imported from src/assets/projects/*.svg.
    *
    * Optional. An entry without one — and without `vizMark` below — lists
-   * without a mark, the way a post without a thumb does on /articles. Better
+   * without a mark, the way a post without a thumb does on /writing. Better
    * than blocking a listing on redrawing someone else's logo.
    */
   icon?: SvgComponent;

@@ -133,7 +133,7 @@ reasoning is in `src/lib/og.ts`:
    1200 × 630 by `scripts/gen-og-cards.mjs` into `public/og/` (gitignored,
    rebuilt every `npm run build`). No type on the card — the platform already
    prints the title beside it, and text would mean a font no CI runner has.
-3. **The portrait.** Every other route — `/about`, `/articles`, `/papers`,
+3. **The portrait.** Every other route — `/about`, `/writing`, `/papers`,
    `/talks`, `/projects`, `/images`, the home page — shares one square 1536²
    face, at the FIXED path `/og/portrait.jpg`.
 
@@ -158,7 +158,7 @@ unsubscribe from. What exists is the smallest thing that can start a list
 without losing the addresses that arrive before there is anything to send them.
 
 ```
-the form (src/components/NewsletterSignup.astro, on /about and /articles)
+the form (src/components/NewsletterSignup.astro, on /about and /writing)
   │  POST /api/subscribe — same origin, JSON
   ▼
 functions/api/subscribe.ts — honeypot → normalise + validate → verify the
@@ -419,7 +419,7 @@ the rollback path and have not been deleted.
 Nine of the ten real articles are ported and verified. What remains:
 
 - [x] **`/blog/`** — done, and the question it asked is answered: BOTH forms
-      301 to `/articles`, each in a single hop, so `/blog` keeps working as an
+      301 to `/writing`, each in a single hop, so `/blog` keeps working as an
       address without existing as a second page. See §2.
 - [ ] **`/projects/`** — **deferred, deliberately, and NOT a cutover blocker.**
       The index exists and carries one entry, Visualizations (see §7); the URL
@@ -471,8 +471,11 @@ Everything added here sits above it, and every rule is listed in **both** its
 slashed and slash-less form so that an inbound link is one hop from wherever it
 points rather than two through the catch-all.
 
-- [x] `/blog/` → `/articles` (301). Both forms, each a single hop. The index
-      URL is the one that changes in this port; the post URLs do not.
+- [x] `/blog/` → `/writing` (301), and `/articles` → `/writing` beside it.
+      Both forms of each, one hop apiece: the index is the one URL this port
+      changes, and it has now changed twice (/blog/ → /articles → /writing), so
+      every old name points at the CURRENT one rather than at the name before
+      it. The post URLs do not change and never have.
 - [x] `/variational-autoencoder-perspectives.md/` → the VAE tutorial — a
       `.md.bak` file Jekyll published by accident, not a page.
 - [x] **The VAE tutorial's two earlier names, and the two-hop chain collapsed.**

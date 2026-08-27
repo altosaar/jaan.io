@@ -7,8 +7,8 @@
 // the set that lives on this site — the visualizations — plus the first of the
 // external ones.
 //
-// The list itself is src/data/projects.ts. Same treatment as /articles: mark,
-// headline, one line. See src/pages/articles.astro for why the entries are
+// The list itself is src/data/projects.ts. Same treatment as /writing: mark,
+// headline, one line. See src/pages/writing.astro for why the entries are
 // spaced the way they are.
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -39,7 +39,7 @@ import { VISUALIZATIONS } from "../data/visualizations";
 // which reads the same directory.
 const thumbDir = join(process.cwd(), "public", "visualizations", "thumbs");
 
-// The mark box. Deliberately the same value /articles uses, so the two index
+// The mark box. Deliberately the same value /writing uses, so the two index
 // pages line up with each other and not just with themselves.
 const MARK_SIZE = "clamp(3.25rem, 7vw, 5rem)";
 
@@ -70,7 +70,7 @@ const projects = await Promise.all(
     // a mask over the page's own colour, which is what lets it take the accent
     // on hover like every other mark here. getImage() rather than the raw
     // `.src`, so it still goes through Astro's pipeline and lands in _astro/
-    // hashed. No width asked for, for the same reason /articles asks for none —
+    // hashed. No width asked for, for the same reason /writing asks for none —
     // the file is trimmed to its ink and already finer than this box can show.
     const maskSrc = project.maskMark ? (await getImage({ src: project.maskMark })).src : null;
 
@@ -131,7 +131,7 @@ const projects = await Promise.all(
                   </IndexMark>
                 ) : maskSrc ? (
                   /* Painted as a shape, not placed as a picture — the same route
-                   the /articles thumbs take, and for the same two reasons: it
+                   the /writing thumbs take, and for the same two reasons: it
                    takes the page's colour and lights with the row, and a mask
                    has no alt text to get wrong. The headline is right beside
                    it. */
@@ -198,7 +198,7 @@ const projects = await Promise.all(
     gap: 4rem;
   }
 
-  /* Mark left, text right — the arrangement /articles and /visualizations both
+  /* Mark left, text right — the arrangement /writing and /visualizations both
      use, so the three index pages read as the same kind of page. An entry
      without a mark simply starts at the left edge; the column is not reserved,
      because an empty box beside a headline reads as a picture that failed to

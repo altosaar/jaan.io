@@ -22,19 +22,32 @@
 /variational-autoencoder-perspectives.md/ /what-is-variational-autoencoder-vae-tutorial 301
 /variational-autoencoder-perspectives.md /what-is-variational-autoencoder-vae-tutorial 301
 
-# ── /blog/ → /articles ──────────────────────────────────────────────────────
-# The article index is the ONE url this port changes. jaan.io has served the
-# list at /blog/ since 2013 and this site calls it /articles — the name the nav
-# uses, and the one the posts' own `category: articles` frontmatter already
-# said. The individual POST urls are unchanged and must stay that way; only the
+# ── /blog/ and /articles → /writing ─────────────────────────────────────────
+# The writing index is the ONE url this port changes, and it has now been
+# through three names. jaan.io served the list at /blog/ from 2013; this port
+# opened at /articles; it is /writing today, which is what the nav calls it.
+# The individual POST urls have never moved and must stay that way; only the
 # index moves, so only the index redirects.
 #
-# Both forms are listed rather than letting the slashed one fall through to the
-# catch-all at the bottom. That would work, but as TWO hops — /blog/ → /blog →
-# /articles — and a redirect chain costs a round trip and leaks ranking signal
-# at every link. One hop from wherever the link points.
-/blog/ /articles 301
-/blog /articles 301
+# EVERY OLD NAME POINTS AT THE CURRENT ONE, never at the name before it. The
+# tempting version of this — leave /blog → /articles alone and add /articles →
+# /writing — is a two-hop chain for the oldest and most-linked form, which is
+# the exact mistake the VAE tutorial's rules further down were written to
+# collapse. A hop costs a round trip and leaks ranking signal at every link.
+#
+# Both slashed and unslashed forms are listed for the same reason: letting the
+# slashed one fall through to the catch-all at the bottom would work, but as
+# two hops (/blog/ → /blog → /writing). One hop from wherever the link points.
+#
+# /articles is the younger of the two and carries far less: it has only existed
+# since this port, so what it is protecting is the nav of a page someone
+# bookmarked, a link posted in the meantime, and whatever a crawler picked up
+# in that window — worth one line each all the same, since a 404 is the one
+# outcome that cannot be repaired later.
+/blog/ /writing 301
+/blog /writing 301
+/articles/ /writing 301
+/articles /writing 301
 
 # ── notonspotify ────────────────────────────────────────────────────────────
 # A clock that tells track time, for music that isn't on Spotify. It lives in

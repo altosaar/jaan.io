@@ -11,7 +11,7 @@ import { CARD, cardPath, PORTRAIT_PATH, PORTRAIT_SIZE } from "./og-card.mjs";
 //      visualization has a generated SVG mark; scripts/gen-og-cards.mjs draws
 //      each one large on the site's own black and writes public/og/**.png, so a
 //      link to a specific piece previews as that piece rather than as the site.
-//   3. The portrait below. Everything else — /about, /articles, /projects,
+//   3. The portrait below. Everything else — /about, /writing, /projects,
 //      /images, the home page — shares one face.
 //
 // The upstream template picked the sitewide image from the photo gallery. On a

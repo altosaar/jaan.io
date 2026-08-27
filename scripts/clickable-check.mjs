@@ -70,7 +70,7 @@ try {
 // the button, so the set is chosen for page LENGTH rather than for coverage.
 const PAGES = [
   "/about",
-  "/articles",
+  "/writing",
   "/papers",
   "/talks",
   "/projects",

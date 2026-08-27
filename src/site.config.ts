@@ -78,7 +78,7 @@ export const SITE = {
      * The single emphasized header link, rendered as a button (.nav-btn in
      * src/styles/chrome.css, accent-filled by default).
      */
-    headerCta: { label: "Articles", href: "/articles" } as SiteLink | null,
+    headerCta: { label: "Writing", href: "/writing" } as SiteLink | null,
 
     /** Links inside the mobile slide-over menu. */
     mobile: [
@@ -90,14 +90,14 @@ export const SITE = {
     ] as SiteLink[],
     /** The mobile menu's two call-to-action buttons. First is primary. */
     mobileCtas: [
-      { label: "Articles", href: "/articles" },
+      { label: "Writing", href: "/writing" },
       { label: "Get in touch", href: "mailto:j@jaan.io" },
     ] as SiteLink[],
 
     /** Footer link columns. Add or remove a column by adding or removing an array. */
     footer: [
       [
-        { label: "Articles", href: "/articles" },
+        { label: "Writing", href: "/writing" },
         { label: "Papers", href: "/papers" },
         { label: "Talks", href: "/talks" },
         { label: "Projects", href: "/projects" },

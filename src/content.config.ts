@@ -41,7 +41,7 @@ const posts = defineCollection({
         // Original publication date. Preserved from the Jekyll `_posts/` filename
         // so the feed and any future archive keep their historical order.
         //
-        // Orders /articles, and is printed as a bare YEAR under each article's
+        // Orders /writing, and is printed as a bare YEAR under each article's
         // own headline (src/pages/[slug].astro). The full date rides along in the
         // <time datetime> attribute, so machines still get the day.
         date: z.coerce.date(),
@@ -62,16 +62,16 @@ const posts = defineCollection({
         // becomes <updated> in the Atom feed (src/pages/feed.xml.ts), which is
         // what tells a feed reader to resurface the piece.
         updated: z.coerce.date().optional(),
-        // The little line-art mark beside the post in the /articles list, carried
+        // The little line-art mark beside the post in the /writing list, carried
         // over from the Jekyll site's `image.thumb`. Optional: a post without one
-        // simply lists without a mark (see articles.astro), which is better than
+        // simply lists without a mark (see writing.astro), which is better than
         // blocking a new post on commissioning an icon.
         //
         // TRIM IT TO ITS INK BEFORE COMMITTING IT. Every mark on the site is
         // drawn inside a fixed box (src/components/IndexMark.astro) and scaled to
         // fit, so any transparent margin left in the file is margin INSIDE that
         // box, and the mark reads small next to one that has none. The set these
-        // arrived as ran from 27% to 65% of its own frame and the /articles
+        // arrived as ran from 27% to 65% of its own frame and the /writing
         // column looked accordingly ragged. Nothing checks this, because it is a
         // property of the artwork rather than of the markup:
         //

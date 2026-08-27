@@ -27,7 +27,7 @@
  *   public/og/articles/<slug>.png          from each post's `thumb`, the line
  *       icons carried over from the Jekyll blog index. They are BLACK art on
  *       transparency — the site renders them with `filter: invert(1)`
- *       (.article__mark in src/pages/articles.astro) — so the card inverts them
+ *       (.article__mark in src/pages/writing.astro) — so the card inverts them
  *       the same way rather than compositing black on black.
  *
  * Keyed by POST SLUG, not by thumb filename: a post's frontmatter names its
@@ -202,7 +202,7 @@ async function vizMark(file) {
  * THEN INVERT AND TINT IN ONE STEP. `linear(a, b)` applies `a × input + b` per
  * channel, so a NEGATIVE slope inverts and rescales at once: black ink lands on
  * the ink colour, white lands on the card's black. That is `filter: invert(1)`
- * — what .article__mark in src/pages/articles.astro does to show these on a
+ * — what .article__mark in src/pages/writing.astro does to show these on a
  * dark page — with the ink brought down to --text in the same pass.
  *
  * It has to be one operation rather than `negate()` then `linear()`, and this
@@ -311,7 +311,7 @@ for (const name of readdirSync(postsDir).filter((f) => f.endsWith(".md"))) {
 
 // ── The sitewide portrait ────────────────────────────────────────────────────
 // Every route without a picture or a mark of its own shares this: /about,
-// /articles, /papers, /talks, /projects, /images, the home page.
+// /writing, /papers, /talks, /projects, /images, the home page.
 //
 // Drawn HERE rather than by Astro's image service, so it lands at one fixed URL
 // that survives a re-export of the portrait and an upgrade of Astro — see

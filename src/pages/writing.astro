@@ -1,11 +1,16 @@
 ---
-// /articles/ — the index of blog posts, newest first.
+// /writing/ — the index of blog posts, newest first.
 //
-// NOTE ON THE URL: the Jekyll site's index lived at /blog/ and is still live
-// today. This page is at /articles/ because that is what the nav calls it (and
-// it matches the posts' own `category: articles` in the old frontmatter), so
-// /blog/ needs a 301 → /articles/ before any DNS cutover. See the plan's
-// Phase 4. The individual POST urls are unchanged and must stay that way.
+// NOTE ON THE URL, WHICH HAS NOW MOVED TWICE. The Jekyll site's index lived at
+// /blog/ and is still live today; this port first called it /articles, and it
+// is now /writing — the name the nav uses. Two old names to keep alive, and
+// public/_redirects sends BOTH straight here in a single hop rather than
+// chaining /blog → /articles → /writing. The individual POST urls have never
+// moved and must stay that way; only the index does.
+//
+// The word "article" survives inside this file, in the class names and in the
+// `posts` collection: what the list is called and what the things in it are
+// called are two different questions, and the entries are still articles.
 import Base from "../layouts/Base.astro";
 import Section from "../components/Section.astro";
 import NewsletterSignup from "../components/NewsletterSignup.astro";
@@ -36,11 +41,11 @@ for (const post of posts) {
 ---
 
 <Base
-  title="Articles"
+  title="Writing"
   description="Long-form writing on machine learning, variational inference, physics, and the incentives behind the technology industry."
 >
   <Section as="header" top="section" bottom="block">
-    <h1 class="sr-only">Articles</h1>
+    <h1 class="sr-only">Writing</h1>
     <!-- <p class="articles-intro">
       Long-form writing, mostly on machine learning and physics. Older pieces are kept at their
       original URLs.

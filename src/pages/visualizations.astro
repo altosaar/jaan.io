@@ -41,7 +41,7 @@ const built = existsSync(thumbDir);
 if (!built) {
   console.warn(`[visualizations] no marks at ${thumbDir} — run \`npm run viz\``);
 }
-// The mark box. Larger than the one /articles and /projects share — these marks
+// The mark box. Larger than the one /writing and /projects share — these marks
 // are whole charts rather than single glyphs, and carry correspondingly more to
 // read — and 8:5 rather than square, because every one of them is emitted by the
 // loaders in viz/src/thumbs at exactly 128 x 80. They are already identical to
@@ -136,7 +136,7 @@ const marks = new Map(
     max-width: var(--reading-w-tight);
   }
 
-  /* Tighter than /articles' 6.75rem: eight entries rather than nine short ones,
+  /* Tighter than /writing' 6.75rem: eight entries rather than nine short ones,
      so the same spacing would turn a list you scan into a page you scroll. */
   .viz-index {
     list-style: none;
@@ -148,7 +148,7 @@ const marks = new Map(
     gap: 3.5rem;
   }
 
-  /* Mark left, text right — the arrangement /articles uses for its post marks,
+  /* Mark left, text right — the arrangement /writing uses for its post marks,
      so the two index pages read as the same kind of page. On the LINK, because
      the link is the whole entry now. */
   .viz-index__link {

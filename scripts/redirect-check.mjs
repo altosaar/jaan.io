@@ -67,16 +67,21 @@ const CASES = [
     to: "/virtual-thesis-defense-recording-zoom-presentation",
   },
 
-  // The article index — the one URL this port changes. Both forms, each in a
-  // single hop; the slashed one must not go via /blog.
-  { from: "/blog/", to: "/articles" },
-  { from: "/blog", to: "/articles" },
+  // The writing index — the one URL this port changes, and the one that has now
+  // changed twice: /blog/ (2013–) → /articles (this port) → /writing. All four
+  // forms in a SINGLE hop each, which is the whole point of listing them: the
+  // slashed ones must not go via their unslashed twin, and neither old name may
+  // go via the other. A chain here is the regression this case exists to catch.
+  { from: "/blog/", to: "/writing" },
+  { from: "/blog", to: "/writing" },
+  { from: "/articles/", to: "/writing" },
+  { from: "/articles", to: "/writing" },
 
   // Index pages, including the two ported from the Jekyll tree.
   { from: "/papers/", to: "/papers" },
   { from: "/talks/", to: "/talks" },
   { from: "/about/", to: "/about" },
-  { from: "/articles/", to: "/articles" },
+  { from: "/writing/", to: "/writing" },
   { from: "/projects/", to: "/projects" },
 
   // The accidental URL, which must reach the tutorial in ONE hop from either
