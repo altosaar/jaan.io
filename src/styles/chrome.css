@@ -313,11 +313,16 @@
 
 /* The whole of .nav-home — there is no logo mark beside it. Weight matches
    .nav-link below (and .home__contact on the home page) so the bar reads as one
-   voice; it is not uppercased, because it is a name rather than a label. */
+   voice, and the uppercasing is done HERE rather than in `SITE.name`: the bar
+   wants the name shouted alongside the uppercase .nav-link labels, while every
+   other place that string lands — the page title, og:site_name, the JSON-LD
+   `name`, the "… — home" label a screen reader reads out — wants it written the
+   way a name is written. Capitalising in CSS is what lets both be true. */
 .nav-wordmark {
   font-size: var(--fs-md);
   font-weight: 350;
   letter-spacing: 0.05rem;
+  text-transform: uppercase;
 }
 
 /* The morphing portrait mark, and the track that clips it.

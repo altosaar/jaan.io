@@ -29,11 +29,17 @@ export const SITE = {
   lang: "en",
   /** Open Graph locale, e.g. "en_US", "en_GB", "de_DE". */
   locale: "en_US",
-  /** Appended to every page title as " | {name}" — see src/layouts/Base.astro. */
-  name: "JAAN ALTOSAAR",
+  /**
+   * Appended to every page title as " | {name}" — see src/layouts/Base.astro.
+   * Written the way a name is written, because that is what the title, the
+   * JSON-LD and og:site_name all want. The header wordmark shouts it instead,
+   * and does that in CSS (`text-transform` on .nav-wordmark in
+   * src/styles/chrome.css) rather than here.
+   */
+  name: "Jaan Altosaar Li",
   /** Fallback <meta name="description"> for pages that don't set their own. */
   description:
-    "Jaan Altosaar on machine learning for health and science, variational inference, and interactive views of large public datasets.",
+    "Machine learning for health and science, variational inference, and interactive views of large public datasets.",
   /** Browser UI tint on mobile. Usually --bg from tokens.css, or a shade of it. */
   themeColor: "#000000",
 
@@ -125,7 +131,7 @@ export const SITE = {
     /** Legal/terms links, shown above the copyright. */
     legal: [] as SiteLink[],
     /** Rendered as "© {copyright} {current year}". */
-    copyright: "Jaan Altosaar",
+    copyright: "Jaan Altosaar Li",
     /** Optional sign-off line. Set to "" to omit. */
     madeWith: "Brooklyn, New York",
     /**

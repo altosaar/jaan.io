@@ -28,9 +28,9 @@ import { CARD, cardPath } from "./og-card.mjs";
 // when squaring a non-square source).
 export const featured = {
   image: portrait,
-  title: "Jaan Altosaar",
+  title: "Jaan Altosaar Li",
   // Used verbatim as <meta property="og:image:alt">.
-  alt: "Jaan Altosaar, smiling in a floral shirt against blurred greenery.",
+  alt: "Jaan Altosaar Li, smiling in a floral shirt against blurred greenery.",
 };
 
 /**
