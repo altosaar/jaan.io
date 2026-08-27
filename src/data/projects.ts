@@ -34,6 +34,38 @@ import type { SvgComponent } from "astro/types";
 // src/components/IndexMark.astro sets on the box is inherited by every polygon,
 // path and rect in it.
 import MicroliteIcon from "../assets/projects/microlite.svg";
+// One frame of the clock that site IS, held still.
+//
+// notonspotify.jaan.io deals every track a different clock face, from the forty
+// mirrored from clocks.dev (public domain — see that repo's README). This is
+// `tria`, the plainest of the sixteen it actually uses: three sides of a
+// triangle, each filled from its own corner — one for the hour, one for the
+// minute, one for the second. A still frame is the honest mark for it, because
+// a still frame is what a clock looks like at any instant; the site's own
+// arrangement, where the "hour" is your place in the playlist and the minutes
+// and seconds are the running track, is the sentence beside it, not the
+// drawing.
+//
+// REDRAWN RATHER THAN EXPORTED, and the weights are not the face's own. Its
+// unfilled sides are a 0.42-unit hairline, which lands under a third of a pixel
+// in a 3.25rem box and simply is not there; the three filled runs are lifted
+// with it so the hierarchy between them survives the same shrinking. The
+// geometry — the corners, and how far along each side its own run reaches — is
+// carried over exactly.
+//
+// TWO PAINT ATTRIBUTES IT CANNOT DO WITHOUT, unlike the icon above:
+//
+//   • `fill="none"` on the root. This drawing is strokes, and the triangle is a
+//     CLOSED path; the `fill: currentColor` IndexMark sets on the box would
+//     otherwise inherit straight into it and flood the mark into a solid
+//     wedge. (A presentation attribute loses to a CSS rule but beats an
+//     INHERITED value, which is what that fill is by the time it arrives here.)
+//   • `stroke="currentColor"`, for the opposite reason: `stroke` starts at
+//     `none`, so there is nothing up the tree to inherit and the box's colour
+//     never reaches a stroked shape by itself. With it named once on the root
+//     it inherits to every path, and the mark follows the theme and lights with
+//     the row like the others.
+import NotOnSpotifyIcon from "../assets/projects/notonspotify.svg";
 
 export interface Project {
   /**
@@ -89,5 +121,12 @@ export const PROJECTS: Project[] = [
     description:
       "An Obsidian plugin for context engineering via diffs — life logging with large language models.",
     icon: MicroliteIcon,
+  },
+  {
+    href: "https://notonspotify.jaan.io",
+    title: "Not on Spotify",
+    description:
+      "In service of excellent music not on Spotify. Please send me any more you've found :)",
+    icon: NotOnSpotifyIcon,
   },
 ];
