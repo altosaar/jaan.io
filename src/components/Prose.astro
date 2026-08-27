@@ -159,20 +159,35 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     margin-inline: auto;
   }
 
-  /* Legacy figures drawn for a white page.
-     The diagrams in these posts date from 2016–2021, when jaan.io had a light
-     background. Three of them (encoder-decoder, the VAE graphical model, the
-     reparametrization trick) are black line art on a TRANSPARENT background —
-     on #000 they render as nothing at all, a caption under an empty gap. The
-     Ising SVGs are the same drawing baked onto opaque white, which reads as a
-     glaring slab instead.
-     Rather than recolour the artwork (which would mean re-exporting sources
-     that live in _src/ising_model), give exactly these images the white page
-     they were drawn against. Marked per-image with class="plate" in the
-     Markdown, so photographs and screenshots are unaffected. */
-  .prose :global(img.plate) {
-    background: #fff;
-    padding: 1rem;
+  /* ── Legacy figures drawn for a white page ────────────────────────────────
+     The six diagrams in these posts date from 2016–2021, when jaan.io had a
+     light background, and every one of them is pure black line art with no
+     colour in it at all. Marked class="ink" per-image in the Markdown, so the
+     photographs and screenshots in the same posts are untouched.
+
+     They used to be given `background: #fff; padding: 1rem` — the white page
+     they were drawn against, handed back to them. That works, and it looks
+     like exactly what it is: six lit slabs down a black article, each one a
+     rectangle of the old site left in the new one.
+
+     Inverting instead makes them white ink on nothing, so they sit on the page
+     rather than on a patch of a different page. It is only honest because
+     there is no colour to damage: an inverted photograph is a negative, but an
+     inverted black-on-transparent drawing is a white-on-transparent drawing,
+     which is the same drawing.
+
+     `invert(var(--figure-invert))` rather than a `:root[data-palette$="-light"]`
+     rule here, because invert(0) is defined to be a no-op — so ONE declaration
+     covers dark and light, and the palette decides by setting the number. The
+     token is in tokens.css and the light override is in palettes.css.
+
+     The three Ising SVGs also carried a full-bleed white <path> as a
+     background, which would have inverted to a black rectangle — invisible on
+     this site's #000 but a dark slab on any of the coloured dark palettes.
+     Their background path is `fill:none` now, so all six are transparent and
+     all six take whatever the page behind them is. */
+  .prose :global(img.ink) {
+    filter: invert(var(--figure-invert, 1));
   }
 
   .prose :global(figcaption) {
@@ -185,6 +200,22 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
 
   /* Embedded interactive figures (YouTube, the D3/Plotly pages under /files/).
      The originals carry hardcoded width/height attributes from 2016. */
+  /* ── Display math sits at the paragraph's size ────────────────────────────
+     rehype-katex emits a display equation as a `.katex-display` span that is a
+     DIRECT CHILD of .prose, not wrapped in a <p>. So it never saw the
+     `font-size: var(--fs-body)` the <p> rule above sets, and inherited 16px
+     from the root instead — while inline math, which IS inside a <p>, inherited
+     24px. KaTeX then scales both by its own 1.21em, and the article ended up
+     with display equations at 19.4px underneath inline equations at 29px: the
+     centred, set-apart formula was the smallest maths on the page.
+
+     Setting it here rather than putting a font-size on `.prose` itself, which
+     would land on every descendant that does not set its own and change lists,
+     captions, tables and figcaptions along with it. */
+  .prose :global(.katex-display) {
+    font-size: var(--fs-body);
+  }
+
   .prose :global(iframe) {
     max-width: 100%;
     border: 0;

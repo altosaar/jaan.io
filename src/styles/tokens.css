@@ -34,6 +34,14 @@
   /* Dim foreground text and icons: ~7.4:1 on --bg (WCAG AA needs 4.5:1 for text,
      3:1 for icons and other non-text controls). */
   --text-muted: #9a9a96;
+  /* Whether the legacy line-art figures in the posts are inverted — 1 on a dark
+     palette, 0 on a light one. Used as `filter: invert(var(--figure-invert))`
+     in src/components/Prose.astro, where invert(0) is simply no filter, so the
+     same declaration covers both cases without a second selector.
+     A NUMBER rather than a colour because it is the one thing about those
+     figures a palette needs to say: they are black ink on nothing, so which way
+     up they go is decided by whether the page behind them is dark. */
+  --figure-invert: 1;
   --accent: #24cb71;
   --select: #eeb408;
   --btn-light: var(--text);

@@ -79,7 +79,7 @@
          clip-path="url(#clipPath24)"
          id="g20"><path
            id="path26"
-           style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           style="fill:none;fill-opacity:1;fill-rule:nonzero;stroke:none"
            d="M 0,0 H 1024 V 768 H 0 Z" /><g
            transform="matrix(0,1,1,0,316.3266,456)"
            id="g28"><path

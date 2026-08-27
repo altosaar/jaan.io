@@ -28,7 +28,7 @@ Consider a lattice of spins that point up or down:
 
 <center>
 <figure>
-<img class="plate" src="/images/svg/ising-model.svg" alt="A square lattice of arrows, each pointing either up or down, representing the spins of the Ising model.">
+<img class="ink" src="/images/svg/ising-model.svg" alt="A square lattice of arrows, each pointing either up or down, representing the spins of the Ising model.">
 </figure>
 </center>
 
@@ -124,7 +124,7 @@ To demonstrate the technique, it is easiest to focus on a single spin:
 
 <center>
 <figure>
-<img class="plate" src="/images/svg/ising-model-single-spin.svg" alt="One spin of the lattice singled out, with dashed lines showing the external magnetic field and solid lines connecting it to its four nearest neighbours.">
+<img class="ink" src="/images/svg/ising-model-single-spin.svg" alt="One spin of the lattice singled out, with dashed lines showing the external magnetic field and solid lines connecting it to its four nearest neighbours.">
 <figcaption>The first spin of the Ising model in a magnetic field H. The magnetic field is shown with dashed lines. Its nearest neighbors provide an effective field through the interactions, denoted by lines connecting the spins.</figcaption>
 </figure>
 </center>
@@ -421,7 +421,7 @@ The Ising model is an **undirected graphical model** or Markov random field. We 
 
 <center>
 <figure>
-<img class="plate" src="/images/svg/ising-model-graphical-model.svg" alt="The Ising lattice redrawn as an undirected graphical model: circular nodes for the spin random variables joined by edges to their nearest neighbours.">
+<img class="ink" src="/images/svg/ising-model-graphical-model.svg" alt="The Ising lattice redrawn as an undirected graphical model: circular nodes for the spin random variables joined by edges to their nearest neighbours.">
 
 <figcaption>
 A representation of the Ising model as an undirected graphical model. The nodes are random variables (spins) and edges denote conditional dependencies between their distributions.</figcaption>
