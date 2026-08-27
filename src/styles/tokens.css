@@ -68,12 +68,16 @@
        --font-body     running text, captions, buttons inside the content
        --font-chrome   the header, nav, mobile menu, and footer
 
-     Display and body being the same family right now is a choice, not an
-     oversight — the two stay separate tokens so the hero can take its own face
-     again (as it did with Fraunces, whose @font-face is still in fonts.css)
-     without touching body copy.
+     Body is on Pensum Pro while display stays on Hanken Grotesk — the reason
+     the two are separate tokens. Revert the trial by deleting "Pensum Pro"
+     from the body stack below; the @font-face pair in fonts.css can stay,
+     since a family no role names is never fetched.
 
-     Inter sits second in the two content stacks so that a glyph Hanken Grotesk
+     Pensum's demo cut covers only A-Z a-z 0-9 ! & , - . ? — Hanken Grotesk
+     sitting behind it in the stack is what draws every apostrophe, colon,
+     parenthesis and dash in the running text. fonts.css says more.
+
+     Inter sits behind Hanken Grotesk in both content stacks so that a glyph it
      lacks is served by a font this site already ships, rather than by whatever
      the OS happens to offer. It is free: Inter is downloaded for the chrome on
      every page anyway.
@@ -83,7 +87,7 @@
      footnote backrefs render their arrow from the system font — as they already
      did when body copy was Inter. Nothing regressed there; it is simply not a
      thing either webfont can fix. */
-  --font-body: "Hanken Grotesk", "Inter", system-ui, sans-serif;
+  --font-body: "Pensum Pro", "Hanken Grotesk", "Inter", system-ui, sans-serif;
   --font-display: "Hanken Grotesk", "Inter", system-ui, sans-serif;
   --font-chrome: "Inter", system-ui, sans-serif;
 

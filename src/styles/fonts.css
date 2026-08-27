@@ -49,6 +49,39 @@
     U+A720-A7FF;
 }
 
+/* ── Pensum Pro — the BODY face, on trial (--font-body) ─────────────────────
+   Two files, roman and italic, both the variable "Demo" release from befonts
+   (Personal Use Only — see the licence beside the download; a paid licence is
+   needed before this ships anywhere public).
+
+   The demo cut carries 70 glyphs and no more:
+
+     A-Z a-z 0-9 space ! & , - .  ?
+
+   No apostrophe, no quotes, no colon, semicolon, parenthesis, slash, em dash,
+   and nothing accented. Every one of those falls through to Hanken Grotesk,
+   which is the next family in the --font-body stack — so running text renders
+   as Pensum with a sans apostrophe inside every contraction. That is a property
+   of the demo, not of the typeface, and it is what makes this a look-at-the-
+   letterforms trial rather than a swap that could ship.
+
+   The wght axis runs 100-900 (its default instance is 900, which is why the
+   range below matters: without it the browser would paint body copy black). */
+@font-face {
+  font-family: "Pensum Pro";
+  src: url("/fonts/PensumPro.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: optional;
+}
+@font-face {
+  font-family: "Pensum Pro";
+  src: url("/fonts/PensumPro-Italic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: optional;
+}
+
 /* ── Inter — the CHROME face (--font-chrome) ────────────────────────────────
    One file, not subset, so it carries the arrows the content face lacks. */
 @font-face {
