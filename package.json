@@ -33,6 +33,7 @@
     "astro": "^7.2.2",
     "embla-carousel": "^8.6.0",
     "katex": "0.16.47",
+    "mermaid": "^11.17.2",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
     "sharp": "^0.35.3"

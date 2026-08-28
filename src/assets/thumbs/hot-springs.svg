@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 8 104 104">
+  <title>Three curls of steam rising from a basin of water</title>
+  <!-- The mark for "Wanna Sauna?" on /writing, and the art on its generated
+       share card. Drawn here rather than carried over: the Observable page it
+       came from had no index, so there was no icon to bring.
+
+       IT IS ♨ (U+2668 HOT SPRINGS), redrawn in grayscale. Not the emoji itself
+       and not a font glyph — every other mark in this folder is line art on
+       transparency that src/components/IndexMark.astro paints as a MASK in
+       whatever colour the row is wearing, and scripts/gen-og-cards.mjs inverts
+       onto the card's black. A colour emoji has colour worth keeping and would
+       survive neither operation; a font glyph would be whatever face the
+       machine running the build happened to have. So the symbol is geometry
+       here, in the same one weight of black as its eight neighbours.
+
+       THE COMMENT STARTS AFTER THE ROOT TAG, and that is not a style choice:
+       Sharp sniffs the format from a file's first bytes, so an SVG whose first
+       bytes open a comment rather than the svg element is "unsupported image
+       format" and the card generator dies on it.
+
+       THE viewBox IS THE INK BOX, not a round 0 0 120 120. Every mark is
+       contained inside a fixed square (IndexMark) and any transparent margin
+       baked into the frame is margin inside that square, so a mark drawn with
+       slack reads smaller than its neighbours; the raster thumbs are trimmed
+       with sharp for the same reason (see `thumb` in src/content.config.ts).
+       This one was measured the same way — rasterised, alpha bounds taken,
+       converted back to user units — and came out square at 8,8 to 112,112:
+       the steam's round caps at the top, the dish at the bottom, and the widest
+       point of each on the sides. -->
+  <g fill="none" stroke="#000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Three curls, the middle one raised, as the symbol draws them. -->
+    <path d="M34 66 C 25 57, 43 51, 34 42 C 25 33, 43 27, 34 18" />
+    <path d="M60 60 C 51 51, 69 45, 60 36 C 51 27, 69 21, 60 12" />
+    <path d="M86 66 C 77 57, 95 51, 86 42 C 77 33, 95 27, 86 18" />
+  </g>
+  <!-- The basin: filled rather than stroked, which is what stops it reading as
+       a smile under the three curls. -->
+  <path fill="#000" d="M8 84 h104 v6 c0 14 -23 22 -52 22 s-52 -8 -52 -22 z" />
+</svg>

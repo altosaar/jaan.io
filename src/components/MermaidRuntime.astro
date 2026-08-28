@@ -1,0 +1,300 @@
+---
+// Draws every `<pre class="mermaid">` on the page — the blocks
+// src/lib/rehype-mermaid.mjs leaves behind for a ```mermaid fence.
+//
+// THIS IS THE ONE PLACE ON THE SITE THAT SHIPS A LIBRARY TO THE BROWSER, and it
+// is worth being honest about the size of that: mermaid is ~2.6 MB of JavaScript
+// (~700 KB over the wire) against a page whose entire point is that the maths is
+// rendered at build time and nothing but the palette switcher runs at all. So it
+// is loaded on the posts that contain a diagram and on no other route — see the
+// `hasMermaid` check in src/pages/[slug].astro, which is the same shape as the
+// KaTeX stylesheet import beside it.
+//
+// WHAT IT BUYS. A live mermaid renderer is the only version of this diagram that
+// follows the palette. The alternatives were a build-time SVG (colours baked at
+// whatever the dark palette was that day, wrong on all twenty-two light ones)
+// and a hand-built HTML timeline (a second copy of the data to keep in step with
+// the source on jaan.li). Here the diagram is themed from the SAME custom
+// properties every other element on the page reads, and re-themed when they
+// change — the section below is what does that.
+//
+// WHAT IT COSTS BESIDES BYTES. The diagram is not in the HTML, so it is not in
+// the document a crawler reads and it is not there if the script fails. Both are
+// answered rather than ignored: the fence's source is the element's own text
+// content until mermaid replaces it, so the failure mode is the diagram's
+// SOURCE — legible, if not pretty — rather than a blank space, and the block is
+// only hidden while a render is actually in flight.
+---
+
+<script>
+  import mermaid from "mermaid";
+
+  const blocks = Array.from(document.querySelectorAll<HTMLElement>("pre.mermaid"));
+
+  if (blocks.length) {
+    // HIDE THE SOURCE FROM SCRIPT, NOT FROM THE STYLESHEET, and do it on the
+    // first line so it happens before anything is awaited.
+    //
+    // The stylesheet cannot be the one to do it, because a rule that hides an
+    // un-rendered block hides it for everyone — including a reader whose
+    // browser never ran this file at all, or ran it and failed to fetch
+    // mermaid's several hundred kilobytes over a bad connection. Their page
+    // would have a silent hole in it where the diagram belongs. Setting the
+    // attribute here means the block is only ever hidden by something that is
+    // demonstrably running and about to replace it; anyone the script does not
+    // reach gets the diagram's SOURCE, which is at least readable.
+    //
+    // The cost is a possible flash of that source: a module script is deferred,
+    // and a browser is entitled to paint before it runs. That is the trade —
+    // a blink for everyone against a blank for a few.
+    for (const block of blocks) block.dataset.mermaid = "pending";
+    // The fence's text, kept before mermaid overwrites the element with an
+    // <svg>. Re-rendering needs it back, and mermaid does not hand it back.
+    const sources = new WeakMap<HTMLElement, string>();
+    for (const block of blocks) sources.set(block, block.textContent ?? "");
+
+    const root = document.documentElement;
+    const token = (name: string) => getComputedStyle(root).getPropertyValue(name).trim();
+
+    /**
+     * The site's palette, in mermaid's vocabulary.
+     *
+     * theme "base" is the only built-in that takes instruction: "dark" and
+     * "default" ignore most of themeVariables. From `primaryColor` mermaid
+     * derives the rest of a scale — including the `cScale0…11` a timeline
+     * paints its sections and events with — by rotating hue and adjusting
+     * lightness, so handing it the page's own surface colour is what makes the
+     * diagram come out in the palette's family rather than in mermaid's
+     * lavender. The five named below are the ones a timeline actually reads.
+     *
+     * `--surface` and `--line` are BACKGROUND tokens and `--text` /
+     * `--text-muted` are FOREGROUND ones, and they are used that way here —
+     * which is what keeps the labels legible on every palette, since
+     * scripts/contrast-check.mjs already measures exactly those pairings.
+     */
+    const theme = () => ({
+      background: token("--bg"),
+      primaryColor: token("--surface"),
+      primaryBorderColor: token("--line"),
+      primaryTextColor: token("--text"),
+      secondaryColor: token("--card"),
+      tertiaryColor: token("--card"),
+      lineColor: token("--text-muted"),
+      textColor: token("--text"),
+      // The section headers and the event boxes. Left to its own devices
+      // mermaid rotates the hue of primaryColor for each of these and a
+      // four-section timeline comes out in four unrelated tints; pinning them
+      // to two of the page's own surfaces keeps the diagram monochrome, which
+      // is what the rest of the site is.
+      ...Object.fromEntries(
+        Array.from({ length: 12 }, (_, i) => [
+          [`cScale${i}`, token("--line")],
+          [`cScaleLabel${i}`, token("--text")],
+          [`cScaleInv${i}`, token("--text")],
+        ]).flat(),
+      ),
+    });
+
+    /**
+     * The colours, as an `%%{init: …}%%` directive to be prepended to the
+     * diagram's own source.
+     *
+     * AND THAT IS THE ONLY WAY THEY CAN BE HANDED OVER MORE THAN ONCE.
+     * mermaid.initialize() is documented as a once-per-page call and behaves
+     * like one: a second call with a different `themeVariables` is merged into
+     * the config it already holds rather than replacing it, so the palette
+     * switch below re-rendered the diagram — new svg id, same greys, on a page
+     * that had just turned cream. A directive is read per diagram, at render
+     * time, which is exactly the granularity this needs.
+     *
+     * `securityLevel` deliberately stays out of it: mermaid refuses to let a
+     * directive change that one, and this is where it would be tried if
+     * anything ever managed to get text into the fence that should not be there.
+     */
+    const directive = () =>
+      `%%{init: ${JSON.stringify({
+        theme: "base",
+        themeVariables: theme(),
+        fontFamily: token("--font-body") || "sans-serif",
+        // Not --fs-body (24px): that is a measure for running text, and at 24px
+        // a twelve-column timeline is about three metres wide. 16px is
+        // mermaid's own default and the size the diagram was authored against.
+        fontSize: 16,
+      })}}%%\n`;
+
+    // Set once, and only the things a directive may not set. `startOnLoad` off
+    // because draw() below decides when; `securityLevel` because a diagram may
+    // not raise its own privileges; the timeline's own width behaviour because
+    // it is a property of this layout rather than of this palette.
+    mermaid.initialize({
+      startOnLoad: false,
+      // "strict" sanitises label markup. The source here is the author's own,
+      // but this component is generic and the next diagram may not be.
+      securityLevel: "strict",
+      // Let the timeline take the width it needs and scroll inside its box (see
+      // the stylesheet below). Scaled down to the column instead, the twelve
+      // events land at about 60px apiece and the labels are unreadable.
+      timeline: { useMaxWidth: false },
+    });
+
+    /**
+     * Draw, or draw again.
+     *
+     * Fonts first, every time. Mermaid measures each label with the font in
+     * force at that moment and writes the result into the SVG as fixed
+     * geometry; run it before the webfont lands and every box is sized for the
+     * fallback and the text overflows it, permanently. `document.fonts.ready`
+     * settles once the fonts the page needs have loaded or failed.
+     */
+    async function draw() {
+      await document.fonts.ready;
+      const init = directive();
+      for (const block of blocks) {
+        // What mermaid needs to consider a block undrawn: the source back —
+        // with the palette of the moment in front of it — and its own "already
+        // handled" flag gone.
+        block.textContent = init + (sources.get(block) ?? "");
+        delete block.dataset.processed;
+      }
+      try {
+        await mermaid.run({ nodes: blocks });
+        for (const block of blocks) block.dataset.mermaid = "drawn";
+      } catch (error) {
+        // Leave the source on screen rather than an empty box, and say why in
+        // the one place a reader will not see it. The directive comes back off
+        // first: it is machinery this component put there, and a reader looking
+        // at a diagram that did not draw should see the diagram, not the theme.
+        console.error("mermaid: failed to render", error);
+        for (const block of blocks) {
+          block.textContent = sources.get(block) ?? "";
+          block.dataset.mermaid = "failed";
+        }
+      }
+    }
+
+    draw();
+
+    // RE-DRAW WHEN THE PALETTE CHANGES. The switcher's whole mechanism is one
+    // attribute on <html> (src/lib/palette.client.ts): every colour on the site
+    // is a var() away from the tokens that attribute reselects, so nothing else
+    // has to be told. A mermaid diagram is the exception — its colours were
+    // resolved to literals inside the SVG at render time — so this is the one
+    // element that has to be told, and watching the attribute is how it hears
+    // about a change without the switcher having to know it exists.
+    //
+    // AND IT HAS TO WAIT FOR THE CROSSFADE, which is the whole reason this is a
+    // timer and not a requestAnimationFrame. Those tokens are registered with
+    // @property and TRANSITIONED on :root over --dur-fast (see the block at the
+    // bottom of palettes.css) so the whole page crossfades between palettes.
+    // While that is running, getComputedStyle returns the INTERPOLATED colour —
+    // so a redraw scheduled for the next frame reads a palette that is still
+    // 99% the old one and paints the diagram in it, permanently, because
+    // nothing changes the attribute again to trigger a second attempt. That was
+    // this component's most confusing bug: the SVG was demonstrably re-rendered
+    // (new id, new element) in the same greys, on a page that had just turned
+    // cream.
+    //
+    // So the delay is the transition's own duration, read from the same token
+    // the transition is declared with. A browser without @property support does
+    // not animate the tokens at all and has the final values immediately; it
+    // just waits a fifth of a second first, which costs it nothing.
+    const settleMs = () => {
+      const value = token("--dur-fast");
+      const ms = parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
+      // One frame past the end, and a floor in case the token ever goes missing.
+      return (Number.isFinite(ms) ? ms : 250) + 32;
+    };
+
+    // `ReturnType<typeof setTimeout>` rather than `number`: this file is type
+    // checked with the Node types in scope (`npm run check`), where setTimeout
+    // returns a Timeout object, while at runtime in the browser it is a number.
+    let queued: ReturnType<typeof setTimeout> | undefined;
+    new MutationObserver(() => {
+      // Coalesced: applying a palette can touch the attribute more than once,
+      // and re-rendering mermaid is not cheap.
+      clearTimeout(queued);
+      queued = setTimeout(() => void draw(), settleMs());
+    }).observe(root, { attributes: true, attributeFilter: ["data-palette"] });
+  }
+</script>
+
+<style is:global>
+  /* SCOPED BY :global BECAUSE THE ELEMENT IS NOT IN THIS FILE. The block is
+     emitted by the Markdown pipeline and lands inside <Prose>, so an Astro
+     scoping hash from this component would never match it. */
+
+  /* The diagram's own box, standing in for the <pre> until the SVG replaces it.
+     `pre.mermaid` rather than `.mermaid`, so this beats the generic `pre` rule
+     in Prose.astro (element + class against element alone) and the diagram does
+     not sit on the code block's grey slab. */
+  .prose pre.mermaid {
+    background: none;
+    padding: 0;
+    margin: 2rem 0;
+
+    /* WIDER THAN THE ARTICLE. The measure is 850px and this timeline is 2990:
+       twelve events, each one a cost, a name and a rate of return. Left in the
+       column it is 28% visible at a time, which is a diagram you drag rather
+       than one you read.
+
+       So it takes the CHROME width — the same 94vw the header and the
+       full-bleed carousel use, and the widest anything on this site gets. The
+       article's own column is centred in the viewport at every width (main.is
+       -centered in base.css sets --site-ml to do exactly that), so `50%` here
+       is the middle of the screen and the box is hung symmetrically off it.
+       Below about 900px --chrome-w is narrower than the measure anyway and this
+       resolves back to roughly the column, which is the right answer on a phone.
+
+       --chrome-w rather than --site-w: is-centered narrows --site-w to the
+       reading measure, which is the thing being escaped. */
+    width: var(--chrome-w);
+    max-width: var(--chrome-w);
+    margin-left: calc(50% - var(--chrome-w) / 2);
+
+    /* What is left over after the breakout still scrolls, rather than widening
+       the page — the same bargain display maths strikes in Prose.astro. */
+    overflow-x: auto;
+    /* Room for the scrollbar, so it does not sit on the bottom row of labels. */
+    padding-bottom: 0.5rem;
+  }
+
+  /* WHILE A RENDER IS IN FLIGHT. `pending` is set by the script above on its
+     first line and replaced the moment the render settles, either way — so a
+     browser that never ran the script, or one where the import failed, never
+     matches this rule and shows the diagram's source instead of nothing at all.
+
+     NOT `display: none`, and this is the one rule in the file that has to be
+     read carefully. Mermaid measures the diagram by laying it out and asking
+     the result for its bounding box; an element with `display: none` has no
+     box, so every measurement comes back zero and the finished SVG is a 100 x
+     100 viewBox with the whole timeline drawn outside it — content present,
+     nothing visible. `visibility: hidden` suppresses painting while leaving the
+     geometry intact, which is exactly the distinction that matters here.
+
+     `height: 0` alongside it, because the un-rendered <pre> is a tall column of
+     text and reserving its height would leave a hole several screens deep that
+     collapses when the SVG arrives. Clipping the box does not clip the layout
+     mermaid is measuring. */
+  .prose pre.mermaid[data-mermaid="pending"] {
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Failed: shown, and marked as source rather than as a diagram. */
+  .prose pre.mermaid[data-mermaid="failed"] {
+    background: var(--surface);
+    padding: 1rem;
+    font-size: var(--fs-base);
+  }
+
+  .prose pre.mermaid[data-mermaid="drawn"] > svg {
+    /* useMaxWidth is off, so the SVG carries its natural width and centres in
+       the scroller when the column is wide enough to hold it. */
+    display: block;
+    margin-inline: auto;
+    max-width: none;
+  }
+</style>

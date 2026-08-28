@@ -3,6 +3,7 @@ import sitemap from "@astrojs/sitemap";
 import { unified } from "@astrojs/markdown-remark";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import rehypeMermaid from "./src/lib/rehype-mermaid.mjs";
 // Vendored, not an npm dependency — see the header of that file for why.
 import deleteUnusedImages from "./src/integrations/delete-unused-images/index.js";
 
@@ -72,9 +73,27 @@ export default defineConfig({
   // rehypePlugins / smartypants keys — those are deprecated in Astro 6 and print
   // a warning on every build.
   markdown: {
+    // ```mermaid IS NOT HIGHLIGHTED, IT IS RENDERED. Shiki runs before any user
+    // rehype plugin in @astrojs/markdown-remark's pipeline, so without this
+    // exclusion src/lib/rehype-mermaid.mjs would be handed a tree of coloured
+    // <span>s and would have to reassemble the diagram source out of them.
+    // Excluded, the fence reaches it as one text node.
+    //
+    // `syntaxHighlight` stays at the top level rather than moving inside
+    // `processor` below: unified() carries the plugin lists and the typography
+    // switches, and everything else — this, and shikiConfig — is still read
+    // from here. "math" is the built-in default and has to be restated, since
+    // naming the key replaces the list rather than adding to it.
+    syntaxHighlight: { type: "shiki", excludeLangs: ["math", "mermaid"] },
     processor: unified({
       remarkPlugins: [remarkMath],
-      rehypePlugins: [rehypeKatex],
+      // Order matters between these two only in that they never see the same
+      // node: rehype-katex rewrites the spans remark-math produced, and
+      // rehype-mermaid rewrites a code fence, which remark-math is not allowed
+      // to look inside. That is the reason the diagram is a FENCE and not raw
+      // HTML — it is nothing but dollar signs ("$60", "$3,000", "$200M") and
+      // this site parses single `$…$` as inline maths.
+      rehypePlugins: [rehypeKatex, rehypeMermaid],
       // smartypants restores the punctuation kramdown applied on the old site.
       // dashes:"oldschool" is required, not cosmetic: the default only maps
       // `--` to an em dash and leaves `---` untouched, which is the exact

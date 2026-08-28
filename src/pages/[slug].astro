@@ -15,6 +15,7 @@ import { join } from "node:path";
 import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import Toc from "../components/Toc.astro";
+import MermaidRuntime from "../components/MermaidRuntime.astro";
 import NewsletterSignup from "../components/NewsletterSignup.astro";
 import { getCollection, render } from "astro:content";
 import { getImage } from "astro:assets";
@@ -31,6 +32,18 @@ export const getStaticPaths = (async () => {
 
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
+
+// Does this post contain a mermaid diagram? Read off the SOURCE, before the
+// Markdown pipeline has turned the fence into anything, because the answer has
+// to be known here — in the frontmatter, at build time — to decide whether the
+// page gets the renderer at all.
+//
+// This is the same bargain as the KaTeX stylesheet imported above: a cost that
+// belongs to a kind of content, charged to the routes that carry it. The
+// difference is the size of the cost. KaTeX's CSS is 23 KB on every post;
+// mermaid is ~700 KB of JavaScript over the wire, and one post has a diagram.
+// See src/components/MermaidRuntime.astro for what it buys.
+const hasMermaid = /^\s*```mermaid\s*$/m.test(post.body ?? "");
 
 // WHAT A LINK TO THIS POST PREVIEWS AS, in three steps — see src/lib/og.ts.
 //
@@ -142,6 +155,8 @@ if (post.data.ogImage) {
     </p>
     <Content />
   </Prose>
+
+  {hasMermaid && <MermaidRuntime />}
 
   {
     /* After the article, never before it — the same reasoning as on /writing:
