@@ -1,0 +1,393 @@
+---
+import "../styles/tokens.css";
+import "../styles/fonts.css";
+import "../styles/base.css";
+import "../styles/chrome.css";
+import SiteHeader from "../components/SiteHeader.astro";
+import MobileMenu from "../components/MobileMenu.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import PaletteToggle from "../components/PaletteToggle.astro"; // PALETTE TEST
+import { featured, OG_SIZE, type ShareImage } from "../lib/og";
+import { FAVICON_PICKER } from "../lib/favicon";
+import { PALETTE_RESTORE } from "../lib/palette"; // PALETTE TEST
+import { ga4Snippet } from "../lib/analytics";
+import { SITE } from "../site.config";
+
+interface Props {
+  title?: string;
+  description?: string;
+  navMode?: "ticker" | "static";
+  /**
+   * What a link to this page previews as when it is pasted somewhere.
+   *
+   * Omitted on most routes, which is what puts the portrait on them. The two
+   * that pass one are the routes with a subject of their own — a post
+   * (src/pages/[slug].astro) and a visualization (src/layouts/Viz.astro) — and
+   * both assemble it with the helpers in src/lib/og.ts. Nothing requires the
+   * shape to match the portrait's; a crawler reads width and height off the
+   * tags below, which is why they are carried on the object rather than
+   * assumed here.
+   */
+  share?: ShareImage;
+  /**
+   * og:type. "article" on a post, "website" everywhere else.
+   *
+   * Worth the one prop: it is what tells Facebook and LinkedIn to treat the URL
+   * as a piece of writing with a publication date rather than as a home page,
+   * and it is the precondition for the article:published_time below meaning
+   * anything at all.
+   */
+  ogType?: "website" | "article";
+  /** ISO date for article:published_time. Only read when ogType is "article". */
+  publishedTime?: string;
+  /**
+   * Render the site footer. OFF EVERYWHERE for now — no route passes true.
+   *
+   * SiteFooter.astro, its styles in chrome.css, and SITE.nav.footer /
+   * SITE.social / SITE.footer are all deliberately left intact so turning it
+   * back on is a one-word change here.
+   *
+   * Nothing here needs crediting: the favicons are now this site's own portrait
+   * glyphs (scripts/gen-favicons.mjs), so SITE.footer.credit is null and the
+   * block that rendered it is inert. The social links are unaffected — /about/
+   * carries its own, and SITE.schema.sameAs still emits them as JSON-LD.
+   */
+  footer?: boolean;
+  /**
+   * Fit the page to exactly one viewport and suppress page scrolling.
+   *
+   * The nav is `position: fixed` and hides itself on scroll-down (see
+   * SiteHeader.astro), so a page that cannot scroll also never loses its nav —
+   * that behaviour falls out of this rather than needing its own switch.
+   */
+  fullscreen?: boolean;
+  /**
+   * Keep the content inside <main>'s centred --main-max-w column instead of
+   * letting it break out to the full 94vw site width.
+   *
+   * On by default: every route but the home page is a reading page, and a
+   * measure of text hanging off the left edge of a 1354px span reads as
+   * unaligned rather than full-bleed. The home page opts out — its composition
+   * is built around the wide column.
+   */
+  centered?: boolean;
+  /**
+   * Render the home link — the wordmark, and the portrait mark beside it — at
+   * the left of the nav.
+   *
+   * On by default, and off on exactly one route: the home page, where the link
+   * points at the page you are already reading. That is the argument for
+   * dropping it rather than hiding it. A `display: none` would leave
+   * .nav-home in the document as an empty, still-focusable link — a tab stop
+   * that announces "Jaan Altosaar — home" and goes nowhere visible, which is
+   * the same failure the .has-mark keying in chrome.css exists to prevent.
+   * Not rendering it costs the home page nothing else either: no
+   * /nav-still.svg fetch, no inline picker script.
+   *
+   * The nav is `justify-content: space-between`, so removing the first of its
+   * two children would swing the links to the left. SiteHeader adds
+   * .nav--links-only in that case; chrome.css has the one rule that answers it.
+   */
+  navHome?: boolean;
+}
+// Browser-tab title template, defined once. Pages pass only their own short
+// title (e.g. "FAQ") and the layout appends " | {SITE.name}", so the separator
+// and site name live in exactly one place. A page that passes no title at all
+// gets just the site name — nothing currently does; every route, home included,
+// sets one. The name itself comes from src/site.config.ts.
+// navMode defaults to "static" here, not "ticker": the ticker was removed with
+// the rest of the Community Cleanup chrome, and "ticker"/compact mode hides the
+// logo and wordmark (.site-chrome.compact .nav-home is display:none) while
+// reserving the left half of the bar for a ticker that no longer exists — an
+// empty header.
+const {
+  title,
+  description = SITE.description,
+  navMode = "static",
+  footer = false,
+  fullscreen = false,
+  centered = true,
+  navHome = true,
+  share,
+  ogType = "website",
+  publishedTime,
+} = Astro.props;
+const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
+
+// The share image. A page that brought its own uses it; everything else gets the
+// portrait, squared here by Sharp — see src/lib/og.ts for the ladder and why the
+// fallback is a face, and astro.config.mjs for the encoder settings behind
+// `format: "jpeg"`.
+//
+// The portrait is no longer rendered here at all. It is drawn once by
+// scripts/gen-og-cards.mjs into public/og/portrait.jpg — a FIXED path — because
+// the hashed /_astro/ URL that getImage() produced moves whenever the image or
+// the encoder settings change, and every preview a crawler had already cached
+// against the old URL goes blank. See PORTRAIT_PATH in src/lib/og-card.mjs.
+const shareImage: ShareImage = share ?? {
+  src: featured.src,
+  width: OG_SIZE,
+  height: OG_SIZE,
+  type: "image/jpeg",
+  alt: featured.alt,
+};
+
+// Absolute, because a crawler that finds og:image is often not the browser that
+// loaded the page and cannot resolve a relative path against it. Facebook and
+// LinkedIn both drop a relative one outright.
+const shareImageUrl = new URL(shareImage.src, Astro.site).href;
+
+// This page's own absolute URL, resolved against `site` (astro.config.mjs).
+// build.format "file" makes Astro.url.pathname the emitted file path
+// (/about.html, /index.html), but the shareable URL — and what @astrojs/sitemap
+// emits — is the clean form (/about, /). Strip the extension so canonical and
+// og:url match the sitemap exactly.
+const cleanPath = Astro.url.pathname.replace(/index\.html$/, "").replace(/\.html$/, "");
+const canonicalURL = new URL(cleanPath, Astro.site);
+
+// PALETTE TEST — the corner marks that recolour the site
+// (src/components/PaletteToggle.astro). On every route now, the home page
+// included; what the home page does with them is the component's business, not
+// this file's — they are hidden there until the visitor has used them elsewhere
+// (PALETTE_USED_KEY in src/lib/palette.ts).
+//
+// Keyed off the path already computed above rather than a prop, because a prop
+// would mean a second edit in index.astro and a third to take the whole test
+// back out. "/" is what cleanPath gives the home page under build.format
+// "file" — the same normalisation canonical and og:url are built from, so this
+// cannot drift from what the home page's own URL is.
+const paletteHome = cleanPath === "/";
+
+// Sitewide organization identity for search/AI engines. Emitted once per page as
+// JSON-LD; the homepage URL + logo are absolute so they resolve off any host.
+// Every value is from SITE.schema (src/site.config.ts). `areaServed` is dropped
+// when blank, so a site that isn't geographically scoped emits no empty key.
+const orgSchema = {
+  "@context": "https://schema.org",
+  "@type": SITE.schema.type,
+  name: SITE.name,
+  url: new URL("/", Astro.site).href,
+  logo: new URL(SITE.schema.logo, Astro.site).href,
+  description: SITE.description,
+  ...(SITE.schema.areaServed ? { areaServed: SITE.schema.areaServed } : {}),
+  sameAs: SITE.schema.sameAs,
+};
+---
+
+<!doctype html>
+<html lang={SITE.lang} class={fullscreen ? "is-fullscreen" : undefined}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content={SITE.themeColor} />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    {
+      /* Webmaster verification, ported from the Jekyll site. Both are emitted
+         on EVERY page and on every host, unlike the GA4 tag below: Search
+         Console and Bing verify by fetching a page and reading the tag, and
+         which page that is, is their choice — a tag present only on the home
+         page is a verification that fails the day either of them decides to
+         check a different one. They are inert markup, so there is no cost to
+         carrying them on a preview deployment. Values and the story behind the
+         malformed Google one are in site.config.ts. */
+      SITE.analytics.google && (
+        <meta name="google-site-verification" content={SITE.analytics.google} />
+      )
+    }
+    {SITE.analytics.bing && <meta name="msvalidate.01" content={SITE.analytics.bing} />}
+    {
+      /* THE TAB CARRIES A DIFFERENT PORTRAIT EVERY DAY.
+         public/favicons/ holds one line-drawn face per portrait; this script
+         picks today's and appends the <link> itself. The reasoning — why the
+         client picks rather than a Pages Function, and why the step through the
+         list is what it is — lives in src/lib/favicon.ts.
+
+         The composite face is declared in the <noscript> and NOWHERE ELSE. A
+         plain <link rel="icon"> here would be fetched and painted by every
+         browser before the script replaced it: one wasted request and a visible
+         flicker in the tab, on every page. */
+    }
+    {
+      /* Raster fallbacks, both the composite: a client too old for an SVG
+        favicon, and an iOS home screen where a daily change would read as a
+        bug rather than a rotation. Declared BEFORE the script so the glyph it
+        appends is the last icon in the document — browsers that resolve
+        competing <link rel="icon"> by document order then land on the SVG, and
+        a browser old enough to ignore it falls back to this PNG. */
+    }
+    {
+      /* Feed autodiscovery. This is how a reader finds the feed when someone
+         pastes the site's URL into it rather than the feed's, and it is the
+         only thing on the page that points at /feed.xml — the path itself is
+         inherited from the Jekyll site and load-bearing. See feed.xml.ts. */
+    }
+    <link
+      rel="alternate"
+      type="application/atom+xml"
+      title={`${SITE.name} — articles`}
+      href="/feed.xml"
+    />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    {
+      /* Marks the document as scripted, before anything paints. `html:not(.js)`
+         in base.css is what undoes the blur-up placeholder for a visitor with
+         no JavaScript — the reasoning is on that rule.
+
+         A CLASS SET BY A SCRIPT rather than a <noscript><style> here, which is
+         what this was first. prettier-plugin-astro could not parse a <style>
+         nested inside <noscript> inside <head>: it rewrote the file with a
+         stray </head> immediately after og:type and dedented everything below
+         it, so og:title, og:description, og:url, twitter:card and the canonical
+         were all emitted into the BODY, where no crawler reads them. The page
+         looked perfectly normal; `npm run audit` reported it as 12 errors and
+         137 warnings. */
+    }
+    <script is:inline>
+      document.documentElement.classList.add("js");
+    </script>
+    <script is:inline set:html={FAVICON_PICKER} />
+    {
+      /* PALETTE TEST — reapply the visitor's chosen palette before the page
+        paints, and say whether they have used the control before. In <head> and
+        inline for the same reason as the favicon picker above: a deferred script
+        would paint the site's own colours first and correct them a beat later.
+        On every route, home included — the home page honours a palette that was
+        chosen elsewhere. src/lib/palette.ts carries the rest. */
+    }
+    <script is:inline set:html={PALETTE_RESTORE} />
+    <noscript><link rel="icon" href="/favicon.svg" type="image/svg+xml" /></noscript>
+    <meta property="og:type" content={ogType} />
+    {
+      ogType === "article" && publishedTime && (
+        <meta property="article:published_time" content={publishedTime} />
+      )
+    }
+    <meta property="og:locale" content={SITE.locale} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    {
+      /* The four og:image:* tags stay together and stay TRUE to each other. A
+         crawler that trusts og:image:width/height lays the card out before it
+         has finished fetching the file, so a declared size that is not the real
+         size draws the preview wrong — which is why the numbers come off the
+         same object that produced the file, and why `npm run audit` measures
+         the shipped image against what shipped in these tags. */
+    }
+    <meta property="og:image" content={shareImageUrl} />
+    <meta property="og:image:type" content={shareImage.type} />
+    <meta property="og:image:width" content={String(shareImage.width)} />
+    <meta property="og:image:height" content={String(shareImage.height)} />
+    <meta property="og:image:alt" content={shareImage.alt} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={shareImageUrl} />
+    <meta name="twitter:image:alt" content={shareImage.alt} />
+    {
+      /* Attribution on X: the card gets a "More from @thejaan" byline linking
+         the account. `twitter:site` is for the publishing organisation and
+         `twitter:creator` for the author; on a personal site those are the same
+         person, and X reads creator for the byline. Null in site.config.ts
+         removes both, which is the switch rather than deleting this block. */
+      SITE.twitter && (
+        <>
+          <meta name="twitter:site" content={SITE.twitter} />
+          <meta name="twitter:creator" content={SITE.twitter} />
+        </>
+      )
+    }
+    {
+      SITE.fonts.map((href) => (
+        <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
+      ))
+    }
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(orgSchema)} />
+    {
+      /* GA4. `is:inline` for the same reason as FAVICON_PICKER and
+         PALETTE_RESTORE above — a processed module script is deferred, and this
+         has to have queued its first hit before the visitor can leave.
+
+         It requests gtag.js only on the hostnames in SITE.analytics.hosts, so
+         localhost, `npm run preview` and every *.pages.dev deployment send
+         nothing at all. src/lib/analytics.ts has the why; the summary is that
+         the weeks either side of the cutover are spent reading this property to
+         judge whether the port held its traffic, and hand-testing a preview
+         deployment would write into the same reports. */
+      SITE.analytics.ga4 && (
+        <script is:inline set:html={ga4Snippet(SITE.analytics.ga4, SITE.analytics.hosts)} />
+      )
+    }
+    {/* Page-specific <head> content — e.g. join.astro's Event JSON-LD. */}
+    <slot name="head" />
+  </head>
+
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <SiteHeader navMode={navMode} navHome={navHome} />
+    <MobileMenu />
+    <main id="main" tabindex="-1" class={centered ? "is-centered" : undefined}>
+      <slot />
+    </main>
+    {footer && <SiteFooter />}
+    {/* PALETTE TEST — the corner marks; last in the body, above nothing. */}
+    <PaletteToggle home={paletteHome} />
+
+    <script>
+      // The other half of `scroll-behavior: smooth` in src/styles/base.css.
+      //
+      // That property scales its duration with the distance and saturates near
+      // 1.5s. Over a screen or three that reads as a glide and tells you which
+      // way you went; across the 29,600px physics post it is a wait, because
+      // the animation stopped conveying anything several screens back — content
+      // is a blur either way, and all the remaining time buys is the blur.
+      //
+      // So: past three screens, cut. The trick is to arrive FIRST — jump to the
+      // destination instantly here, and the browser's own fragment navigation,
+      // which runs straight after this handler, finds it has nowhere left to
+      // travel and its smooth scroll is a no-op.
+      //
+      // That is deliberately not `preventDefault()` and not a temporary
+      // `scroll-behavior: auto` on <html>. preventDefault would mean
+      // reimplementing fragment navigation — the hash, the history entry, where
+      // focus goes next. And flipping the property is a race that this code got
+      // wrong once already: restoring it on the next animation frame looked
+      // right and worked for the rail, but the fragment scroll does not always
+      // happen before that frame, and the footnote markers went on animating
+      // the full 29,000px. Arriving early has no such window. scrollIntoView
+      // honours scroll-margin-top, so it lands exactly where the browser was
+      // going to put it anyway.
+      //
+      // Under reduced motion the scroll is already instant and this is inert.
+      const MAX_SCREENS = 3;
+
+      document.addEventListener("click", (event) => {
+        // Anything that is not a plain left click is the browser's business:
+        // modified clicks open tabs and windows, and never scroll this page.
+        if (event.defaultPrevented || event.button !== 0) return;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        const link = target.closest<HTMLAnchorElement>('a[href^="#"]');
+        if (!link) return;
+
+        // `#` alone means the top of the document, so the distance is however
+        // far down we already are.
+        const id = decodeURIComponent(link.hash.slice(1));
+        const dest = id ? document.getElementById(id) : null;
+        if (id && !dest) return; // a fragment resolving to nothing scrolls nowhere
+
+        const distance = dest ? Math.abs(dest.getBoundingClientRect().top) : window.scrollY;
+        if (distance <= MAX_SCREENS * window.innerHeight) return;
+
+        if (dest) dest.scrollIntoView({ behavior: "instant", block: "start" });
+        else window.scrollTo({ top: 0, behavior: "instant" });
+      });
+    </script>
+  </body>
+</html>

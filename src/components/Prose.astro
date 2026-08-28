@@ -1,0 +1,330 @@
+---
+// Readable, edge-aligned column for Markdown content pages (about, faq, terms,
+// schedule, partners, and the rest). The rendered Markdown arrives via <slot/>,
+// so its elements are styled with :global() below.
+interface Props {
+  /**
+   * Where the closing back-link points, or `null` for none — which is the
+   * default and what every route currently uses. The nav is fixed and always on
+   * screen, so a second way home at the bottom of the page was repeating an
+   * offer the visitor already had. Still supported for a page that ends
+   * somewhere the nav cannot take you.
+   */
+  backHref?: string | null;
+  backLabel?: string;
+}
+
+const { backHref = null, backLabel = "← Back home" } = Astro.props;
+---
+
+<div class="prose">
+  <slot />
+  {
+    /* set:html rather than a child expression: .prose-back is an underlined
+      inline-block, so a stray whitespace text node either side of the label
+      would render as underlined space. A self-closing tag can't collect any. */
+  }
+  {backHref && <a href={backHref} class="prose-back" set:html={backLabel} />}
+</div>
+
+<style>
+  .prose {
+    width: var(--site-w);
+    margin-left: var(--site-ml);
+    max-width: var(--reading-w);
+    padding-top: var(--space-section);
+    padding-bottom: var(--space-block);
+  }
+
+  .prose :global(h1) {
+    margin-bottom: 1.25rem;
+  }
+
+  /* Anything reachable by a #fragment has to clear the fixed nav when it is
+     jumped to, or the heading you clicked lands underneath it and the section
+     appears to start at its second paragraph. The extra 1rem is the same line
+     the table of contents measures against (Toc.astro), so the heading you
+     land on is the one the rail then lights up.
+
+     h1 is in the list only for the post title above, which picks the rule up
+     harmlessly — nothing links to it. Posts open their sections with `##`
+     (the physics one used to use `#`, which gave it eight h1s and section
+     headings as large as its own title); those h2s are the rail's
+     destinations. */
+  .prose :global(h1),
+  .prose :global(h2),
+  .prose :global(h3),
+  .prose :global(h4),
+  .prose :global(h5),
+  .prose :global(h6) {
+    scroll-margin-top: calc(var(--nav-h) + 1rem);
+  }
+
+  .prose :global(h2) {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 2rem 0 0.75rem;
+  }
+
+  .prose :global(p) {
+    font-size: var(--fs-body);
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+  }
+
+  /* A dateline — the small muted line under a title, before the article opens.
+     Opt in with class="prose-dateline" (src/pages/[slug].astro).
+
+     It lives HERE, in the component that owns the slotted content, and not in
+     the page that writes the element, because of how the two selectors weigh
+     up. A page's scoped `.post-year` compiles to `.post-year[data-astro-cid-…]`
+     — two class-likes, no element — while the rule above compiles to
+     `.prose[data-astro-cid-…] p`, two class-likes AND an element, which is
+     heavier. So a page trying to restyle its own dateline silently loses the
+     font size and the margin while keeping the colour, which is exactly what
+     the previous `.post-date` did: it read as body text with a paragraph's
+     tail for as long as it existed, and looked close enough to intentional
+     that nobody caught it. Adding the element to this selector puts it
+     unambiguously on top and leaves the page nothing to get wrong. */
+  .prose :global(p.prose-dateline) {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+  }
+
+  .prose :global(h3) {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 2rem 0 0.625rem;
+  }
+
+  .prose :global(h4),
+  .prose :global(h5),
+  .prose :global(h6) {
+    font-size: var(--fs-md);
+    font-weight: 600;
+    margin: 1.5rem 0 0.5rem;
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin: 0 0 1.25rem 1.25rem;
+    line-height: 1.6;
+  }
+
+  /* The font-size is not decoration — without it a list changes size depending
+     on how the author spaced it. Markdown makes a list "loose" when there is a
+     blank line between items, and wraps each item's text in a <p>; a "tight"
+     list leaves the text bare in the <li>. The <p> rule above sets --fs-body,
+     so a loose list rendered at 1.3rem while a tight one fell back to the
+     inherited --fs-base of 1rem — a 30% jump between two lists on the same
+     page, decided by invisible whitespace in the source. The GRE post has one
+     of each, four paragraphs apart. Setting it here makes both lists agree, and
+     it is the same value the <p> rule already applies, so loose lists are
+     unchanged. Nested lists need no exception: --fs-body is a rem, which is
+     root-relative and so cannot compound down the levels. */
+  .prose :global(li) {
+    font-size: var(--fs-body);
+    margin-bottom: 0.375rem;
+  }
+
+  /* ── Long-form additions ────────────────────────────────────────────────
+     The upstream template styled ~500-word pages: h1/h2/p/ul/li and nothing
+     else. These posts run to 6,700 words with figures, footnotes, embedded
+     iframes and several hundred equations, so everything below is the part
+     that had no styling at all and would otherwise fall back to UA defaults
+     (serif text, blue links, white code blocks punching a hole in the dark
+     page). */
+
+  .prose :global(blockquote) {
+    margin: 1.5rem 0;
+    padding-left: 1.25rem;
+    border-left: 2px solid var(--line);
+    color: var(--text-muted);
+  }
+
+  .prose :global(figure) {
+    margin: 2rem 0;
+  }
+
+  .prose :global(figure img),
+  .prose :global(p img) {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin-inline: auto;
+  }
+
+  /* ── Legacy figures drawn for a white page ────────────────────────────────
+     The six diagrams in these posts date from 2016–2021, when jaan.io had a
+     light background, and every one of them is pure black line art with no
+     colour in it at all. Marked class="ink" per-image in the Markdown, so the
+     photographs and screenshots in the same posts are untouched.
+
+     They used to be given `background: #fff; padding: 1rem` — the white page
+     they were drawn against, handed back to them. That works, and it looks
+     like exactly what it is: six lit slabs down a black article, each one a
+     rectangle of the old site left in the new one.
+
+     Inverting instead makes them white ink on nothing, so they sit on the page
+     rather than on a patch of a different page. It is only honest because
+     there is no colour to damage: an inverted photograph is a negative, but an
+     inverted black-on-transparent drawing is a white-on-transparent drawing,
+     which is the same drawing.
+
+     `invert(var(--figure-invert))` rather than a `:root[data-palette$="-light"]`
+     rule here, because invert(0) is defined to be a no-op — so ONE declaration
+     covers dark and light, and the palette decides by setting the number. The
+     token is in tokens.css and the light override is in palettes.css.
+
+     The three Ising SVGs also carried a full-bleed white <path> as a
+     background, which would have inverted to a black rectangle — invisible on
+     this site's #000 but a dark slab on any of the coloured dark palettes.
+     Their background path is `fill:none` now, so all six are transparent and
+     all six take whatever the page behind them is. */
+  .prose :global(img.ink) {
+    filter: invert(var(--figure-invert, 1));
+  }
+
+  .prose :global(figcaption) {
+    margin-top: 0.625rem;
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* Embedded interactive figures (YouTube, the D3/Plotly pages under /files/).
+     The originals carry hardcoded width/height attributes from 2016. */
+  /* ── Display math sits at the paragraph's size ────────────────────────────
+     rehype-katex emits a display equation as a `.katex-display` span that is a
+     DIRECT CHILD of .prose, not wrapped in a <p>. So it never saw the
+     `font-size: var(--fs-body)` the <p> rule above sets, and inherited 16px
+     from the root instead — while inline math, which IS inside a <p>, inherited
+     24px. KaTeX then scales both by its own 1.21em, and the article ended up
+     with display equations at 19.4px underneath inline equations at 29px: the
+     centred, set-apart formula was the smallest maths on the page.
+
+     Setting it here rather than putting a font-size on `.prose` itself, which
+     would land on every descendant that does not set its own and change lists,
+     captions, tables and figcaptions along with it. */
+  .prose :global(.katex-display) {
+    font-size: var(--fs-body);
+  }
+
+  .prose :global(iframe) {
+    max-width: 100%;
+    border: 0;
+  }
+
+  .prose :global(code) {
+    font-size: 0.9em;
+    padding: 0.15em 0.35em;
+    background: var(--surface);
+  }
+
+  .prose :global(pre) {
+    background: var(--surface);
+    padding: 1rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    line-height: 1.45;
+  }
+
+  .prose :global(pre code) {
+    padding: 0;
+    background: none;
+  }
+
+  .prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: var(--fs-sm);
+  }
+
+  .prose :global(th),
+  .prose :global(td) {
+    border-bottom: 1px solid var(--line);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+
+  .prose :global(hr) {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 2.5rem 0;
+  }
+
+  /* ── Math ───────────────────────────────────────────────────────────────
+     Display equations are the one element here that genuinely cannot wrap: a
+     long line of LaTeX is one unbreakable box. Without its own scroller it
+     widens the page and the whole article scrolls sideways on a phone. */
+  .prose :global(.katex-display) {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5rem 0;
+    margin: 1.5rem 0;
+  }
+
+  /* KaTeX sizes rules (fraction bars, radicals, \overline) in ems that round
+     to sub-pixel heights; on a near-black background those disappear at body
+     size. Floor them so fractions still read as fractions. */
+  .prose :global(.katex .frac-line),
+  .prose :global(.katex .overline .overline-line),
+  .prose :global(.katex .underline .underline-line) {
+    min-height: 1px;
+    border-bottom-width: max(1px, 0.04em);
+  }
+
+  /* ── Footnotes (16 of them in the physics post) ─────────────────────── */
+  .prose :global(.footnotes) {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .prose :global(.footnotes h2) {
+    font-size: var(--fs-md);
+    font-family: var(--font-body);
+    margin-bottom: 0.75rem;
+  }
+
+  .prose :global(.footnotes p) {
+    font-size: inherit;
+    margin-bottom: 0.5rem;
+  }
+
+  /* The little ↩ backlink after each definition. */
+  .prose :global(.data-footnote-backref) {
+    text-decoration: none;
+    margin-left: 0.25rem;
+  }
+
+  /* Superscript reference markers in the body text. */
+  .prose :global(sup a) {
+    text-decoration: none;
+  }
+
+  .prose-back {
+    display: inline-block;
+    margin-top: 1rem;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in srgb, var(--text) 25%, transparent);
+  }
+  .prose-back:hover {
+    color: var(--text);
+    text-decoration-color: var(--text);
+  }
+  /* Focus ring comes from the global :focus-visible rule in base.css. */
+</style>

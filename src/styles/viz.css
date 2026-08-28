@@ -1,0 +1,341 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Styling for the embedded Observable charts.
+
+   The modules in viz/ ship no CSS. On a Framework page they would inherit that
+   project's theme — the slate palette, its own type stack, its `.card` chrome.
+   None of that comes along with an exported module, which is the point: the
+   figures land as bare SVG and bare form controls and pick up jaan.io's tokens
+   instead.
+
+   What has to be said explicitly is the handful of things Observable Plot and
+   Observable Inputs read from CSS rather than from their own options:
+     • Plot's tooltips paint on var(--plot-background), which defaults to white
+       and would be a white slab on a black page.
+     • Plot inherits `color` and `font-family` from the element it is appended
+       to, so the axes and legends follow --text and --font-body for free —
+       provided nothing between here and there resets them.
+     • Observable Inputs render plain <label>/<input>/<select> under class names
+       with no styles attached, so they get styled here from scratch.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.viz-embed {
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+
+  margin-block: var(--space-block);
+  /* Charts are the widest thing on these pages and are not prose, so they take
+     the full column rather than the reading measure. */
+  width: 100%;
+}
+
+/* The Mosaic cross-filter is laid out at a fixed width (see viz/src/charts/
+   glucose.js for why it cannot simply be re-rendered narrower). Give it its own
+   scroller so the page body never scrolls sideways. */
+.viz-embed--scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.viz-embed__status {
+  color: var(--text-muted);
+  font-size: var(--fs-base);
+  padding-block: 2rem;
+}
+
+.viz-embed__status--error {
+  color: var(--select);
+}
+
+/* Plot wraps its output in <figure>, which carries a UA margin. */
+.viz-embed figure {
+  margin: 0;
+  max-width: 100%;
+}
+
+/* ── Tooltips ──────────────────────────────────────────────────────────────
+   Plot's tip mark paints its callout with `fill: var(--plot-background)` and
+   its text with `currentColor`. Inherit the page's text colour onto a plate
+   that stayed white and you get #e2e2e2 on #ffffff — about 1.2:1, which is
+   what these charts shipped with.
+
+   The var HAS TO BE SET ON THE SVG, not on .viz-embed. Every Plot figure
+   carries its own scoped stylesheet that declares `--plot-background: white`
+   on the svg element itself, and a custom property set on an element always
+   beats one inherited from an ancestor no matter how specific the ancestor's
+   selector is. Specificity only settles which rule wins ON A GIVEN ELEMENT —
+   here `.viz-embed svg` (0,1,1) against Plot's `:where(.plot-xxxxx)` (0,0,0),
+   which it does.
+
+   --surface rather than --bg: a tooltip is a thing floating above the chart,
+   and on this palette --bg is the same black the plot area already is, so the
+   callout would read as a hole rather than as a panel. --surface gives
+   #e2e2e2 on #292929, about 11:1. */
+.viz-embed svg {
+  --plot-background: var(--surface);
+}
+
+/* The callout's outline. Plot strokes it with currentColor, which at full
+   strength is the same value as the text inside it and draws a bright box
+   around every hover. --line is the site's hairline token and does the job of
+   separating the panel from the bars behind it without competing with the
+   words it contains. */
+.viz-embed [aria-label="tip"] path {
+  stroke: var(--line);
+}
+
+/* NOT `overflow: visible` on the svg. Several of these charts pin their x
+   domain deliberately — the ACS ones fix it at $5k–$500k so the distribution
+   can be compared across years and areas — and the data runs past both ends.
+   The SVG viewport is what clips those out-of-domain bars; make it visible and
+   they draw outside the axis, in the page margin, as if they were part of the
+   chart. */
+
+/* Plot's swatch legend ships its own scoped rules, including a 10px system
+   font. One class of extra specificity is enough to take it back. */
+.viz-embed [class*="-swatches"] {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+/* ── Controls ──────────────────────────────────────────────────────────────
+   The year slider and area picker, plus the large readout beside each that
+   names the current value. The readout is the reason the number input is
+   removed from Inputs.range in the chart modules: the value is stated once, in
+   the page's own display face, at a size you can read from across the room.  */
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1rem 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.viz-control {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  /* Long PUMA names ("New Jersey — Hudson County (South) …") must be allowed to
+     shrink rather than pushing the row past the column. */
+  min-width: 0;
+  max-width: 100%;
+}
+
+.viz-readout {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  /* Keeps the slider from stepping left and right as the year's glyph widths
+     change under a drag. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mosaic wraps each of its inputs in <div class="input"><label>…<control>,
+   with no styling of its own — the payless.health page these came from carries
+   its own stylesheet for them, which is not part of the library. Same treatment
+   as the Observable Inputs above so the two engines' controls match. */
+.viz-embed .input {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  max-width: 100%;
+}
+
+.viz-embed .input label {
+  color: var(--text-muted);
+  font-family: var(--font-chrome);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Observable Inputs emit <form><label>…<input></form>. */
+.viz-control form {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.viz-control label {
+  color: var(--text-muted);
+  font-family: var(--font-chrome);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Every control inside an embed, whichever library made it. Left to the
+   browser these are white boxes with black text — the single most jarring thing
+   on the page next to a chart drawn in the site's own palette. The width cap is
+   not cosmetic either: the hospital dashboard's payor menu sizes itself to the
+   longest of 319 option labels and ran to 410px. */
+.viz-embed :is(select, input[type="text"], input[type="search"]) {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 0.4rem 0.6rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  max-width: min(28rem, 60vw);
+}
+
+.viz-embed input::placeholder {
+  color: var(--text-muted);
+}
+
+.viz-control input[type="range"] {
+  accent-color: var(--accent);
+  width: 150px;
+  max-width: 40vw;
+}
+
+.viz-embed :is(select, input):focus-visible,
+.viz-control :is(select, input):focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ── Mosaic's data table ───────────────────────────────────────────────────
+   The hospital dashboard puts a scrolling table of every matching row under its
+   scatter. Mosaic builds it as a bare <table> and leaves the styling to the
+   host page; unstyled it is 28,000 rows of undifferentiated text.
+
+   The sticky header is the part that actually breaks rather than merely looks
+   plain: Mosaic leaves `th` at `position: static` with a transparent
+   background, so scrolling the table runs the rows straight through the column
+   names. It needs both the sticky and an opaque ground to be readable at all. */
+
+.viz-embed table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.8rem;
+  /* Charges line up by digit — the comparison down a price column is the
+     reason the table is here. */
+  font-variant-numeric: tabular-nums;
+}
+
+.viz-embed thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-family: var(--font-chrome);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 0.4rem 0.75rem 0.4rem 0;
+  border-bottom: 1px solid var(--line);
+  /* Clip rather than wrap or spill. Mosaic lays the table out on fixed column
+     widths sized for the VALUES, and these headers are raw database column
+     names — "billing_code" is wider than the codes underneath it and ran into
+     the next heading. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.viz-embed tbody td {
+  padding: 0.3rem 0.75rem 0.3rem 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+/* Rules this faint disappear against the page on their own; the row highlight
+   is what makes a wide row trackable across six columns. */
+.viz-embed tbody tr:hover {
+  background: var(--surface);
+}
+
+/* ── The MapPLUTO popup ────────────────────────────────────────────────────
+   A property in the New York map carries ~90 MapPLUTO columns and the popup
+   lists all of them, so it needs a height cap and its own scroller. */
+
+.viz--map {
+  width: 100%;
+}
+
+/* Scoped under .viz-embed for specificity, not tidiness. MapLibre colours the
+   callout arrow with rules like `.maplibregl-popup-anchor-top
+   .maplibregl-popup-tip` (0,2,0), so a bare `.maplibregl-popup-tip` (0,1,0)
+   loses to them however the stylesheets are ordered — which left a white arrow
+   pointing at a dark panel on every anchor direction. Three classes wins
+   outright, and confining the override to our own embeds is correct anyway. */
+.viz-embed .maplibregl-popup-content {
+  background: var(--surface);
+  color: var(--text);
+  max-height: 22rem;
+  overflow-y: auto;
+  font-family: var(--font-body);
+}
+
+/* All four sides. MapLibre points the arrow by giving one border a colour and
+   removing the opposite one, and which side that is depends on where the popup
+   ended up relative to the cursor — so colouring only top and bottom fixes two
+   of the four cases and leaves the other two white. */
+.viz-embed .maplibregl-popup .maplibregl-popup-tip {
+  border-top-color: var(--surface);
+  border-bottom-color: var(--surface);
+  border-left-color: var(--surface);
+  border-right-color: var(--surface);
+}
+
+/* Unused today — the map builds its popup with `closeButton: false` — but a
+   <button> does not inherit `color` from its parent, so this one computes to
+   the UA's black and would be invisible on --surface the moment anyone turns
+   it on. One line now beats finding it later. */
+.viz-embed .maplibregl-popup-close-button {
+  color: var(--text-muted);
+}
+
+.viz-embed .maplibregl-popup-content .viz-popup {
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.viz-popup td {
+  padding: 0.05rem 0.5rem 0.05rem 0;
+  vertical-align: top;
+}
+
+.viz-popup td:first-child {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ── Page furniture ────────────────────────────────────────────────────────
+   Subheadings and captions written into the Viz layout's default slot. They
+   cannot be styled from that layout's scoped <style> — Astro's scoping hash
+   lands on the layout's own markup, not on what a page passes into it — so
+   they live here, alongside the chart styles they sit between. */
+
+.viz-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  max-width: var(--reading-w-tight);
+  margin-top: var(--space-block);
+}
+
+.viz-note {
+  margin-top: 1rem;
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: var(--reading-w-tight);
+}

@@ -1,0 +1,13 @@
+dist/
+node_modules/
+# Framework's download cache — npm bundles and DuckDB extension wasm it fetches
+# at build time. Leading ** because it lives at src/.observablehq/cache, and a
+# pattern containing a slash is anchored to this file's directory: plain
+# ".observablehq/cache/" would only ever match viz/.observablehq/cache.
+**/.observablehq/
+.DS_Store
+
+# Input fingerprint written by scripts/build-visualizations.mjs after a
+# successful publish; its presence and value decide whether the next build is
+# skipped. Generated, machine-specific, never committed.
+.build-stamp

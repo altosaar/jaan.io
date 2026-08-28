@@ -1,0 +1,160 @@
+# Cloudflare Pages redirect rules.  [source] [destination] [status]
+#
+# Evaluated before static assets are served, so a rule here wins over a file of
+# the same name.
+#
+# Rules are matched top to bottom and the FIRST match wins, so anything
+# specific has to sit above the catch-all at the bottom of this file.
+#
+# ── One URL that was never meant to exist ───────────────────────────────────
+# https://jaan.io/variational-autoencoder-perspectives.md/ is live, indexed,
+# and an accident: a file named 2016-07-24-…-perspectives.md.bak sat in the
+# Jekyll _posts directory, Jekyll's glob matched it anyway, and it published a
+# page whose slug carries the .md through into the URL. What it serves is a cut
+# section of the VAE tutorial — three bullets on why the probability-model view
+# beats the neural-net one — with no title and no frontmatter.
+#
+# So it does not become a page here. It sends its traffic to the post the text
+# was cut from, which is the nearest thing to what a visitor arriving on it was
+# looking for. Both forms are listed rather than letting the slashed one fall
+# through to the rule below, which would land it on a bare .md path that has
+# nothing behind it: one hop from wherever the link points, not two into a 404.
+/variational-autoencoder-perspectives.md/ /what-is-variational-autoencoder-vae-tutorial 301
+/variational-autoencoder-perspectives.md /what-is-variational-autoencoder-vae-tutorial 301
+
+# ── /blog/ and /articles → /writing ─────────────────────────────────────────
+# The writing index is the ONE url this port changes, and it has now been
+# through three names. jaan.io served the list at /blog/ from 2013; this port
+# opened at /articles; it is /writing today, which is what the nav calls it.
+# The individual POST urls have never moved and must stay that way; only the
+# index moves, so only the index redirects.
+#
+# EVERY OLD NAME POINTS AT THE CURRENT ONE, never at the name before it. The
+# tempting version of this — leave /blog → /articles alone and add /articles →
+# /writing — is a two-hop chain for the oldest and most-linked form, which is
+# the exact mistake the VAE tutorial's rules further down were written to
+# collapse. A hop costs a round trip and leaks ranking signal at every link.
+#
+# Both slashed and unslashed forms are listed for the same reason: letting the
+# slashed one fall through to the catch-all at the bottom would work, but as
+# two hops (/blog/ → /blog → /writing). One hop from wherever the link points.
+#
+# /articles is the younger of the two and carries far less: it has only existed
+# since this port, so what it is protecting is the nav of a page someone
+# bookmarked, a link posted in the meantime, and whatever a crawler picked up
+# in that window — worth one line each all the same, since a 404 is the one
+# outcome that cannot be repaired later.
+/blog/ /writing 301
+/blog /writing 301
+/articles/ /writing 301
+/articles /writing 301
+
+# ── notonspotify ────────────────────────────────────────────────────────────
+# A clock that tells track time, for music that isn't on Spotify. It lives in
+# its own repo on its own subdomain; this is the memorable address people are
+# given, and the only line about it in this repo.
+#
+# 302, not 301: the subdomain is where it happens to live today, and a
+# permanent redirect would be a promise this site has no reason to make.
+#
+# Both forms are listed so the slashed one is a single hop rather than two
+# through the catch-all below.
+/notonspotify/ https://notonspotify.jaan.io 302
+/notonspotify https://notonspotify.jaan.io 302
+
+# ── The VAE tutorial's three old names ──────────────────────────────────────
+# The post has been renamed twice, and jaan.io still serves both earlier names.
+# Live today, /unreasonable-confusion 301s to /what-is-variational-autoencoder-vae,
+# which 301s AGAIN to the tutorial — a two-hop chain carried over from
+# s3_website.yml, where each rename simply added a rule pointing at the name
+# before it. Both are collapsed here: every old name goes straight to the
+# tutorial in ONE hop. Nothing points at the middle name any more.
+#
+# 301, and these are the ones where it genuinely matters. This is the most
+# linked-to writing on the site, the chain is load-bearing for its ranking, and
+# a hop that is dropped rather than collapsed loses the signal outright.
+#
+# The `/index.html` twins are not tidiness. S3 static hosting needed a separate
+# rule for each, so they were distinct, publicly-reachable, indexable paths for
+# a decade. They cost one line each and cannot be recovered later if a crawler
+# still holds them. They do NOT fall through to the catch-all at the bottom of
+# this file — that rule matches only paths ENDING in a slash, and these end in
+# `.html`.
+/unreasonable-confusion/index.html /what-is-variational-autoencoder-vae-tutorial 301
+/unreasonable-confusion/ /what-is-variational-autoencoder-vae-tutorial 301
+/unreasonable-confusion /what-is-variational-autoencoder-vae-tutorial 301
+/what-is-variational-autoencoder-vae/index.html /what-is-variational-autoencoder-vae-tutorial 301
+/what-is-variational-autoencoder-vae/ /what-is-variational-autoencoder-vae-tutorial 301
+/what-is-variational-autoencoder-vae /what-is-variational-autoencoder-vae-tutorial 301
+
+# ── /sitemap.xml → /sitemap-index.xml ───────────────────────────────────────
+# jaan.io has served a sitemap at /sitemap.xml since 2013, so that is the path
+# Google and Bing already have on file and re-request on their own schedule.
+# @astrojs/sitemap emits `sitemap-index.xml` plus `sitemap-0.xml` instead, and
+# robots.txt points at the index — so without this line the path both crawlers
+# already know starts 404ing at cutover, which Search Console reports as a
+# sitemap that has stopped existing rather than as one that moved.
+#
+# A redirect rather than a copy of the file: two sitemaps at two URLs is two
+# things to keep in step, and a 301 is a thing crawlers follow and remember.
+/sitemap.xml /sitemap-index.xml 301
+
+# ── Vanity shortcuts to other people's services ─────────────────────────────
+# Typed and spoken more than they are linked — the whole point of them is that
+# they are short enough to say out loud. None of them is content this site
+# owns; each is a pointer at something living on a service that can move it.
+#
+# 302, NOT 301, and for the same reason as /notonspotify above: a 301 is cached
+# by the browser more or less permanently, so the day the Zoom room or the form
+# changes, everyone who has ever followed the old one keeps going to the dead
+# destination with no way to clear it. These paths carry no ranking worth
+# preserving, so the permanence buys nothing and costs exactly that.
+#
+# /feedback points at the FORM, not at the goo.gl short link s3_website.yml
+# used. That shortener still resolves, but Google has been retiring goo.gl, and
+# a link that dies quietly inside a redirect is the failure mode this file
+# exists to prevent. One less hop, and one less service in the chain.
+/feedback/ https://docs.google.com/forms/d/e/1FAIpQLSdAWfrXnmNDyIHGQMqmEK_Uwc4VEgiI7GQ5h3hpK3PDM_UsLg/viewform 302
+/feedback https://docs.google.com/forms/d/e/1FAIpQLSdAWfrXnmNDyIHGQMqmEK_Uwc4VEgiI7GQ5h3hpK3PDM_UsLg/viewform 302
+/zoom/ https://us04web.zoom.us/j/4234569486?pwd=VFgxNG5qaWlWb3ZPNHkzOFVlSzFnUT09 302
+/zoom https://us04web.zoom.us/j/4234569486?pwd=VFgxNG5qaWlWb3ZPNHkzOFVlSzFnUT09 302
+/guest/ https://www.dropbox.com/s/0qi1xhd4qr8pt80/thinkspace.md?dl=0 302
+/guest https://www.dropbox.com/s/0qi1xhd4qr8pt80/thinkspace.md?dl=0 302
+
+# ── Two rules from s3_website.yml that are deliberately NOT here ────────────
+# Both would be redirects onto something that no longer exists, which is worse
+# than a 404: a visitor waits through a hop to arrive nowhere, and a crawler
+# records the destination rather than the dead end.
+#
+# /impact → a Figma community file, GONE. The old README said curl's 403 was
+# probably bot-blocking and to check it in a browser. It is not bot-blocking:
+# with a browser User-Agent that file id returns 404 while figma.com/community
+# itself returns 200, so the file has been taken down or made private. Restore
+# it by pasting this back with a working URL:
+#     /impact https://www.figma.com/community/file/<id>/<slug> 302
+#
+# /dont-become-data-for-AI → the radicalization post, which is `published:
+# false` in the Jekyll tree and 404s on jaan.io today. The post is staying
+# unpublished, so the redirect goes too, and both forms plus the `/index.html`
+# twin now 404 directly instead of 301ing into one.
+
+# ── Trailing slash → no trailing slash ──────────────────────────────────────
+# The site serves /about, not /about/ (astro.config.mjs `trailingSlash: never`
+# + `format: "file"`, which emits about.html). This is the other half of that
+# decision: one canonical URL per page, and one permanent redirect pointing at
+# it, so the same content is never reachable at two live addresses.
+#
+# It is not cosmetic here. jaan.io has served `permalink: /:title/` since 2013,
+# so EVERY indexed URL — the ones carrying 20–30k organic visits a month — ends
+# in a slash. At DNS cutover this rule is what turns each of them from a 404
+# into a 301 onto the new form. Losing it would not look broken in testing (the
+# nav links are already slash-less) and would quietly drop the traffic the port
+# exists to keep.
+#
+# 301, not 302: the move is permanent, and only a 301 passes ranking signals on
+# to the destination.
+#
+# The splat cannot swallow the site root. `/*/` requires a slash AFTER whatever
+# `*` matches, and "/" has no second slash — so "/" never matches and there is
+# no redirect loop. Verified against the deployment, not assumed.
+/*/ /:splat 301

@@ -1,0 +1,35 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# The Atom feed.
+#
+# Pages types a .xml file as `application/xml` from its extension, which readers
+# accept but which is not what this is. The endpoint that generates it
+# (src/pages/feed.xml.ts) sets the right type on its Response, and that header
+# is discarded: the site is fully static, so the endpoint runs at BUILD time and
+# only its body survives into dist/feed.xml. Response headers on a prerendered
+# route are dev-server-only. This file is where production headers come from.
+#
+# An hour of cache is long enough to matter — feed readers poll hard — and short
+# enough that a correction is not stuck behind the CDN for a day.
+/feed.xml
+  Content-Type: application/atom+xml; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+# Keep the *.pages.dev copy of the site out of search results.
+#
+# This matches on the HOSTNAME, not the path, so it applies to the Pages
+# deployment and NOT to jaan.io once that is served from here. That scoping is
+# the whole point: a blanket `/*` noindex would be correct today and silently
+# catastrophic on the day the real domain is pointed at this project.
+#
+# It matters because every page canonicals to https://jaan.io/ while jaan.io
+# still serves the old site — so an indexable duplicate here is exactly the kind
+# of thing that costs the organic traffic this port exists to preserve.
+# Cloudflare applies this automatically to *preview* deployments; production
+# deployments on pages.dev get no such treatment, hence doing it explicitly.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex

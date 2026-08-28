@@ -1,0 +1,161 @@
+---
+// Blog posts, at the exact URLs jaan.io has served since 2013.
+//
+// The Jekyll site used `permalink: /:title/`, where :title is the filename slug
+// with the leading YYYY-MM-DD- stripped. So `src/content/posts/<slug>.md` →
+// `/<slug>/`, and with trailingSlash:"always" + build.format:"directory" in
+// astro.config.mjs the emitted path is `<slug>/index.html` — byte-identical to
+// the live URL. Renaming a file here breaks a URL that carries real search
+// traffic; add a redirect instead.
+//
+// A single [slug] (not [...slug]) is deliberate: every post URL is exactly one
+// path segment, so this route cannot accidentally shadow a nested page later.
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import Base from "../layouts/Base.astro";
+import Prose from "../components/Prose.astro";
+import Toc from "../components/Toc.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
+import { getCollection, render } from "astro:content";
+import { getImage } from "astro:assets";
+import { CARD, OG_QUALITY, cardImage, cardPath, type ShareImage } from "../lib/og";
+import type { GetStaticPaths } from "astro";
+// KaTeX's stylesheet is imported here, not in Base.astro, so it only ships on
+// routes that can contain math.
+import "katex/dist/katex.min.css";
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection("posts");
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}) satisfies GetStaticPaths;
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+
+// WHAT A LINK TO THIS POST PREVIEWS AS, in three steps — see src/lib/og.ts.
+//
+//   1. `ogImage`, the post's own picture. Five posts have one: the Jekyll
+//      site's `image.feature` banners, at the resolutions that survived.
+//   2. Its `thumb`, drawn large on a card by scripts/gen-og-cards.mjs. Every
+//      post has a thumb, so in practice this is where the other four land.
+//   3. Nothing — Base.astro falls back to the portrait.
+//
+// `fit: "cover"` with `position: "attention"`, the same treatment the portrait
+// gets: Sharp's saliency crop keeps the subject in frame, so a banner cut for a
+// 2500 × 700 hero and a near-square grid both land on 1200 × 630 without either
+// needing a crop anchor written into the frontmatter.
+let share: ShareImage | undefined;
+if (post.data.ogImage) {
+  const rendered = await getImage({
+    src: post.data.ogImage,
+    ...CARD,
+    fit: "cover",
+    position: "attention",
+    format: "jpeg",
+    quality: OG_QUALITY,
+  });
+  share = {
+    src: rendered.src,
+    ...CARD,
+    type: "image/jpeg",
+    // The schema requires this alongside ogImage, so it cannot be missing here.
+    alt: post.data.ogImageAlt!,
+  };
+} else if (
+  // The card is generated output under public/, so a checkout that has not run
+  // it has no file to point at. Checked rather than assumed: a 404 in someone's
+  // message thread is worse than the portrait, which is what omitting `share`
+  // falls back to.
+  existsSync(join(process.cwd(), "public", cardPath("articles", post.id)))
+) {
+  // Describes the PICTURE, not the post — the headline is already carried as
+  // live text beside the preview on every platform that draws one, and
+  // repeating it here is what makes a screen reader say the same thing twice.
+  share = cardImage("articles", post.id, `The line-art mark for “${post.data.title}”, on black.`);
+}
+---
+
+<Base
+  title={post.data.title}
+  description={post.data.description}
+  share={share}
+  ogType="article"
+  publishedTime={post.data.date.toISOString()}
+>
+  <Prose>
+    <h1>{post.data.title}</h1>
+    {
+      /* AFTER THE TITLE IN DOM ORDER, and that is the whole reason it sits
+         here rather than above <Prose> where it used to.
+
+         The rail is `position: fixed` in the left gutter (and display:none
+         below 1400px), so its position on screen has nothing to do with where
+         it appears in the document. Which means putting it first cost nothing
+         visually and cost something real to anyone not looking at the screen:
+         a skip link to #main, a screen reader entering the article, and the
+         first Tab after the header all landed on twenty section links instead
+         of on the headline. Now the first thing in the article is what the
+         article is called, and the outline is the next stop after it — which
+         is also the right place for it in the tab order.
+
+         It stays a <nav aria-label="On this page"> rather than gaining an
+         <aside> wrapper: it is a list of links, which is what <nav> is for,
+         it is already a labelled landmark that can be skipped in one move, and
+         nesting it inside a second landmark would have a screen reader
+         announce two regions for one rail. */
+    }
+    <Toc headings={headings} />
+    {
+      /* The dateline: under the headline, above the first paragraph, which is
+         where a reader of anything already looks for it.
+
+         The YEAR alone for the original date — 2016 places the piece, the 18th
+         of July does not — while `datetime` carries the whole date, so a
+         machine still gets the exact day for sorting, feeds and rich results.
+         That split is the point of the element.
+
+         THE REVISION DATE IS SHOWN IN FULL, and that asymmetry is deliberate.
+         A year on its own answers "how old is this"; a revision answers "is
+         this still being looked after", and "updated August 2026" carries that
+         where a bare "2026" beside a bare "2016" just looks like two numbers.
+         It only appears on a post that sets `updated` — see the note on that
+         field in src/content.config.ts for why it is set by hand. */
+    }
+    <p class="prose-dateline">
+      <time datetime={post.data.date.toISOString().slice(0, 10)}>
+        {post.data.date.getUTCFullYear()}
+      </time>
+      {
+        post.data.updated && (
+          <>
+            {" · updated "}
+            <time datetime={post.data.updated.toISOString().slice(0, 10)}>
+              {post.data.updated.toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
+                timeZone: "UTC",
+              })}
+            </time>
+          </>
+        )
+      }
+    </p>
+    <Content />
+  </Prose>
+
+  {
+    /* After the article, never before it — the same reasoning as on /writing:
+       someone who has read to the end has already decided whether the writing
+       is for them, and a form in front of the piece asks before it shows.
+       It sizes itself with the same three lines as <Prose> (width: --site-w,
+       margin-left: --site-ml, max-width: --reading-w), so the box hangs off the
+       article's own left edge and ends where its text column ends.
+
+       This is what puts Turnstile's loader — the one third-party script on the
+       site — on every post page rather than on the two pages that carried the
+       form before. That is the cost of the form being here at all; nothing
+       else about a post page changes, and the widget itself draws nothing (see
+       the note beside it in NewsletterSignup.astro). */
+  }
+  <NewsletterSignup />
+</Base>

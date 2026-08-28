@@ -1,0 +1,377 @@
+---
+// A fixed tag rail in the page's left gutter — the shape from
+// config.figma.com/san-francisco/faq/: small boxes stacked down the left, on
+// the raised-surface grey, aligned to the nav wordmark's left edge.
+//
+// TWO MODES, ONE RAIL. Pass exactly one of them.
+//
+//   const { Content, headings } = await render(post);
+//   <Toc headings={headings} />          // a contents list that follows scroll
+//
+//   <Toc links={SITE.contact} label="Elsewhere" />   // an authored list
+//
+// The second exists so /about/'s contact rail is the SAME object as the
+// articles' contents rail rather than a lookalike built beside it — one set of
+// styles, one alignment, one breakpoint. Only the first has a current item,
+// because only it has sections you can be inside.
+//
+// It renders nothing when there is nothing to navigate: fewer than two
+// headings, or an empty link list.
+//
+// WHY IT IS `position: fixed` AND NOT `position: sticky`
+// Sticky needs the element in the normal flow of something tall enough to
+// scroll within, and the flow here is a centred --reading-w column: the rail
+// belongs in the gutter OUTSIDE that column, aligned to the site chrome rather
+// than to the text. Fixed positions against the viewport, which is exactly the
+// coordinate system the nav uses, so the two line up by construction.
+import type { MarkdownHeading } from "astro";
+import type { SiteLink } from "../site.config";
+
+interface Props {
+  headings?: MarkdownHeading[];
+  /** An authored rail. Mutually exclusive with `headings`. */
+  links?: SiteLink[];
+  /** Deepest heading level to list, as a tag number: 3 keeps h1-h3. */
+  maxDepth?: number;
+  /** Accessible name for the landmark. */
+  label?: string;
+}
+
+const { headings, links, maxDepth = 3, label } = Astro.props;
+
+if (headings && links) {
+  throw new Error("[Toc] Pass `headings` or `links`, not both — they are two modes of one rail.");
+}
+
+/**
+ * The footnote apparatus, which is not a section of the article.
+ *
+ * A contents list answers "what is this piece about". Footnotes are the
+ * machinery underneath it — you reach them by clicking a marker in the prose,
+ * never by deciding to go and read them — so a tag for them is a line of noise
+ * at the bottom of every rail.
+ *
+ * Two slugs, because a post that has footnotes ends up with two headings that
+ * both say "Footnotes" and the rail listed both:
+ *
+ *   footnotes       the author's own `## Footnotes`, the visible label
+ *   footnote-label  rehype's generated sr-only heading inside <section
+ *                   data-footnotes>, which render() hands back mixed in with
+ *                   the authored ones
+ *
+ * The generated slug is fixed by rehype and only movable via
+ * `remarkRehype.footnoteLabelProperties`, which nothing here sets. Both stay on
+ * the page; they just stop being destinations in the rail. Between them they
+ * were also the only tags that could not behave — they sit past where the
+ * physics post stops scrolling, so clicking either landed short of its heading
+ * and lit the previous section.
+ */
+const APPARATUS_SLUGS = new Set(["footnotes", "footnote-label"]);
+
+/*
+ * Every heading in the body is a section of the article, h1 INCLUDED.
+ *
+ * The title is not one of them and never was: [slug].astro sets it from
+ * frontmatter, outside the Markdown, so `headings` holds only what the author
+ * wrote inside the post. Skipping depth 1 as "the title" therefore skipped real
+ * sections — the physics post opens its six with `#`, so all six were dropped
+ * and the rail vanished, one surviving `## References` being too few to draw.
+ */
+const items = (headings ?? []).filter((h) => h.depth <= maxDepth && !APPARATUS_SLUGS.has(h.slug));
+
+/*
+ * The rail indents by DISTANCE FROM THE SHALLOWEST HEADING, not by tag number.
+ *
+ * Posts here disagree about which tag opens a section: most use `##` and nest
+ * with `###`, the physics post uses `#`. Indenting on the absolute depth has to
+ * get one of those wrong — either every physics section sits flat where the
+ * others step, or its `## References` steps in under a parent it does not have.
+ * Measuring from whatever the post's own top level turns out to be makes both
+ * shapes read the same, and costs one pass over the list.
+ */
+const top = items.reduce((min, h) => Math.min(min, h.depth), Infinity);
+
+// A contents list of one is not worth a rail; an authored list of one is, since
+// the author asked for exactly those.
+const show = links ? links.length > 0 : items.length > 1;
+const name = label ?? (links ? "Elsewhere" : "On this page");
+---
+
+{
+  show && (
+    <nav class="toc" aria-label={name}>
+      <ol class="toc__list">
+        {links
+          ? links.map((link) => (
+              <li class="toc__item">
+                <a
+                  class="toc__link"
+                  href={link.href}
+                  target={link.external ? "_blank" : undefined}
+                  rel={link.external ? "noopener noreferrer" : undefined}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))
+          : items.map((h) => (
+              <li class:list={["toc__item", `toc__item--sub${Math.min(h.depth - top, 2)}`]}>
+                <a class="toc__link" href={`#${h.slug}`} data-toc-link={h.slug}>
+                  {h.text}
+                </a>
+              </li>
+            ))}
+      </ol>
+    </nav>
+  )
+}
+
+<style>
+  .toc {
+    position: fixed;
+    /* The left edge lands on the nav wordmark's left edge. The nav is
+       `width: var(--site-w)` centred with auto margins inside a fixed, full-ICB
+       header, so its left edge sits at (ICB − 94vw) / 2. For a fixed element,
+       `100%` IS the ICB, so this is the same number arrived at the same way —
+       including when a classic scrollbar is taking width off the ICB, which a
+       plain `3vw` would get wrong by half the scrollbar. --chrome-w, not
+       --site-w: inside main.is-centered the latter is the ~680px reading
+       measure. */
+    left: calc((100% - var(--chrome-w)) / 2);
+
+    /* Centred on the viewport's vertical midpoint: pin both edges, give the box
+       its content height, and let the auto margins split what is left over.
+       That is the abspos centring rule, and it beats `top: 50%` +
+       `translateY(-50%)` here — a translate of half an odd-numbered height
+       lands the box on a half-pixel and softens 13px text. This way the box
+       stays on whole pixels. */
+    top: 0;
+    bottom: 0;
+    height: max-content;
+    margin-block: auto;
+
+    /* The cap is what keeps centring safe. The rail has to survive the longest
+       post's dozen-plus headings on a short laptop screen, and at full height a
+       centred box would slide up under the fixed nav. Subtracting twice the nav
+       plus a rem means that even when the cap binds, the top edge lands exactly
+       one rem below the nav — the same clearance the headings' scroll-margin
+       uses — and the bottom edge mirrors it. Past that it scrolls itself. */
+    max-height: calc(100svh - 2 * (var(--nav-h) + 1rem));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    /* Room for the widest tag, bounded so a long heading cannot reach the text
+       column. See the media query below for where this stops fitting at all. */
+    width: min(15rem, calc((100vw - var(--reading-w)) / 2 - var(--edge) - 2rem));
+
+    /* Above the page, below the mobile menu (300) and its button (400). */
+    z-index: 40;
+  }
+
+  /* ── EVERY RULE BELOW IS NESTED UNDER .toc, AND THAT IS LOAD-BEARING ──────
+     The rail is rendered INSIDE <Prose> on a post (src/pages/[slug].astro), so
+     that the article's title comes first in the document. Prose styles rendered
+     Markdown with :global() — `.prose :global(ol)` sets a margin and an indent,
+     and `.prose :global(li)` sets `font-size: var(--fs-body)`, which is 1.5rem.
+     Those select this rail's own <ol> and <li> too.
+
+     Written flat as `.toc__item`, this file's rules and Prose's would both come
+     out at (0,2,0) once Astro adds its scope attribute — a tie, decided by
+     whichever stylesheet the bundler happened to emit second. The rail rendered
+     correctly or at 1.5rem depending on build order, which is not a thing to
+     leave to chance. Nesting under `.toc` makes them (0,3,0) and settles it.
+
+     Prose is not the one to change here: its job is to style whatever Markdown
+     it is handed, and a component dropped inside it defending its own type
+     scale is the smaller and more local rule. */
+  .toc .toc__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    /* Tight, like the reference: the stack should read as one object. */
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  /* Nested headings step in, so the rail shows structure rather than a flat
+     list. The number is levels below the post's own top heading, not the tag
+     depth — see `top` above — and it stops at two because maxDepth lists three
+     levels and anything deeper would be indenting past the tag's own text. */
+  .toc .toc__item--sub1 {
+    padding-left: 0.75rem;
+  }
+
+  .toc .toc__item--sub2 {
+    padding-left: 1.5rem;
+  }
+
+  .toc .toc__link {
+    display: inline-block;
+    /* Navigation, so it takes the chrome voice rather than the content face —
+       see the role tokens in tokens.css. */
+    font-family: var(--font-chrome);
+    font-size: 0.95rem;
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+    /* NOT uppercased, unlike the reference and unlike .nav-link. Those are
+       one-word category labels; these are sentences ("Mean-field versus
+       amortized inference"), and uppercasing them costs a line of wrapping
+       each and reads as shouting. */
+    color: var(--text);
+    background: var(--surface);
+    text-decoration: none;
+    box-shadow: none;
+    padding: 0.3rem 0.5rem;
+    border-radius: var(--hover-radius);
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  .toc .toc__link:hover,
+  .toc .toc__link:focus-visible {
+    background: var(--accent);
+    color: var(--bg);
+    outline: none;
+  }
+
+  /* The section you are in. Light fill on dark, the same inversion .nav-btn
+     uses, so "current" reads at a glance down a column of grey. Both pairs are
+     covered by npm run a11y: --text on --surface is 11.23:1, --bg on
+     --btn-light is 16.21:1. */
+  .toc .toc__link.is-current {
+    background: var(--btn-light);
+    color: var(--bg);
+  }
+
+  /* Hover still wins over current, so pointing at another section previews it. */
+  .toc .toc__link.is-current:hover,
+  .toc .toc__link.is-current:focus-visible {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  /* Below this the gutter cannot hold the rail without crowding the measure.
+     The text column is --reading-w (850px) and centred, so each gutter is
+     (100vw − 850) / 2, from which the rail still owes an --edge and a 2rem gap:
+
+       1400px → (1400−850)/2 − 48 − 32 = 195px   readable
+       1300px → (1300−850)/2 − 48 − 32 = 145px   too narrow to set a heading in
+
+     This threshold moved out from 1200px when the measure was widened 25% —
+     a wider column is a narrower gutter, and the rail pays for it. Hidden
+     rather than reflowed inline; see the note in the report.
+
+     ONE PAGE PICKS THE HIDDEN LIST BACK UP: /about/ draws the same
+     `SITE.contact` links as a centred stack in the flow, under `.contact` in
+     src/pages/about.astro, behind the exact complement of this query. The two
+     numbers are one number written twice — move this one and that one moves
+     with it, or /about/ shows the rail and the stack at once. Nothing else on
+     the site does this; the articles' contents rail is a scroll affordance
+     with nothing to be inside of once it is inline. */
+  @media (max-width: 1400px) {
+    .toc {
+      display: none;
+    }
+  }
+
+  /* The rail is a scroll-following affordance; honouring reduced-motion here
+     means not animating the fill as it moves between items. */
+  @media (prefers-reduced-motion: reduce) {
+    .toc .toc__link {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // Which heading you are currently under.
+  //
+  // Deliberately a scroll handler and not an IntersectionObserver: IO answers
+  // "is this element in a band", which leaves a section taller than the band
+  // with no answer at all, and two short ones fighting over it. The question a
+  // table of contents actually asks is "which heading did I last pass", and
+  // that is a scan for the last one above a line — always exactly one answer,
+  // for any section length, and correct after a jump-link or a page restore
+  // rather than only after the next intersection.
+  const rail = document.querySelector<HTMLElement>(".toc");
+  const links = new Map<string, HTMLAnchorElement>();
+  for (const a of rail?.querySelectorAll<HTMLAnchorElement>("[data-toc-link]") ?? []) {
+    links.set(a.dataset.tocLink!, a);
+  }
+
+  const targets = [...links.keys()]
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => el !== null);
+
+  // Nothing to spy on in `links` mode — an authored rail has no sections to be
+  // "in" — so bail before attaching any listeners rather than running a scan
+  // that can only ever return nothing.
+  if (rail && targets.length > 0) {
+    // The line a heading has to cross to count as "reached".
+    //
+    // It must sit at or BELOW where a jump-link parks a heading, which is
+    // `scroll-margin-top: nav + 1rem` (Prose.astro). Set it above that and
+    // clicking a tag scrolls its heading to a spot the line has not reached, so
+    // the rail lights the PREVIOUS tag — an off-by-one that looks like the spy
+    // lagging rather than like a mismatched constant. Half a rem of slack
+    // absorbs subpixel rounding at that landing position.
+    const rootFs = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const navRem = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue("--nav-h"),
+    );
+    const navPx = Number.isFinite(navRem) ? navRem * rootFs : 56;
+    const line = navPx + rootFs * 1.5;
+
+    let current: HTMLAnchorElement | null = null;
+    const setCurrent = (next: HTMLAnchorElement | null) => {
+      if (next === current) return;
+      current?.classList.remove("is-current");
+      current?.removeAttribute("aria-current");
+      next?.classList.add("is-current");
+      // "true" rather than "location": the rail is not a set of page links, it
+      // points within this one.
+      next?.setAttribute("aria-current", "true");
+      current = next;
+
+      // Keep the highlight visible when the rail is scrolling itself — the
+      // longest posts have a dozen of these and the current one can be off-rail.
+      if (next && rail.scrollHeight > rail.clientHeight) {
+        const r = next.getBoundingClientRect();
+        const box = rail.getBoundingClientRect();
+        if (r.top < box.top || r.bottom > box.bottom) {
+          next.scrollIntoView({ block: "nearest" });
+        }
+      }
+    };
+
+    const update = () => {
+      let passed: HTMLElement | null = null;
+      for (const t of targets) {
+        if (t.getBoundingClientRect().top <= line) passed = t;
+        else break; // targets are in document order, so the first miss ends it
+      }
+      // Before the first heading you are still in the opening paragraphs. Fall
+      // back to the first item so the rail is never entirely unlit.
+      const id = (passed ?? targets[0])?.id;
+      setCurrent(id ? (links.get(id) ?? null) : null);
+    };
+
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        update();
+        ticking = false;
+      });
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+  }
+</script>

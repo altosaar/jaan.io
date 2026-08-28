@@ -1,0 +1,253 @@
+---
+// The frame every /visualizations/* page shares.
+//
+// A headline, a standfirst, one or more embedded charts, and a source note.
+// The charts arrive from viz/ as bare SVG (see VizEmbed.astro); everything
+// visible around them is this file, which is why they read as part of jaan.io
+// rather than as an iframe onto a different website.
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
+import { VISUALIZATIONS } from "../data/visualizations";
+import { cardImage, cardPath } from "../lib/og";
+import "../styles/viz.css";
+
+interface Props {
+  title: string;
+  /** <meta name="description">, and the standfirst under the headline. */
+  description: string;
+  /** Optional line above the headline, e.g. "American Community Survey". */
+  eyebrow?: string;
+  /** Optional href for the eyebrow, linking back to the parent set. */
+  eyebrowHref?: string;
+}
+
+const { title, description, eyebrow, eyebrowHref } = Astro.props;
+
+// The share image: this chart's own mark, drawn large on a card by
+// scripts/gen-og-cards.mjs, so a link to a specific visualization previews as
+// that visualization rather than as the site's portrait.
+//
+// Looked up from the URL rather than taken as a prop. Eight pages use this
+// layout and every one of them would otherwise have to name its own mark — a
+// second copy of a mapping src/data/visualizations.ts already holds, and one
+// that would silently go stale the day a page moved. The URL is the thing that
+// cannot drift from what is actually being served.
+//
+// `build.format: "file"` makes the pathname the emitted file path (/x.html), so
+// strip the extension before matching, exactly as Base.astro does for canonical.
+const slug = Astro.url.pathname
+  .replace(/\.html$/, "")
+  .replace(/^\/visualizations\//, "")
+  .replace(/\/$/, "");
+const viz = VISUALIZATIONS.find((v) => v.slug === slug);
+// Absent when `npm run viz` has not run in this checkout: the marks are
+// generated output and so are the cards. Base.astro then falls back to the
+// portrait, which is a correct share card rather than a broken one.
+const hasCard =
+  viz && existsSync(join(process.cwd(), "public", cardPath("visualizations", viz.thumb)));
+const share = hasCard
+  ? cardImage(
+      "visualizations",
+      viz.thumb,
+      `A miniature of the “${title}” chart, drawn in white on black.`,
+    )
+  : undefined;
+---
+
+<Base title={title} description={description} share={share}>
+  {
+    /* Forward a page's <head> additions through to Base. Only the New York map
+       uses it, for MapLibre's stylesheet, which no other route needs. Without
+       this line that <link> would land in the body instead. */
+  }
+  <slot name="head" slot="head" />
+
+  <Section as="header" top="section" bottom="block">
+    {
+      eyebrow &&
+        (eyebrowHref ? (
+          <a class="viz-eyebrow" href={eyebrowHref}>
+            {eyebrow}
+          </a>
+        ) : (
+          <p class="viz-eyebrow">{eyebrow}</p>
+        ))
+    }
+    <h1 class="viz-title">{title}</h1>
+    <p class="viz-standfirst">{description}</p>
+  </Section>
+
+  <Section bottom="gap">
+    <slot />
+  </Section>
+
+  {
+    /* The provenance block: where the data came from and what code produced
+       it. Optional, but every one of these pages has one — they are the whole
+       reason the charts are worth trusting. */
+  }
+  {
+    Astro.slots.has("sources") && (
+      <Section as="section" bottom="gap">
+        <div class="viz-sources">
+          <h2 class="viz-sources__heading">Data and code</h2>
+          <slot name="sources" />
+        </div>
+      </Section>
+    )
+  }
+
+  <!-- <Section bottom="gap">
+    <p class="viz-back"><a href="/visualizations">← All visualizations</a></p>
+  </Section> -->
+
+  {
+    /* Last on the page, below the way back out — the same position it holds at
+       the end of a post. Here rather than in each of the eight pages that use
+       this layout, which is the point of the layout. */
+  }
+  <NewsletterSignup />
+
+  {
+    /* Mounts every <VizEmbed> on the page. One loader per page, not per embed —
+       the ACS 2022 page has two charts and they share this.
+
+       `is:inline` is load-bearing, not a style choice. A processed Astro
+       <script> goes through Vite, and Vite rewrites EVERY dynamic import into
+       its `__vitePreload(…, __VITE_PRELOAD__)` helper. An `@vite-ignore`
+       annotation stops it RESOLVING the specifier but not that rewrite, so the
+       built page throws `ReferenceError: __VITE_PRELOAD__ is not defined` the
+       moment it tries to load a chart — the placeholder is only substituted for
+       modules Vite owns, and these are deliberately not. Inline keeps the
+       import exactly as written. (Verified: that is the error this replaced.)
+
+       Which is also why this is plain JS in a template rather than TypeScript:
+       an inline script is emitted verbatim and never compiled. */
+  }
+  <script is:inline>
+    for (const el of document.querySelectorAll(".viz-embed")) {
+      const src = el.dataset.src;
+      const name = el.dataset.export;
+      if (!src || !name) continue;
+
+      import(src)
+        .then((mod) => {
+          if (typeof mod[name] !== "function") {
+            throw new Error(`${src} has no export named ${name}`);
+          }
+          return mod[name]();
+        })
+        .then((node) => {
+          el.replaceChildren(node);
+          // The reserved box has done its job; let the figure set its own height.
+          el.style.minHeight = "";
+        })
+        .catch((error) => {
+          console.error(`Could not load ${src}`, error);
+          const p = document.createElement("p");
+          p.className = "viz-embed__status viz-embed__status--error";
+          p.textContent =
+            "This chart could not be loaded. It needs JavaScript and a browser with WebAssembly.";
+          el.replaceChildren(p);
+        });
+    }
+  </script>
+</Base>
+
+<style>
+  .viz-eyebrow {
+    display: inline-block;
+    font-family: var(--font-chrome);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  a.viz-eyebrow {
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  a.viz-eyebrow:hover,
+  a.viz-eyebrow:focus-visible {
+    color: var(--accent);
+  }
+
+  .viz-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-h1);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    max-width: var(--reading-w);
+  }
+
+  /* The old pages opened with a 90px gradient-filled hero and no body text.
+     This replaces it with the sentence that was buried under it — on these
+     pages the standfirst IS the content, since everything else is a chart. */
+  .viz-standfirst {
+    margin-top: 1.5rem;
+    font-size: var(--fs-md);
+    line-height: 1.5;
+    color: var(--text-muted);
+    max-width: var(--reading-w-tight);
+  }
+
+  .viz-sources {
+    max-width: var(--reading-w-tight);
+    border-top: 1px solid var(--line);
+    padding-top: 1.5rem;
+  }
+
+  .viz-sources__heading {
+    font-family: var(--font-chrome);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 1rem;
+  }
+
+  .viz-sources :global(ul) {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .viz-sources :global(li) {
+    font-size: var(--fs-base);
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .viz-sources :global(p) {
+    font-size: var(--fs-base);
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .viz-back {
+    font-family: var(--font-chrome);
+    font-size: 0.9rem;
+  }
+
+  .viz-back a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .viz-back a:hover,
+  .viz-back a:focus-visible {
+    color: var(--accent);
+  }
+</style>

@@ -1,0 +1,106 @@
+---
+// /images/ — the photo gallery.
+//
+// This lived on the home page until the home page was reduced to a single
+// locked screen (see index.astro). Nothing about the carousel changed in the
+// move; it is the same component with the same props.
+//
+// The portrait/gallery attention model in src/lib/portrait.client.ts is a
+// no-op here: it dims `.portrait`, and there is no portrait on this page. The
+// carousel's own single-highlight behaviour is self-contained and still works.
+import Base from "../layouts/Base.astro";
+import Carousel from "../components/Carousel.astro";
+import Section from "../components/Section.astro";
+import { gallery } from "../data/gallery";
+
+// Every photo in src/assets/gallery, already shuffled and already checked for
+// alt text — see src/data/gallery.ts. Passed straight to the carousel: a
+// GalleryPhoto is {img, alt}, which is a CarouselItem with the optional parts
+// left off, so there is nothing to map. No Markdown bodies either; the carousel
+// runs with enablePopup={false}, so there is no reveal panel to fill.
+---
+
+<Base
+  title="Images"
+  description="Portrait photographs by Jaan Altosaar — a small gallery of people, in black and white until you look closer."
+>
+  <div class="gallery">
+    {
+      /* Carries no spacing of its own, so while it is empty it has zero height
+         and cannot pull the strip off centre. Restoring the heading only means
+         uncommenting: it inherits the centred reading measure from
+         main.is-centered, so it lands above the strip at the same left edge as
+         every other page. Give the Section a `bottom` gap at that point. */
+    }
+    <Section as="header">
+      <h1 class="sr-only">Images</h1>
+      <!-- <p class="images-intro">Portraits. They come into colour as you move through them.</p> -->
+    </Section>
+
+    {
+      /* No heading and no visible counter — the strip speaks for itself. The
+         `counter` label is kept and only hidden (showCounter): it is also each
+         slide's accessible name, so blanking the string would leave a screen
+         reader announcing sixteen anonymous "slide"s with no position. */
+    }
+    <Carousel
+      items={gallery}
+      variant="natural"
+      enablePopup={false}
+      grayscale
+      fullBleed
+      showCounter={false}
+      keyboard="page"
+      labels={{
+        carousel: "Portraits",
+        prev: "Previous photo",
+        next: "Next photo",
+        counter: "Photo {n} of {total}",
+      }}
+    />
+  </div>
+</Base>
+
+<style>
+  /* The strip is the entire page, so it sits in the middle of what the nav
+     leaves rather than hanging from the top.
+
+     100svh minus the nav — not 100svh — because #chrome-spacer already holds
+     the nav's height in flow above <main>. Using the full viewport height here
+     would make the document exactly one nav-height too tall and hand a page
+     with nothing below the fold a scrollbar.
+
+     `safe center` is the short-viewport guard: a landscape phone is under 400px
+     tall and cannot fit a 400px strip, and plain `center` overflows a flex
+     container in BOTH directions — the top of the strip would be cut off above
+     the scroll origin and unreachable. `safe` falls back to start-alignment
+     exactly when that would happen. The plain `center` before it is the
+     fallback for engines that don't parse the keyword. */
+  .gallery {
+    min-height: calc(100svh - var(--nav-h));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-content: safe center;
+
+    /* Counterweight for the nav. This box starts BELOW the nav, so centring in
+       it puts the strip half a nav-height (26px) below the middle of the
+       screen. A bottom padding of one nav-height shrinks the content area by
+       that much again at the other end, lifting the centre back onto the
+       viewport's. Padding rather than a negative top margin: when the strip is
+       too tall to fit and `safe` falls back to start-alignment, padding still
+       leaves the first row below the nav, where a negative margin would park it
+       underneath. box-sizing: border-box (base.css) keeps min-height honest, so
+       the document is still exactly one screen and gets no scrollbar. */
+    padding-bottom: var(--nav-h);
+  }
+
+  /* Matches .articles-intro on /writing/ — the two index pages share a voice. */
+  .images-intro {
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    max-width: var(--reading-w-tight);
+    margin-top: 1rem;
+    color: var(--text-muted);
+  }
+</style>

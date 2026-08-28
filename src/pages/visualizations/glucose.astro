@@ -1,0 +1,46 @@
+---
+// Was jaan.li/glucose.
+import Viz from "../../layouts/Viz.astro";
+import VizEmbed from "../../components/VizEmbed.astro";
+---
+
+<Viz
+  title="Millions of glucose levels"
+  description="Blood glucose readings across 300,000 hospitalizations of 150,000 people, cross-filtered against the diagnostic category each patient was admitted under."
+  eyebrow="Visualizations"
+  eyebrowHref="/visualizations"
+>
+  <p class="viz-note">
+    The two views are linked. Select bars in the diagnostic-category chart to filter the heatmap and
+    isolate the pattern for those admissions; or drag a rectangle in the heatmap to show only the
+    categories that fall inside it. Both queries run in your browser, against the full table, as you
+    drag.
+  </p>
+
+  {
+    /* Laid out at a fixed 1063px and given its own scroller. Mosaic sizes a
+       plot when it is constructed and these two share a live selection, so
+       re-rendering on resize would throw away whatever the reader had brushed.
+       See viz/src/charts/glucose.js. */
+  }
+  <VizEmbed module="glucose" export="GlucoseCrossfilter" minHeight={880} scroll />
+
+  <p class="viz-note">
+    The time axis runs from 2105 to 2214. That is not an error: MIMIC-IV shifts every patient's
+    dates forward into the 2100s by a random per-patient offset, which preserves the intervals
+    within a single stay — the thing the heatmap is actually about — while severing any connection
+    to a real calendar date.
+  </p>
+
+  <Fragment slot="sources">
+    <ul>
+      <li>Data: MIMIC-IV, a de-identified critical care database.</li>
+      <li>
+        Transform: <a
+          href="https://github.com/jaanli/mimic-iv-visualization/blob/89af4215cc1f77da1918e991f1447a175ade8117/data_processing/models/figures/glucose_full.sql"
+          rel="noopener">glucose_full.sql</a
+        >.
+      </li>
+    </ul>
+  </Fragment>
+</Viz>

@@ -1,0 +1,50 @@
+# Keeps dependencies current with minimal oversight: Dependabot opens grouped,
+# reviewable PRs on a weekly cadence. Merge them after CI (see ci.yml) passes.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # One PR for all non-major updates keeps the review burden low.
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # TypeScript 7 (the native compiler) doesn't yet expose the API that
+      # `astro check` needs. Stay on the 5.x line until Astro supports it.
+      # This is an external constraint, not a caution — `npm run check` breaks.
+      # Track: https://github.com/withastro/roadmap/discussions/1321
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+
+      # Astro majors are NOT held: this site tracks the latest deliberately.
+      # The hold this config inherited came from a template whose merge
+      # instruction to non-technical editors was "merge it when CI is green".
+      #
+      # sharp is likewise unheld now. It was pinned below 0.35 because sharp is
+      # a 0.x package (so 0.34 → 0.35 is a *minor* bump that a major-only ignore
+      # misses) and taking it used to install 0.35 at the root while npm kept a
+      # nested 0.34 under astro — two copies of a native module, with astro's
+      # image pipeline still on the old one. Astro 7 declares
+      # `^0.34.0 || ^0.35.0`, so that condition is gone and we are on 0.35.3.
+
+      # embla-carousel majors stay held, and this one is not about caution in
+      # general: CI builds the site but never executes client JavaScript, so a
+      # break in the gallery's drag/snap behaviour would arrive as a green PR.
+      # Taking one means a manual pass afterwards — arrows, keyboard, swipe, and
+      # the portrait/gallery highlight handoff (src/lib/portrait.client.ts).
+      - dependency-name: embla-carousel
+        update-types: [version-update:semver-major]
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"

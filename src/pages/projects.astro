@@ -1,0 +1,327 @@
+---
+// /projects — the index of project sets and of work published elsewhere.
+//
+// The Jekyll site served /projects/ as five external links (Flickr, CANImmunize,
+// Useful Science, the One Fact Foundation, and an unpublished Couchometer
+// entry). Those are still to port; see README Phase 4 §1. What is here now is
+// the set that lives on this site — the visualizations — plus the first of the
+// external ones.
+//
+// The list itself is src/data/projects.ts. Same treatment as /writing: mark,
+// headline, one line. See src/pages/writing.astro for why the entries are
+// spaced the way they are.
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { getImage } from "astro:assets";
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
+import IndexMark from "../components/IndexMark.astro";
+import { PROJECTS } from "../data/projects";
+import { VISUALIZATIONS } from "../data/visualizations";
+
+// The generated chart marks, for any entry that borrows one as its icon (see
+// `vizMark` in src/data/projects.ts). Drawn server-side by the loaders in
+// viz/src/thumbs and written to public/visualizations/thumbs by
+// scripts/build-visualizations.mjs, which npm run dev and npm run build both run
+// first — so the files are there before this page renders.
+//
+// Inlined rather than <img src="…">, for the same reason the microlite icon is
+// imported as a component: these are drawn entirely in currentColor, and an SVG
+// loaded through <img> is a separate document that inherits neither colour nor
+// custom properties from the page. Through <img> every mark would resolve to
+// black and vanish against this background.
+//
+// Resolved from process.cwd(), NOT from import.meta.url — in a build Astro
+// prerenders from a bundled chunk whose import.meta.url is under
+// dist/.prerender/, so a relative "../../public" lands nowhere. cwd is the
+// project root in both dev and build. Same reasoning as visualizations.astro,
+// which reads the same directory.
+const thumbDir = join(process.cwd(), "public", "visualizations", "thumbs");
+
+// The mark box, as a reference to the token the stylesheet below declares
+// rather than as a literal. The width has to be in CSS now, because a row with
+// NO mark reproduces the column with a margin instead of a box and the two must
+// be the same width; a second copy of the clamp is a copy that drifts. The
+// value itself is still deliberately the one /writing uses (its own MARK_SIZE),
+// so the two index pages line up with each other and not just with themselves.
+//
+// IndexMark takes any CSS length and inlines it into the box's style attribute,
+// so what arrives there is `--mark-size:var(--mark-col)` — resolved against the
+// declaration on .projects, which every one of these boxes is inside.
+const MARK_SIZE = "var(--mark-col)";
+
+// An entry pointing off this site gets the external treatment: a new tab and
+// the arrow beside the headline. Worked out from the href rather than declared,
+// so adding an external entry is one line in the data file and nothing here.
+const projects = await Promise.all(
+  PROJECTS.map(async (project) => {
+    const external = /^https?:\/\//.test(project.href);
+
+    // A named mark that cannot be found is worth saying out loud rather than
+    // rendering the row silently without it: it means either the slug no longer
+    // matches src/data/visualizations.ts, or the charts have not been built in
+    // this checkout. Neither should ship unnoticed, and neither is worth blocking
+    // someone reading the page over. (An earlier version of the /visualizations
+    // index treated a missing mark as nothing at all, and shipped a production
+    // build with all seven quietly absent.)
+    let mark: string | null = null;
+    if (project.vizMark) {
+      const viz = VISUALIZATIONS.find((v) => v.slug === project.vizMark);
+      const file = viz && join(thumbDir, `${viz.thumb}.svg`);
+      if (file && existsSync(file)) mark = readFileSync(file, "utf8");
+      else
+        console.warn(`[projects] no mark for vizMark "${project.vizMark}" — run \`npm run viz\``);
+    }
+
+    // The raster mark, as a URL rather than as an <img>: IndexMark paints it as
+    // a mask over the page's own colour, which is what lets it take the accent
+    // on hover like every other mark here. getImage() rather than the raw
+    // `.src`, so it still goes through Astro's pipeline and lands in _astro/
+    // hashed. No width asked for, for the same reason /writing asks for none —
+    // the file is trimmed to its ink and already finer than this box can show.
+    const maskSrc = project.maskMark ? (await getImage({ src: project.maskMark })).src : null;
+
+    return {
+      ...project,
+      external,
+      mark,
+      maskSrc,
+      // Whether this entry has a mark AT ALL, by any of the three routes. The
+      // one thing the stylesheet cannot work out for itself: the box it would
+      // look for is not there to be selected, and IndexMark's class belongs to
+      // that component's scope rather than this page's, so `:has(.index-mark)`
+      // here would compile to a selector that silently never matches (the trap
+      // written out at the top of IndexMark).
+      marked: Boolean(mark || project.icon || project.maskMark),
+      // The drawing's own proportions, which is what makes the mark a hover
+      // target the size of the raccoon rather than the size of its box. See
+      // `inkRatio` in IndexMark.
+      inkRatio: project.maskMark ? project.maskMark.width / project.maskMark.height : 1,
+    };
+  }),
+);
+---
+
+<Base
+  title="Projects"
+  description="Things built rather than written: interactive visualizations of large public datasets, an Obsidian plugin, and the organizations behind them."
+>
+  <Section as="header" top="section" bottom="block">
+    <h1 class="sr-only">Projects</h1>
+  </Section>
+
+  <Section bottom="gap">
+    <ul class="projects" role="list">
+      {
+        projects.map(
+          ({ href, title, description, external, mark, maskSrc, inkRatio, marked, icon: Icon }) => (
+            <li class="project">
+              {/* ONE LINK PER ENTRY, wrapping the mark, the headline and the
+                description — so the description is clickable rather than dead
+                text beside a link. Which part LIGHTS is decided by which part
+                the pointer is actually over; see the stylesheet. */}
+              <a
+                href={href}
+                class:list={["project__link", { "project__link--unmarked": !marked }]}
+                target={external ? "_blank" : undefined}
+                rel={external ? "noopener noreferrer" : undefined}
+              >
+                {/* Two sources, ONE BOX — which is the point of IndexMark. A
+                  borrowed chart mark is read off disk and inlined; a project's
+                  own icon is imported and rendered as a component. They are
+                  different shapes (the charts are 8:5, the logos square) and
+                  left to themselves they came out different sizes, which pushed
+                  the headline beside each one to a different place. Both are now
+                  contained inside the same square, so the column of headlines is
+                  straight whatever a future entry turns out to look like. */}
+                {mark ? (
+                  /* aria-hidden is set on the SVG itself by the loader: the mark
+                   is a drawing of the charts whose name is sitting right beside
+                   it, so announcing it would say everything twice. */
+                  <IndexMark size={MARK_SIZE} set:html={mark} />
+                ) : Icon ? (
+                  <IndexMark size={MARK_SIZE}>
+                    <Icon aria-hidden="true" focusable="false" />
+                  </IndexMark>
+                ) : maskSrc ? (
+                  /* Painted as a shape, not placed as a picture — the same route
+                   the /writing thumbs take, and for the same two reasons: it
+                   takes the page's colour and lights with the row, and a mask
+                   has no alt text to get wrong. The headline is right beside
+                   it. */
+                  <IndexMark size={MARK_SIZE} mask={maskSrc} inkRatio={inkRatio} />
+                ) : null}
+                <div class="project__body">
+                  <h2 class="project__title">
+                    {title}
+                    {external && (
+                      <>
+                        {/* The arrow is decorative — it repeats, as a picture,
+                          what the sr-only text says in words. A screen reader
+                          gets the sentence; everyone else gets the glyph. */}
+                        <svg
+                          class="project__out"
+                          viewBox="0 0 12 12"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          {/* No stroke-linecap or stroke-linejoin: SVG's defaults
+                            are `butt` and `miter`, which is a flat end and a
+                            sharp corner. Naming either as "round" is what puts
+                            a radius on this, and there is none here. */}
+                          <path
+                            d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.4"
+                          />
+                        </svg>
+                        <span class="sr-only"> (opens in a new tab)</span>
+                      </>
+                    )}
+                  </h2>
+                  <p class="project__desc">{description}</p>
+                </div>
+              </a>
+            </li>
+          ),
+        )
+      }
+    </ul>
+  </Section>
+
+  <NewsletterSignup />
+</Base>
+
+<style>
+  .projects-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-h1);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  .projects {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: var(--reading-w);
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+  }
+
+  /* Mark left, text right — the arrangement /writing and /visualizations both
+     use, so the three index pages read as the same kind of page. The two
+     lengths that make the column are named here because THREE things need the
+     same numbers: the box itself (passed to IndexMark as MARK_SIZE), the gap
+     between it and the text, and the offset that stands in for both on a row
+     with no mark. */
+  .projects {
+    --mark-col: clamp(3.25rem, 7vw, 5rem);
+    --mark-gap: clamp(1rem, 3vw, 1.75rem);
+  }
+
+  .project__link {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--mark-gap);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* ── AN ENTRY WITH NO MARK ────────────────────────────────────────────────
+     Interaction Principles has no logo, and its headline still has to start
+     where every other headline on the page starts. The column is held open with
+     a MARGIN on the link rather than with an empty box inside it, and the
+     difference is the whole point: a margin is outside the anchor's border box,
+     so that strip of the row is not part of the link at all. An empty box was —
+     it drew nothing, but it sat inside the anchor, so the pointer over it got
+     the hand cursor and a click there followed the link, which is a control
+     answering from a place where there is visibly nothing to press. (Taking the
+     box out of hit testing does not fix that: `pointer-events: none` passes the
+     hit to the anchor UNDERNEATH it, which is exactly the link one is trying
+     not to arm. See the note at the foot of IndexMark, where that fall-through
+     is the desirable half of the same behaviour.)
+
+     So on this row only the text is clickable, and the space where a mark would
+     have been is as inert as the margin beside it. Nothing is rendered into it
+     — there is no box in the markup above for an entry with no mark. */
+  .project__link--unmarked {
+    margin-inline-start: calc(var(--mark-col) + var(--mark-gap));
+  }
+
+  .project__body {
+    /* Without this a long unbroken description sets the flex item's minimum
+       width and pushes the row past the measure. */
+    min-width: 0;
+  }
+
+  /* The mark's RESTING weight, handed down. Set on the row rather than on the
+     mark, because these are custom properties and inherit — which is the only
+     way a page can reach into IndexMark; see the note in that file. The lit
+     state is set on the link below. */
+  .project {
+    --mark-opacity: 0.85;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project__out {
+      transition: none;
+    }
+  }
+
+  .project__title {
+    color: var(--lit, inherit);
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  /* HOVER ANY ONE OF THE THREE — the drawing, the headline, the description —
+     and all three light together. `:has(:hover)` rather than a plain `:hover` on
+     the link: the link is the whole entry, so a plain hover would also fire from
+     the empty margin beside a short headline and from the gap the mark leaves in
+     its box. Requiring a hovered DESCENDANT narrows it to the parts themselves —
+     the mark's box is out of hit testing (see IndexMark) so only its drawing
+     counts, and the anchor's own dead space has no descendant under the pointer.
+
+     Carried by --lit rather than by four descendant selectors: custom properties
+     inherit, so one declaration here reaches every part below, and each part
+     names its own resting colour as the fallback. :focus-visible lights the same
+     way — one tab stop per entry, and no pointer to say which part of it. */
+  .project__link:has(:hover),
+  .project__link:focus-visible {
+    --lit: var(--accent);
+    --mark-opacity: 1;
+    --mark-color: var(--accent);
+  }
+
+  /* Sized in em so it tracks the headline through its clamp, and set at the
+     muted colour so it reads as an annotation on the link rather than as part
+     of the name. `vertical-align` rather than a flex row: the arrow belongs to
+     the last word, and should wrap with it rather than sit at the end of the
+     block. */
+  .project__out {
+    width: 0.55em;
+    height: 0.55em;
+    margin-left: 0.35em;
+    vertical-align: 0.25em;
+    color: var(--lit, var(--text-muted));
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .project__desc {
+    color: var(--lit, inherit);
+    transition: color var(--dur-fast) var(--ease-out);
+    margin-top: 1.25rem;
+    font-size: var(--fs-body);
+    line-height: 1.6;
+    max-width: var(--reading-w-tight);
+  }
+</style>

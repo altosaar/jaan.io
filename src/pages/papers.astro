@@ -1,0 +1,469 @@
+---
+// /papers — the publication list.
+//
+// NOTE ON THE URL: this is the URL the Jekyll site served (`permalink:
+// /papers/index.html`), and it is still live today, so it is kept exactly.
+// The trailing-slash form redirects onto it through the catch-all rule at the
+// bottom of public/_redirects. The PDFs it links are in public/papers/ under
+// the filenames that site used, for the same reason — they are linked from
+// other people's pages and from the PDFs themselves.
+//
+// The list is src/data/papers.ts; the BibTeX is src/data/bibtex/*.bib.
+//
+// Same shape as /writing and /visualizations — a mark on the left, a headline
+// and a line of description on the right — because it is the same kind of page.
+// It carries more per entry than either: a citation, sometimes a note about
+// press or invited talks, and up to seven places to go. See the stylesheet for
+// how that is kept from reading as a control panel.
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
+import IndexMark from "../components/IndexMark.astro";
+import ResourceIcon from "../components/ResourceIcon.astro";
+import type { ResourceIconName } from "../lib/resource-icons";
+import { PAPERS } from "../data/papers";
+import { getImage } from "astro:assets";
+
+// The BibTeX, keyed by the path it was loaded from. `?raw` rather than reading
+// the directory with node:fs, which is what /visualizations does for its marks:
+// those are BUILD OUTPUT and may legitimately be missing, so that page has to
+// cope. These are committed source, and a glob resolved by the bundler fails at
+// build time if one goes missing rather than rendering a paper with an empty
+// citation box.
+const BIBTEX = import.meta.glob<string>("../data/bibtex/*.bib", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
+
+// The mark box. Deliberately the same value /writing and /projects share, so
+// all three index pages line up with each other and not just with themselves.
+const MARK_SIZE = "clamp(3.25rem, 7vw, 5rem)";
+
+// The marks, as URLs rather than as <img> elements: IndexMark paints them as a
+// mask over the page's own colour, which is what lets them take the accent on
+// hover like every other mark on the site. They are prepared by
+// scripts/prep-paper-marks.mjs — five of the fourteen are Illustrator artwork
+// with fills rather than line art, and their ink had to be extracted rather
+// than assumed. That script is where the reasoning lives.
+const papers = await Promise.all(
+  PAPERS.map(async (paper) => {
+    const bib = BIBTEX[`../data/bibtex/${paper.slug}.bib`];
+    if (!bib)
+      throw new Error(`no BibTeX for "${paper.slug}" — expected src/data/bibtex/${paper.slug}.bib`);
+
+    // Where the headline points. The DOI first when there is one: it resolves
+    // to the same publisher page as `link` on all three papers that carry both,
+    // and it is the one of the two that is promised to keep resolving.
+    const primary = paper.doi ?? paper.link ?? paper.arxiv ?? (paper.pdf && `/papers/${paper.pdf}`);
+
+    // The row of places to go. Assembled here rather than in the markup so the
+    // "is there anything to show" test below is a length check on one array,
+    // and so the ORDER is stated once: what the paper is, then what is behind
+    // it, then what was said about it.
+    const links: { href: string; label: string; icon: ResourceIconName }[] = [];
+    if (paper.pdf) links.push({ href: `/papers/${paper.pdf}`, label: "PDF", icon: "pdf" });
+    if (paper.arxiv) links.push({ href: paper.arxiv, label: "arXiv", icon: "arxiv" });
+    if (paper.code) links.push({ href: paper.code, label: "Code", icon: "code" });
+    if (paper.slides)
+      links.push({ href: `/talks/${paper.slides}`, label: "Slides", icon: "slides" });
+    else if (paper.slidesUrl)
+      links.push({ href: paper.slidesUrl, label: "Slides", icon: "slides" });
+    if (paper.talk) links.push({ href: paper.talk, label: "Talk", icon: "video" });
+    if (paper.demo) links.push({ href: paper.demo, label: "Demo", icon: "demo" });
+
+    return {
+      ...paper,
+      bib: bib.trimEnd(),
+      primary,
+      links,
+      mark: (await getImage({ src: paper.mark })).src,
+      inkRatio: paper.mark.width / paper.mark.height,
+    };
+  }),
+);
+---
+
+<Base
+  title="Papers"
+  description="Peer-reviewed work on variational inference, machine learning for health, recommender systems, and statistical physics — with PDFs, code, slides, and BibTeX."
+>
+  <Section as="header" top="section" bottom="block">
+    <h1 class="sr-only">Papers</h1>
+  </Section>
+
+  <Section bottom="gap">
+    <ul class="papers" role="list">
+      {
+        papers.map((paper) => (
+          <li class="paper" id={paper.slug}>
+            {/* Painted as a shape, not placed as a picture — see IndexMark.
+                Nothing announces it: the mark restates the title sitting right
+                beside it, and a mask has no alt text to get wrong. */}
+            <IndexMark size={MARK_SIZE} mask={paper.mark} inkRatio={paper.inkRatio} />
+
+            <div class="paper__body">
+              <h2 class="paper__title">
+                {/* NOT opened in a new tab, and no external arrow — which is a
+                    deliberate departure from /projects, where every external
+                    entry gets both. There the outbound link IS the entry, and
+                    one arrow marks it. Here every entry has up to seven of
+                    them, and marking each would turn a citation into a control
+                    panel. A paper's title going to the paper needs no notice. */}
+                {paper.primary ? (
+                  <a href={paper.primary} class="paper__headline">
+                    {paper.title}
+                  </a>
+                ) : (
+                  paper.title
+                )}
+              </h2>
+
+              <p class="paper__blurb">{paper.blurb}</p>
+
+              {/* The citation as it would be printed, which is the thing a
+                  reader is checking when they came here to check something. */}
+              <p class="paper__cite">
+                {paper.authors}. <cite>{paper.venue}</cite>, {paper.year}.
+              </p>
+
+              {/* Press, invited talks, a journal front page — see `note` in
+                  src/data/papers.ts for why this is inline HTML. */}
+              {paper.note && <p class="paper__note" set:html={paper.note} />}
+
+              <ul class="paper__links" role="list">
+                {paper.links.map((link) => (
+                  <li>
+                    <a href={link.href} class="paper__res">
+                      <ResourceIcon name={link.icon} />
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+                <li>
+                  {/* A DISCLOSURE, not a copy button on its own. A button is
+                      the whole interaction only if the clipboard works and the
+                      click lands; <details> shows the entry itself, which is
+                      selectable, quotable and printable with no JavaScript at
+                      all. The copy button is added inside it by the script at
+                      the foot of this file, and only when there is something to
+                      copy WITH — see `hidden` on it below. */}
+                  <details class="bib" name="bibtex">
+                    <summary class="paper__res">
+                      <ResourceIcon name="bibtex" />
+                      BibTeX
+                    </summary>
+                    <div class="bib__panel">
+                      <button
+                        class="bib__copy"
+                        type="button"
+                        data-copy={`bib-${paper.slug}`}
+                        hidden
+                      >
+                        Copy
+                      </button>
+                      {/* set:text, NOT `{paper.bib}` as a child. Inside a
+                          <pre> the source indentation IS content: written as a
+                          child, a formatter is free to put the expression on
+                          its own line and every entry then begins with the
+                          twenty-four spaces this file happens to be indented
+                          by. It renders as a citation shoved off the right edge
+                          of the box, and pastes that way too. With no children
+                          there is no whitespace to preserve. */}
+                      <pre class="bib__text" id={`bib-${paper.slug}`} set:text={paper.bib} />
+                    </div>
+                  </details>
+                </li>
+              </ul>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <Section bottom="gap">
+    <p class="papers__aside">
+      Slide decks from some of these, and where they were given, are on <a href="/talks">talks</a>.
+    </p>
+  </Section>
+
+  <NewsletterSignup />
+</Base>
+
+<script>
+  // The copy button is `hidden` in the markup and revealed here, so it exists
+  // only where it can work. Without this the no-JavaScript reader gets a button
+  // that does nothing; with it they get the BibTeX itself, which is what the
+  // <details> was already showing them.
+  const supported =
+    typeof navigator !== "undefined" && !!navigator.clipboard && window.isSecureContext;
+
+  for (const button of document.querySelectorAll<HTMLButtonElement>(".bib__copy")) {
+    const pre = document.getElementById(button.dataset.copy!);
+    if (!supported || !pre) continue;
+    button.hidden = false;
+
+    let restore: ReturnType<typeof setTimeout>;
+    button.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(pre.textContent ?? "");
+        button.textContent = "Copied";
+      } catch {
+        // Denied permission, or a clipboard the browser will not hand over.
+        // Saying so is better than a button that silently did nothing, and the
+        // entry is on screen to be selected either way.
+        button.textContent = "Press ⌘C";
+        const range = document.createRange();
+        range.selectNodeContents(pre);
+        const selection = getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+      clearTimeout(restore);
+      restore = setTimeout(() => (button.textContent = "Copy"), 2000);
+    });
+  }
+</script>
+
+<style>
+  /* Wider apart than /visualizations' 3.5rem and closer than /writing' 6.75rem.
+     Fourteen entries would be a page you scroll at the article spacing, but
+     each of these is four or five stacked parts rather than two, so it needs
+     more air between entries than a chart index does to keep the citation under
+     one paper from reading as the opening of the next. */
+  .papers {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: var(--reading-w);
+    display: flex;
+    flex-direction: column;
+    gap: 4.5rem;
+  }
+
+  /* Mark on the left, everything else on the right — the arrangement /writing
+     and /visualizations use, so the index pages read as the same kind of page.
+     On the LI rather than on a link, because unlike those two this entry cannot
+     be one link: it has seven. */
+  .paper {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(1rem, 3vw, 1.75rem);
+    /* The mark's RESTING weight, handed down. Set here rather than on the mark
+       itself, because these are custom properties and inherit — which is the
+       only way a page can reach into IndexMark; see the note in that file. */
+    --mark-opacity: 0.85;
+  }
+
+  .paper__body {
+    /* Without this a long unbroken title (or a URL in a note) sets the flex
+       item's minimum width and pushes the row wider than the measure. */
+    min-width: 0;
+  }
+
+  /* HOVER THE TITLE and the mark lights with it. Narrower than the other three
+     index pages BY NECESSITY: there the entry is one link, so hovering any part
+     of it means the same thing. Here the citation is not a link and six of the
+     seven resources go somewhere else, so lighting the row from a hover on
+     "Code" would be pointing at the wrong thing.
+
+     `:has()` on the row, because the mark is a SIBLING of the title rather than
+     a descendant — there is no link wrapping both to hang this on.
+
+     THE MARK IS NOT ITSELF A HOVER TARGET, which is the other departure. On
+     /writing and /visualizations the drawing lights because it is inside the
+     link and clicking it goes somewhere; here it is decoration beside a title,
+     and lighting it under the pointer would promise a click that does nothing.
+     (It also cannot be written: `.paper:has(:global(.index-mark):hover)` is not
+     a selector Astro can scope — `:global()` is its own syntax and does not
+     survive nesting inside `:has()`. It compiles through to the stylesheet
+     verbatim, where `:global` is not a real pseudo-class; the browser drops
+     that branch inside the forgiving `:is()` Astro wraps the list in, and the
+     rule silently half-works. The build says so — lightningcss warns "'global'
+     is not recognized as a valid pseudo-class" — which is the only reason this
+     was caught.) */
+  .paper:has(.paper__headline:hover),
+  .paper:has(.paper__headline:focus-visible) {
+    --lit: var(--accent);
+    --mark-opacity: 1;
+    --mark-color: var(--accent);
+  }
+
+  .paper__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+
+  /* CLASSED ON PURPOSE, and it is the class rather than the rules that matters:
+     base.css gives every UNCLASSED link the site's inline-link treatment — a
+     box-shadow underline, and the whole word filled with the accent on hover.
+     That is right for a link inside a sentence and wrong for a headline, which
+     would arrive underlined and then invert into a green block. Naming the
+     element is what opts it out. The notes and the aside below are sentences,
+     so they stay unclassed and keep it. */
+  .paper__headline {
+    color: var(--lit, inherit);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .paper__blurb {
+    margin-top: 0.9rem;
+    font-size: var(--fs-base);
+    line-height: 1.6;
+    max-width: var(--reading-w-tight);
+  }
+
+  /* Muted and a size down: this is the part you read only if you are checking
+     something, and at full weight fourteen author lists are the loudest thing
+     on the page. */
+  .paper__cite,
+  .paper__note {
+    margin-top: 0.6rem;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--text-muted);
+    max-width: var(--reading-w-tight);
+  }
+
+  .paper__cite cite {
+    font-style: italic;
+  }
+
+  /* The row of resources. A wrapping flex list rather than a grid: the entries
+     run from three to seven and the labels are different lengths, so any fixed
+     column count leaves one row of gaps somewhere. */
+  .paper__links {
+    list-style: none;
+    margin: 1.1rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    /* Row gap larger than the column gap: when this wraps, the second line has
+       to read as a continuation of the first rather than as a new thing. */
+    gap: 0.55rem 1.1rem;
+  }
+
+  /* Small, muted, chrome-faced — the register the site already uses for
+     annotations on content rather than content itself (.toc__link, the /about
+     rail). NOT boxed: fourteen entries × up to seven pill-shaped buttons is a
+     page of furniture, and these are links, which the site draws as text. */
+  .paper__res {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-family: var(--font-chrome);
+    font-size: 0.85rem;
+    letter-spacing: 0.01em;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .paper__res:hover,
+  .paper__res:focus-visible {
+    color: var(--accent);
+  }
+
+  /* An open entry takes the whole row. Without this it wraps or not depending
+     on how many resources the paper happens to have, so the same click moves
+     the BibTeX label on one entry and not on the next.
+
+     `min-width: 0` is what actually contains the BibTeX. A flex item defaults
+     to `min-width: auto`, meaning it refuses to shrink below its content's
+     intrinsic width — so the longest line in the entry pushed this item wider
+     than the row, and the `overflow-x: auto` on the <pre> inside never got the
+     chance to scroll because nothing was overflowing IT. On a 390px phone that
+     was 321px of sideways page scroll the moment anyone opened a citation. */
+  .paper__links li {
+    min-width: 0;
+  }
+
+  .paper__links li:has(details[open]) {
+    flex-basis: 100%;
+  }
+
+  /* The BibTeX disclosure sits in the same row as the links and has to read as
+     one of them, so its <summary> wears .paper__res too. The marker is dropped
+     because the braces glyph is already saying the same thing. */
+  .bib {
+    display: inline;
+  }
+
+  .bib > summary {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .bib > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* The button sits ABOVE the entry, not floating on top of it. It was
+     absolutely positioned in the corner, which reads well until the box gets
+     narrow: the panel scrolls sideways, so the first line of a citation runs
+     straight under the button and cannot be scrolled out from beneath it. On a
+     phone that put "Copy" over the entry's own @article{…} line. */
+  .bib__panel {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+  }
+
+  /* --surface, no border, no radius: the same box src/components/Prose.astro
+     draws around a code block on an article, because this is one. */
+  .bib__text {
+    margin: 0;
+    /* The flex parent aligns its children to the end; this is the one that
+       should still span the full width. */
+    align-self: stretch;
+    padding: 0.9rem 1rem;
+    background: var(--surface);
+    /* The entry has meaningful line breaks and alignment, and lines longer than
+       the measure. Scrolling THIS BOX rather than wrapping keeps it valid to
+       select and paste, and keeps the page itself from scrolling sideways. */
+    overflow-x: auto;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    tab-size: 2;
+  }
+
+  .bib__copy {
+    padding: 0.3rem 0.6rem;
+    font-family: var(--font-chrome);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--field);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .bib__copy:hover,
+  .bib__copy:focus-visible {
+    color: var(--accent);
+  }
+
+  .papers__aside {
+    font-size: var(--fs-base);
+    color: var(--text-muted);
+    max-width: var(--reading-w-tight);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .paper__headline,
+    .paper__res,
+    .bib__copy {
+      transition: none;
+    }
+  }
+</style>

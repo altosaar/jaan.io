@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    // Pages Functions run on the Workers runtime, not in a browser. Pulling in
+    // @cloudflare/workers-types is what makes D1Database, PagesFunction, and the
+    // Workers flavour of fetch/Response resolve here — and it is scoped to this
+    // directory on purpose: those globals redeclare DOM ones, so applying them
+    // to the whole repo would put Workers types on the site's client scripts.
+    "types": ["@cloudflare/workers-types"],
+    "lib": ["ESNext"],
+    "noEmit": true
+  },
+  // Both lists are overridden, not extended: the parent excludes "functions"
+  // (so `astro check` skips this directory), and an inherited exclude of the
+  // very directory being compiled leaves tsc with no inputs at all.
+  "include": ["**/*.ts"],
+  "exclude": []
+}

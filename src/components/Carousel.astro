@@ -1,0 +1,913 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import type { CarouselProps } from "./carousel.types";
+import { DEFAULT_CAROUSEL_LABELS } from "./carousel.types";
+import SectionHeading from "./SectionHeading.astro";
+import { lqip } from "../lib/lqip";
+
+const {
+  items,
+  variant = "natural",
+  grayscale = false,
+  enablePopup = true,
+  heading,
+  fullBleed = false,
+  showCounter = true,
+  keyboard = "section",
+  sizePx = { mobile: 400, desktop: 460 },
+  labels = {},
+  id = "carousel",
+} = Astro.props as CarouselProps;
+
+// Every user-facing string, with generic defaults. Nothing about the content
+// this carousel happens to be showing is baked into the component.
+const L = { ...DEFAULT_CAROUSEL_LABELS, ...labels };
+// `title` is optional (a photo may carry no name — see carousel.types.ts), so a
+// label like "Read more about {title}" has to survive the substitution being
+// empty: drop the placeholder, then collapse the double space it leaves behind
+// rather than emitting "Read more about " with a dangling preposition.
+const withTitle = (template: string, title?: string) =>
+  template
+    .replaceAll("{title}", title ?? "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+const N = items.length;
+// Each slide announces its position, so a screen reader user who lands on one
+// out of context knows where they are. Same template as the visible counter.
+const slidePosition = (index: number) =>
+  L.counter.replaceAll("{n}", String(index + 1)).replaceAll("{total}", String(N));
+// Ids derived from the `id` prop, not randomised: a random id made every build
+// emit different HTML for identical content, which defeats diffing a build
+// against the last one to see what actually changed. Two carousels on one page
+// need different `id` props so their panel ids don't collide.
+const headingId = `${id}-heading`;
+const viewportId = `${id}-viewport`;
+const panelId = (index: number) => `${id}-panel-${index}`;
+
+const DENSITIES = [1, 2, 3];
+
+function renderInfo(img: ImageMetadata) {
+  const ar = img.width / img.height;
+  const wMobile = Math.round(variant === "square" ? sizePx.mobile : sizePx.mobile * ar);
+  const wDesktop = Math.round(variant === "square" ? sizePx.desktop : sizePx.desktop * ar);
+  const sizes = `(max-width: 599px) ${wMobile}px, ${wDesktop}px`;
+  const maxRendered = Math.max(wMobile, wDesktop);
+  let widths = DENSITIES.map((d) => Math.round(maxRendered * d)).filter((w) => w <= img.width);
+  if (widths.length === 0) widths = [img.width];
+  // Fallback <img src>/intrinsic size = the 1x rung (smallest width), NOT the
+  // native-resolution image. srcset still carries the 2x/3x rungs, so retina
+  // screens (iPhone DPR-3) render crisp — but the `src` a no-srcset client (and
+  // the SEO weight budget, which sums only `src`) sees is ~20KB, not ~1.4MB.
+  const fallbackW = Math.min(...widths);
+  const fallbackH = Math.round(fallbackW / ar);
+  return { sizes, widths, fallbackW, fallbackH };
+}
+
+// Blur-up placeholders (Next.js/Figma technique), generated once at build time.
+// Parallel to `items`; an empty string means "no placeholder for this image".
+const placeholders = await Promise.all(items.map((item) => lqip(item.img)));
+---
+
+{
+  N > 0 && (
+    /* No explicit role: a <section> with an accessible name is already a
+       `region` landmark, which is worth keeping — aria-roledescription just makes
+       a screen reader announce that region as "carousel". aria-roledescription is
+       ignored on an UNNAMED section, which is why the aria-label fallback matters
+       when there is no heading. */
+    <section
+      class="carousel-section"
+      aria-roledescription="carousel"
+      aria-labelledby={heading ? headingId : undefined}
+      aria-label={heading ? undefined : L.carousel}
+      data-carousel
+      data-variant={variant}
+      data-grayscale={String(grayscale)}
+      data-enable-popup={String(enablePopup)}
+      data-full-bleed={String(fullBleed)}
+      data-keyboard={keyboard}
+      data-counter-label={L.counter}
+      style={`--size-d:${sizePx.desktop}px; --size-m:${sizePx.mobile}px`}
+    >
+      <header class:list={["carousel-header", !heading && "carousel-header--bare"]}>
+        {heading && (
+          <SectionHeading id={headingId} class="carousel-heading">
+            {heading}
+          </SectionHeading>
+        )}
+        {/* carousel.client.ts already guards on this being absent. */}
+        {showCounter && <p class="carousel-counter" aria-live="polite" />}
+        <div class="carousel-controls">
+          {/* Stroked, not a filled outline like it used to be. The button is now
+              shorter than it is wide, so the glyph is squashed vertically to keep
+              its breathing room proportional (preserveAspectRatio="none") — and a
+              filled arrow squashed that way gets THINNER, which is the opposite of
+              the intended weight. As a stroke, the weight is one number, applied
+              evenly to the shaft and both barbs, and non-scaling-stroke holds it at
+              exactly 1.0397px however the box is scaled — the old filled outline
+              measured 1.021px at its shaft, for reference.
+
+              Retuning it, in order of what you probably want:
+              · WEIGHT — stroke-width, and nothing else. Immune to every scale
+                below, which is the whole point of non-scaling-stroke.
+              · TIP ANGLE — the ±9.5118 barb spread. A deliberately wide number:
+                the glyph is squashed vertically to fit a short box, which flattens
+                the head, and the spread is what buys the angle back.
+              · STEM LENGTH — the shaft runs x=4→26.23 (22.23u) inside a 30.23u
+                viewBox, leaving a symmetric 4u each side. Shorten the shaft and
+                the viewBox by the SAME amount, and scale --arrow-w by the same
+                ratio: that holds sx at 1.0625 so the head renders pixel-identical
+                and only the stem changes. Shortening the shaft alone would just
+                push the glyph off-centre in its box.
+              · OVERALL LENGTH — --arrow-w on its own. */}
+          <button
+            class="carousel-arrow"
+            data-dir="prev"
+            aria-controls={viewportId}
+            aria-label={L.prev}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="30.23"
+              height="24"
+              fill="none"
+              viewBox="0 0 30.23 24"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M26.23 12H4m7.478-9.5118L4 12l7.478 9.5118"
+                stroke="currentColor"
+                stroke-width="1.0397"
+                stroke-linejoin="miter"
+                vector-effect="non-scaling-stroke"
+              />
+            </svg>
+          </button>
+          {/* Mirror of the prev glyph — see the note above it. */}
+          <button
+            class="carousel-arrow"
+            data-dir="next"
+            aria-controls={viewportId}
+            aria-label={L.next}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="30.23"
+              height="24"
+              fill="none"
+              viewBox="0 0 30.23 24"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M4 12h22.23m-7.478-9.5118L26.23 12l-7.478 9.5118"
+                stroke="currentColor"
+                stroke-width="1.0397"
+                stroke-linejoin="miter"
+                vector-effect="non-scaling-stroke"
+              />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="embla">
+        <div class="embla__viewport" id={viewportId}>
+          <ul class="embla__container" role="list">
+            {items.map((item, index) => {
+              const info = renderInfo(item.img);
+              const blur = placeholders[index];
+              const Body = item.Body;
+              // Blur-up: paint the LQIP as the img's own background under a cover fit,
+              // matching object-position so a cropped (square) photo lines up. The
+              // decoded photo paints over it; `color:transparent` hides the alt text
+              // while it loads. Cleared on load by the script below.
+              const blurStyle = blur
+                ? `color:transparent;background-image:url("${blur}");background-size:cover;` +
+                  `background-position:${item.focusPosition ?? "50% 50%"};background-repeat:no-repeat`
+                : undefined;
+              return (
+                <li
+                  class="embla__slide card"
+                  data-index={index}
+                  aria-roledescription="slide"
+                  aria-label={slidePosition(index)}
+                  style={[
+                    // The photo's true aspect ratio, so the slide is exactly as wide
+                    // as it will ever be from the first layout — see --ar in the CSS.
+                    `--ar:${item.img.width}/${item.img.height}`,
+                    item.focusPosition && `--pos:${item.focusPosition}`,
+                  ]
+                    .filter(Boolean)
+                    .join(";")}
+                >
+                  <div class="card__media">
+                    {/* `title` carries the same string as `alt`, so hovering a
+                        photo shows what it is. That is the only native way to
+                        do it — no current browser surfaces alt on hover. The
+                        cost is that some screen readers announce alt and title
+                        both, reading the description twice; that is the accepted
+                        trade for sighted visitors being able to reach it at all.
+                        Remove the title attribute to go back to alt alone. */}
+                    <Image
+                      src={item.img}
+                      alt={item.alt}
+                      title={item.alt || undefined}
+                      width={info.fallbackW}
+                      height={info.fallbackH}
+                      widths={info.widths}
+                      sizes={info.sizes}
+                      format="webp"
+                      quality={75}
+                      loading="lazy"
+                      decoding="async"
+                      layout="none"
+                      data-blur-up
+                      style={blurStyle}
+                    />
+                    {/* No `hidden` attribute here on purpose. `hidden` is display:none,
+                        which would force layout + first paint of this whole text block
+                        inside the frame the open animation starts — the panel visibly
+                        stuttered. The CSS below hides it with `visibility: hidden`
+                        instead (the same mechanism MobileMenu uses), which keeps it laid
+                        out and ready to composite, and still keeps it out of the tab
+                        order and the accessibility tree. */}
+                    {enablePopup && Body && (
+                      <div class="card__panel" id={panelId(index)}>
+                        <button
+                          class="card__panel-close"
+                          aria-label={withTitle(L.close, item.title)}
+                        >
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 20 20"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M5 5L15 15M15 5L5 15"
+                              stroke="currentColor"
+                              stroke-width="1.5"
+                              stroke-linecap="round"
+                            />
+                          </svg>
+                        </button>
+                        {/* tabindex="0" is what makes this scrollable box reachable by
+                            keyboard — Safari, unlike Firefox/Chrome, will not focus an
+                            overflow container on its own, so arrow keys can't scroll a
+                            long testimonial there otherwise. */}
+                        <div
+                          class="card__panel-body"
+                          tabindex="0"
+                          role="region"
+                          aria-label={withTitle(L.region, item.title)}
+                        >
+                          <Body />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {/* The caption block is optional. A photo series can carry no
+                      names at all (see the `gallery` schema in
+                      src/content.config.ts), and an empty caption box would
+                      still reserve its height under every slide. */}
+                  {(item.title || item.caption) && (
+                    <div class="card__caption">
+                      <div class="card__caption-text">
+                        {item.title && <p class="card__name">{item.title}</p>}
+                        {item.caption && (
+                          <p class="card__quote">
+                            “{item.caption}
+                            {enablePopup && Body && <span class="card__quote-more"> […]</span>}”
+                          </p>
+                        )}
+                      </div>
+                      {enablePopup && Body && (
+                        <button
+                          class="card__toggle"
+                          aria-expanded="false"
+                          aria-controls={panelId(index)}
+                          aria-label={withTitle(L.open, item.title)}
+                        >
+                          <svg
+                            class="card__toggle-icon"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M4 10l4-4 4 4"
+                              stroke="currentColor"
+                              stroke-width="1.5"
+                              stroke-linecap="square"
+                              stroke-linejoin="miter"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  /* ── Section layout ─────────────────────────────── */
+  .carousel-section {
+    /* Shared geometry tokens. They live here, on the component root, rather than
+       on .card__panel, because the caption and the panel are SIBLINGS that have
+       to line up with each other — the caption's text must start on the same
+       vertical as the panel's body text, and the ✕ must land on the same
+       vertical as the caret. Both percentages below resolve against the same
+       containing block (the slide), so those alignments hold at every width. */
+    /* ONE inset governs all four text edges of a card, so the caption sits
+       optically centred under the photo and the panel's body text lines up with
+       it. It sets, and must keep setting, all of:
+         · the caption's name/quote left edge
+         · the caret's right edge
+         · the ✕ glyph's right edge
+         · the panel body text's left edge
+       Deliberately a fixed length, not a percentage. Percentages are ignored
+       during intrinsic sizing (that asymmetry is what broke the mobile spacing),
+       and a fixed value guarantees the left and right insets are exactly equal
+       rather than equal-ish after rounding. */
+    --card-inset: 1rem;
+    --panel-gutter: 2rem; /* wider right inset, clears the ✕ and scrollbar */
+    --panel-scrollbar-w: 6px;
+    --icon-size: 1.25rem; /* the caret and ✕ glyphs are both 20px */
+
+    width: var(--site-w);
+    margin-left: var(--site-ml);
+    margin-bottom: var(--space-block);
+  }
+
+  .carousel-header {
+    /* The heading's type metrics, shared so the arrow buttons can be exactly as
+       tall as the "WHY TRASH CLUB" line box. Spelled out as size × line-height
+       rather than using the `1lh` unit because <button> does not inherit
+       font-family or font-size — `1lh` on the button would silently resolve
+       against the UA's default font and drift away from the heading. */
+    --heading-size: 1.2rem;
+    --heading-lh: 1.2;
+    --heading-box: calc(var(--heading-size) * var(--heading-lh));
+    /* The heading here is a <SectionHeading>; these two inherit into it and
+       adapt it to this flex row — no bottom margin, and it takes the free
+       space so the counter and arrows sit hard right. */
+    --heading-gap: 0;
+    --heading-flex: 1;
+
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* With no heading there is no item carrying --heading-flex: 1, so nothing
+     absorbs the free space and the controls would sit at the left. */
+  .carousel-header--bare {
+    justify-content: flex-end;
+  }
+
+  .carousel-counter {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    letter-spacing: -0.01rem;
+    color: var(--text);
+    /*opacity: 0.5;*/
+    font-variant-numeric: tabular-nums slashed-zero;
+    white-space: nowrap;
+  }
+
+  .carousel-controls {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .carousel-arrow {
+    /* Geometry, all derived so the proportions survive a type-size change:
+       · the glyph is 25% longer than the 34px it used to be
+       · the box is exactly as tall as the heading's line box
+       · the box keeps the ~1px of side breathing room it always had
+       The arrow's own height is a PERCENTAGE of the box (see the svg rule), so
+       the whitespace above and below it stays in the same ratio it had at the
+       old 36px square — which is what stops a shorter box from looking cramped. */
+    --arrow-w: 2.00746rem; /* 32.12px — see the glyph note in the markup */
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--arrow-w) + 0.125rem);
+    height: var(--heading-box);
+    background: var(--text);
+    border: none;
+    color: var(--bg);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  .carousel-arrow svg {
+    width: var(--arrow-w);
+    /* 24/36 — the arrow-to-box height ratio of the original square button, so the
+       breathing room above and below scales with the box instead of being fixed.
+       Squashing the glyph vertically is what `preserveAspectRatio="none"` on the
+       markup is for; the stroke weight is held constant against that squash by
+       vector-effect="non-scaling-stroke". */
+    height: 66.667%;
+  }
+  /* Hover only on hover-capable devices — on touch, :hover sticks after a tap,
+     leaving the arrow green until you tap elsewhere. Touch gets :active instead,
+     which flashes during the press and clears the instant the finger lifts. */
+  @media (hover: hover) {
+    .carousel-arrow:hover {
+      background: var(--accent);
+      color: var(--bg);
+      outline: none;
+    }
+  }
+  .carousel-arrow:active,
+  .carousel-arrow:focus-visible {
+    background: var(--accent);
+    color: var(--bg);
+    outline: none;
+  }
+
+  /* ── Embla track ────────────────────────────────── */
+  /* Viewport left-edge flush with content; right bleeds to viewport edge. */
+  .embla__viewport {
+    overflow: hidden;
+    margin-right: calc(50% - 50vw);
+    cursor: grab;
+  }
+  .embla__viewport.is-dragging {
+    cursor: grabbing;
+  }
+
+  /* ── Full bleed (fullBleed prop) ────────────────── */
+  /* The strip runs the whole viewport width so the photos read as one
+     continuous band, while the header stays in the chrome column above it so
+     the arrows land on the same right edge as the nav's last button.
+
+     --chrome-w, NOT --site-w. Inside main.is-centered (base.css) --site-w is
+     the ~680px reading measure, and these arrows have to align with the NAV,
+     which lives outside <main> and is still on the full 94vw. Both are then
+     `width: 94vw` centred inside the same content box, so they land on the same
+     pixel whether or not a classic scrollbar is taking width. */
+  .carousel-section[data-full-bleed="true"] {
+    width: var(--chrome-w);
+    margin-left: calc(50% - var(--chrome-w) / 2);
+  }
+
+  /* 50% of the 94vw section is 47vw, so this is exactly −3vw on each side: the
+     gutter, cancelled, leaving the viewport 100vw. Replaces the one-sided right
+     bleed above rather than adding to it. */
+  .carousel-section[data-full-bleed="true"] .embla__viewport {
+    margin-inline: calc(50% - 50vw);
+  }
+
+  .embla__container {
+    display: flex;
+    align-items: flex-start;
+    touch-action: pan-y pinch-zoom;
+  }
+
+  /* Slide spacing lives on the slide (margin), not the container (gap): Embla's loop
+     measures each slide's box, so a per-slide margin keeps the wrap-around seam gap
+     identical to every other gap — flex `gap` leaves no gap at the loop seam. */
+  .embla__slide {
+    flex: 0 0 auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    margin-right: 0.15rem;
+  }
+
+  /* ── Media box ─────────────────────────────────── */
+  .card__media {
+    position: relative;
+    overflow: hidden;
+  }
+  /* Resting: slightly dimmed, and desaturated when the `grayscale` prop is on.
+     The active slide (exactly one at a time, driven by JS via .is-active) goes
+     full colour + full opacity. The opacity shift means an image that is
+     *already* black-and-white still visibly "highlights" — no per-image colour
+     detection needed, and it is what carries the highlight when grayscale is
+     off. Highlight is applied ONLY through .is-active (no CSS :hover), which is
+     what guarantees a single highlight. */
+  .card__media img {
+    display: block;
+    opacity: 0.7;
+    /* --hl-dur is set per interaction in JS: 0ms for taps / advance-swipes / pressing
+       the next image, a smooth crossfade for hover, back-swipes and (extra-smooth) the
+       arrow buttons. Defaults to a smooth 225ms. */
+    transition:
+      filter var(--hl-dur, 225ms) cubic-bezier(0.6, 0, 0.4, 1),
+      opacity var(--hl-dur, 225ms) cubic-bezier(0.6, 0, 0.4, 1);
+  }
+  /* Only when the `grayscale` prop is on. The .is-active rule below has the same
+     specificity and comes later, so the highlighted slide wins and returns to
+     colour — keep them in this order. */
+  .carousel-section[data-grayscale="true"] .card__media img {
+    filter: grayscale(1);
+  }
+  .embla__slide.is-active .card__media img {
+    filter: grayscale(0);
+    opacity: 1;
+  }
+
+  /* NATURAL: uniform height, auto width, no crop */
+  [data-variant="natural"] .card__media {
+    height: var(--size-d);
+  }
+  [data-variant="natural"] .card__media img {
+    height: 100%;
+    width: auto;
+    /* The source photo's ratio, from the slide (see --ar in the markup). Without
+       it the width comes from the img's own intrinsic ratio, which CHANGES as the
+       photo decodes: until then the browser uses the width/height attributes,
+       whose height is a rounded integer, and after it the exact ratio of whichever
+       srcset rung the device picked — a reflow of up to a pixel, per slide, at an
+       unpredictable moment (these load lazily, so some land long after `load`).
+       That is invisible as a layout shift and very visible as a centring error:
+       the carousel measures every slide once, and a slide that quietly resizes
+       afterwards is a slide it parks a pixel off centre for the rest of the page's
+       life. Pinning the ratio in CSS makes the first layout the final one. */
+    aspect-ratio: var(--ar);
+  }
+
+  /* SQUARE: fixed side, centered cover crop */
+  [data-variant="square"] .card__media {
+    width: var(--size-d);
+    aspect-ratio: 1 / 1;
+  }
+  [data-variant="square"] .card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--pos, center);
+  }
+
+  @media (max-width: 599px) {
+    [data-variant="natural"] .card__media {
+      height: var(--size-m);
+    }
+    [data-variant="square"] .card__media {
+      width: var(--size-m);
+    }
+  }
+
+  /* ── Card caption (below the image) ─────────────────
+     The whole caption box is a tap target that opens the panel: text on the
+     left, reveal arrow on the right, vertically centered between name & quote. */
+  .card__caption {
+    /* The PHOTO alone decides how wide a slide is. The slide is a flex column, so
+       its width is the widest of its children's max-content widths — meaning a
+       caption wider than its photo silently widens the whole card and shows up
+       as extra space between images. Because every photo has its own aspect
+       ratio, the overhang differs card to card and the gaps look random. That is
+       what happened on mobile: at --size-m the photos are ~267px wide while the
+       caption wants ~293px, so each slide carried ~26px of stray width. Desktop
+       hid it only because the photos there happen to be wider than the caption.
+
+       width: 0 takes the caption out of that max-content calculation entirely;
+       min-width: 100% then stretches it back over whatever width the photo
+       settled on. The quote wraps into the space available, as it should. */
+    width: 0;
+    min-width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.625rem;
+    /* Equal on both sides: the name/quote's left edge and the caret's right edge
+       sit the same distance in from the photo, so the row reads as centred under
+       it. The same token insets the panel's body text, so the caption text and
+       the testimonial text share one left vertical. */
+    padding-inline: var(--card-inset);
+    cursor: pointer;
+  }
+  .card__caption-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .card__name {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-size: var(--fs-body);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .card__quote {
+    font-size: 0.875rem;
+    font-weight: 300;
+    color: var(--text);
+    opacity: 0.7;
+    line-height: 1.45;
+    margin-top: 0.25rem;
+    /* A comfortable, bounded pull-quote measure (the flex row already reserves
+       space for the toggle). `balance` evens the lines so medium quotes don't
+       leave a widow like "neighborhood" on its own line. */
+    max-width: 28ch;
+    text-wrap: balance;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  /* Bracketed-ellipsis cue that the quote continues — same colour as the quote
+     at rest; it (and the name + quote) go accent when the caption is hovered. */
+  .card__quote-more {
+    white-space: nowrap;
+    color: inherit;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  /* Hover only on hover-capable devices — on touch, :hover sticks after a tap, so the
+     name/quote/[…] would stay green while the panel is open. Touch gets :active, which
+     flashes during the press and clears the instant the finger lifts. */
+  @media (hover: hover) {
+    .card__caption:hover .card__name,
+    .card__caption:hover .card__quote,
+    .card__caption:hover .card__quote-more {
+      color: var(--accent);
+    }
+  }
+  .card__caption:active .card__name,
+  .card__caption:active .card__quote,
+  .card__caption:active .card__quote-more {
+    color: var(--accent);
+  }
+
+  /* ── Reveal arrow (right side, inset from the image edge) ── */
+  .card__toggle {
+    flex-shrink: 0;
+    /* Right inset now comes from .card__caption's padding-inline — see there. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: var(--text);
+    opacity: 0.85;
+    cursor: pointer;
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      opacity var(--dur-fast) var(--ease-out);
+  }
+  /* Greens on keyboard focus, on hover (hover-capable devices only, so a tap doesn't
+     leave it stuck), and — via :active — a press flash on touch that clears on release. */
+  /* No `outline: none` on :focus-visible — this is an icon-only button, so the
+     colour swap alone would be a 1.64:1 change and not a focus indicator at all.
+     The global ring in base.css applies. */
+  .card__toggle:focus-visible,
+  .card__toggle:active,
+  .card__caption:active .card__toggle {
+    opacity: 1;
+    color: var(--accent);
+  }
+  @media (hover: hover) {
+    .card__toggle:hover,
+    .card__caption:hover .card__toggle {
+      opacity: 1;
+      color: var(--accent);
+      outline: none;
+    }
+  }
+  .card__toggle-icon {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  /* Negative angle → rotates down toward the inside of the carousel item (leftward),
+     not toward the outer edge. */
+  .card__toggle[aria-expanded="true"] .card__toggle-icon {
+    transform: rotate(-180deg);
+  }
+
+  /* ── Slide-up testimonial panel (clipped to the image) ──
+     Hidden with `visibility`, never with `display: none` / the `hidden`
+     attribute — exactly like .mobile-menu in chrome.css, and for the same
+     reason. visibility:hidden keeps the panel laid out and ready to composite,
+     so opening it only has to animate; display:none would make the browser lay
+     out and paint this whole block of text in the same frame the slide begins,
+     which stutters. It still leaves the panel out of the tab order and the
+     accessibility tree, so nothing is lost by not using `hidden`.
+
+     The paired `transition: visibility 0s 0.44s` below is what re-hides it, and
+     the 0.44s must stay in step with the translate duration: shorter and the
+     panel vanishes mid-slide, longer and it stays focusable after it's gone. */
+  .card__panel {
+    /* Same critically-damped spring the mobile menu slides on (--menu-spring in
+       chrome.css): a linear() curve that starts springy-fast, eases in, and stops
+       exactly on target — no overshoot, no bounce. Drives the body text's vertical
+       slide. (No overshoot → no bleed needed to cover a gap.) */
+    --panel-spring: linear(
+      0 0%,
+      0.095 6%,
+      0.276 11%,
+      0.458 17%,
+      0.611 22%,
+      0.728 28%,
+      0.814 33%,
+      0.875 39%,
+      0.917 44%,
+      0.946 50%,
+      0.964 56%,
+      0.977 61%,
+      0.985 67%,
+      0.991 72%,
+      0.994 78%,
+      0.996 83%,
+      0.998 89%,
+      1 100%
+    );
+    /* --card-inset / --panel-gutter / --panel-scrollbar-w live on
+       .carousel-section, so the caption can align to the same values. */
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    translate: 0 100%;
+    visibility: hidden;
+    transition:
+      translate 0.44s var(--panel-spring),
+      visibility 0s 0.44s;
+  }
+  /* Paint-before-animate. The panel is hidden with `visibility`, and a
+     visibility:hidden element is laid out but NEVER PAINTED. So flipping it
+     visible and starting the slide in the same frame makes the browser paint a
+     whole testimonial's worth of text and run the first frames of the transition
+     together — the rise stutters, while the fall looks perfectly smooth because
+     by then the text is already painted. That asymmetry is the entire bug.
+
+     This class makes the panel visible while it is still parked at translate
+     100% — off the bottom of the media box, and clipped away by its
+     overflow:hidden, so nothing is on screen. carousel.client.ts adds it, waits
+     one full frame for the paint to land, and only then adds .is-panel-open. The
+     transition therefore starts against already-painted content, exactly like
+     the close does. */
+  .card.is-panel-priming .card__panel {
+    visibility: visible;
+    /* This transition override is load-bearing, not a copy-paste artefact.
+       The base rule delays visibility by 0.44s (that delay is what keeps the
+       panel painted through the slide-OUT). Inheriting it here would start a
+       *delayed* visibility transition targeting `visible`; because
+       .is-panel-open then targets the same value, the spec says the running
+       transition is not restarted, so it would keep the 0.44s delay and the
+       panel would stay invisible for the whole rise and pop into place at the
+       end. Overriding the delay to 0s makes it visible immediately — parked
+       off-screen and clipped away, which is exactly what we want to paint. */
+    transition:
+      translate 0.44s var(--panel-spring),
+      visibility 0s 0s;
+  }
+
+  .card.is-panel-open .card__panel {
+    translate: 0 0;
+    visibility: visible;
+    transition:
+      translate 0.44s var(--panel-spring),
+      visibility 0s 0s;
+  }
+
+  .card__panel-body {
+    height: 100%;
+    overflow-y: auto;
+    /* `contain` — deliberate, and measured. Do not change this to `auto` or
+       `none` without re-reading the following.
+
+       It does two things: it keeps the platform's elastic overscroll (the panel
+       rubber-bands at the end of a long testimonial, matching how the page
+       itself behaves), and it stops scroll chaining — without it, overscrolling
+       the panel scrolls the PAGE behind it, sliding the carousel out from under
+       someone who is mid-read. That second property is the important one.
+
+       Measured 2026-08-04 on macOS with Reduce Motion off, comparing this
+       against `auto` and `none`, and against a copy of the panel with the
+       absolute positioning, `translate` and `overflow: hidden` ancestors all
+       removed:
+         · Chrome 151  — bounces. (Nested-scroller overscroll shipped in 145;
+                         before that no nested scroller bounced in Chrome at all.)
+         · Safari 26.5 — does NOT bounce. WebKit suppresses the affordance that
+                         the spec says `contain` preserves. The ancestors are not
+                         the cause: stripping them changed nothing in Safari.
+       So the missing Safari bounce is a WebKit difference, not something in this
+       stylesheet. The only way to buy it back is a Safari-targeted hack that
+       swaps in `auto` — which reintroduces the page-scrolling bug above. Not
+       worth it; leave this alone. */
+    overscroll-behavior: contain;
+    padding: var(--card-inset);
+    padding-top: 2.75rem;
+    /* Reserve a wider right gutter so the text column ends clear of the close
+       button and scrollbar. */
+    padding-right: var(--panel-gutter);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+  /* Paragraph gap (global reset zeroes <p> margins); the first one stays flush.
+     :global() is required because these <p> come from set:html and so don't carry
+     Astro's scope attribute — a plain scoped selector wouldn't match them. */
+  .card__panel-body :global(p + p) {
+    margin-top: 0.9em;
+  }
+
+  /* Links inside the body use the site-wide inline-link treatment (Base.astro's
+     `a:not([class])`): underline at rest, accent highlight on hover. Nothing to
+     override here — keeping it consistent with links everywhere else on the site. */
+
+  /* Desktop's default scrollbar is far too chunky inside this small panel; slim it.
+     Touch devices keep their native auto-hiding overlay scrollbar (already fine). */
+  @media (hover: hover) and (pointer: fine) {
+    .card__panel-body {
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--text) 35%, transparent) transparent;
+    }
+    .card__panel-body::-webkit-scrollbar {
+      width: var(--panel-scrollbar-w);
+    }
+    .card__panel-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .card__panel-body::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--text) 30%, transparent);
+      border-radius: 3px;
+    }
+    .card__panel-body::-webkit-scrollbar-thumb:hover {
+      background: color-mix(in srgb, var(--text) 50%, transparent);
+    }
+  }
+
+  .card__panel-close {
+    --close-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0.6rem;
+    /* Land the ✕ GLYPH's right edge exactly where the caret's right edge sits,
+       so opening and closing controls share one vertical.
+       The two can't use the same offset directly: .card__toggle has no padding,
+       so its box IS its 20px glyph, whereas this button pads the same 20px glyph
+       out to a --close-size hit target. Aligning the boxes would leave the
+       glyphs (--close-size − --icon-size) / 2 apart — 6px of visible drift. So
+       pull the box out by exactly that half-difference.
+       Both this and the caret's inset resolve their percentage against the same
+       containing block (the panel is inset:0 within the slide), so they stay
+       aligned at every viewport width. */
+    right: calc(var(--card-inset) - (var(--close-size) - var(--icon-size)) / 2);
+    z-index: 3;
+    width: var(--close-size);
+    height: var(--close-size);
+    background: none;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    opacity: 0.7;
+    transition:
+      opacity 150ms ease,
+      color 150ms ease;
+  }
+  /* Keeps the global focus ring (base.css) — see the note on .card__toggle. */
+  .card__panel-close:hover,
+  .card__panel-close:focus-visible {
+    opacity: 1;
+    color: var(--accent);
+  }
+  /* ── Reduced motion ──────────────────────────────────────────────────────
+     MUST STAY LAST IN THIS FILE. These selectors have the same specificity as
+     the base rules they override (.card__panel, .card__toggle-icon), so the
+     cascade is decided by source order alone — sitting earlier in the file, as
+     this block used to, it silently did nothing for either of them.
+
+     Suppresses MOTION: the panel's slide-up (a translate) and the caret's
+     rotate. Both travel across the screen, which is what can trigger vestibular
+     symptoms, and both read fine as an instant change.
+
+     The photo crossfade (.card__media img) is deliberately absent. It animates
+     `filter` and `opacity` only — nothing moves. A cross-fade is the standard
+     REPLACEMENT that reduced-motion guidance recommends in place of movement,
+     not something to remove; suppressing it made the hover highlight snap on
+     instantly for every visitor with the OS setting enabled. */
+  @media (prefers-reduced-motion: reduce) {
+    .card__panel,
+    .card__toggle-icon {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import "./carousel.client.ts";
+</script>

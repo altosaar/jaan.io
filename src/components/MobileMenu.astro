@@ -1,0 +1,135 @@
+---
+// Menu button + slide-over mobile menu. Rendered as siblings of the site chrome
+// (see SiteHeader) so the general-sibling CSS selectors keep matching.
+//
+// Links come from SITE.nav.mobile / SITE.nav.mobileCtas — edit src/site.config.ts,
+// not this file.
+import { SITE } from "../site.config";
+import NavLink from "./NavLink.astro";
+---
+
+<button
+  class="nav-menu-btn"
+  id="nav-menu-btn"
+  aria-label="Open menu"
+  aria-expanded="false"
+  aria-controls="mobile-menu"
+>
+  <div class="menu-icon" aria-hidden="true">
+    <span class="menu-icon__bar menu-icon__bar--top"></span>
+    <span class="menu-icon__bar menu-icon__bar--btm"></span>
+  </div>
+</button>
+
+<!-- Mobile menu: sibling of site-chrome so parent padding-inline can't constrain it -->
+<!-- aria-modal is set only while the menu is open (see the script). Asserting it
+     permanently would claim the rest of the page is inert even on desktop, where
+     this menu is never shown and the button is display:none. -->
+<div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
+  <nav class="mobile-menu-links" aria-label="Mobile navigation">
+    {SITE.nav.mobile.map((link) => <NavLink link={link} class="mobile-menu-link" />)}
+  </nav>
+  <div class="mobile-menu-ctas">
+    {
+      SITE.nav.mobileCtas.map((link, i) => (
+        <NavLink link={link} class={i === 0 ? "cta-primary" : "cta-secondary"} />
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  // ── Mobile menu ────────────────────────────────────────────────
+  const menuBtn = document.getElementById("nav-menu-btn") as HTMLButtonElement | null;
+  const mobileMenu = document.getElementById("mobile-menu") as HTMLElement | null;
+
+  // Enable the slide transition only after load, so the menu's off-screen resting
+  // state is applied with no transition and never animates on load/refresh (a
+  // Firefox flash-of-open-menu). Tied to `load` rather than a rAF because Firefox
+  // resolves the pointer/hover media query a frame late, which a rAF raced.
+  // See .mobile-menu.is-ready in CSS.
+  if (mobileMenu) {
+    const enableSlide = () => mobileMenu.classList.add("is-ready");
+    if (document.readyState === "complete") enableSlide();
+    else window.addEventListener("load", enableSlide, { once: true });
+  }
+
+  // The menu claims role="dialog" aria-modal="true", so Tab must not walk behind
+  // it — it's an opaque overlay, and reaching the nav links underneath is how a
+  // keyboard user ends up typing into something they can't see. `inert` on every
+  // other top-level element takes that whole subtree out of the tab order and
+  // out of the accessibility tree in one attribute.
+  //
+  // Computed from body.children rather than a hard-coded id list, so adding a new
+  // top-level element later can't silently reopen the hole.
+  const isTouch = () => window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+
+  function setBackgroundInert(inert: boolean) {
+    for (const el of Array.from(document.body.children)) {
+      if (el === mobileMenu || el === menuBtn) continue;
+      if (inert) el.setAttribute("inert", "");
+      else el.removeAttribute("inert");
+    }
+  }
+
+  function openMobileMenu() {
+    mobileMenu!.classList.add("is-open");
+    mobileMenu!.setAttribute("aria-modal", "true");
+    menuBtn!.setAttribute("aria-expanded", "true");
+    menuBtn!.setAttribute("aria-label", "Close menu");
+    document.body.style.overflow = "hidden";
+    setBackgroundInert(true);
+    // Keyboard users need focus moved into the dialog; touch users don't
+    if (!isTouch()) {
+      mobileMenu!.querySelector<HTMLElement>(".mobile-menu-link")?.focus();
+    }
+  }
+  function closeMobileMenu() {
+    mobileMenu!.classList.remove("is-open");
+    mobileMenu!.removeAttribute("aria-modal");
+    menuBtn!.setAttribute("aria-expanded", "false");
+    menuBtn!.setAttribute("aria-label", "Open menu");
+    document.body.style.overflow = "";
+    setBackgroundInert(false);
+    // The blur() exists for touch, where the button otherwise keeps a stuck
+    // :focus style after a tap. On a keyboard it would drop focus onto <body>,
+    // stranding the user at the top of the document — so gate it to touch and
+    // let the button keep focus (and its visible ring) everywhere else.
+    if (isTouch()) menuBtn!.blur();
+  }
+
+  menuBtn?.addEventListener("click", () => {
+    mobileMenu?.classList.contains("is-open") ? closeMobileMenu() : openMobileMenu();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (!mobileMenu?.classList.contains("is-open")) return;
+
+    if (e.key === "Escape") {
+      closeMobileMenu();
+      menuBtn?.focus(); // return focus for keyboard users closing via Escape
+      return;
+    }
+
+    // Wrap Tab inside the dialog. `inert` on the background already stops focus
+    // reaching page content, but it does not stop Tab leaving the document for
+    // the browser's own chrome and re-entering at the top — which, in a dialog
+    // claiming aria-modal="true", loses the user. The menu button is excluded
+    // from the inerting (it is the close control), so it belongs in the cycle.
+    if (e.key !== "Tab") return;
+    const focusables = [
+      menuBtn,
+      ...mobileMenu.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"),
+    ].filter((el): el is HTMLElement => !!el);
+    if (focusables.length === 0) return;
+
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+</script>

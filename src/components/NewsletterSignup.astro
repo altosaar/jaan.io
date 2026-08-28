@@ -1,0 +1,601 @@
+---
+// The newsletter signup form — the only <form> on the site, and the only place
+// it makes a third-party request.
+//
+// WHAT HAPPENS WHEN IT IS SUBMITTED: the script below POSTs JSON to
+// /api/subscribe (functions/api/subscribe.ts), which verifies the Turnstile
+// token and writes one row to D1. Nothing is ever sent to the address. There is
+// no confirmation mail and no unsubscribe link yet, because there is nothing to
+// unsubscribe FROM — see the Newsletter section of README.md for where that
+// line is drawn and what stage 2 would add.
+//
+// THE ONE THIRD-PARTY SCRIPT ON THE SITE. Everything else here is self-hosted
+// on purpose (fonts are local, KaTeX renders at build time — see the comment in
+// astro.config.mjs). Turnstile is the exception, and it is a considered one: a
+// public form with no bot check collects garbage from day one, and the
+// alternative to loading challenges.cloudflare.com is a form that cannot be
+// trusted. It loads only on pages that actually mount this component.
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+
+// Fail the build rather than ship a form that cannot be submitted. Without a
+// site key the widget renders nothing, no cf-turnstile-response is produced,
+// and every submission is rejected with a 400 by a server that is working
+// perfectly — a failure that looks like nothing at all from the outside. CI
+// supplies this from the PUBLIC_TURNSTILE_SITE_KEY repository variable and
+// local builds from .env; see .env.example.
+if (!siteKey) {
+  throw new Error(
+    "[NewsletterSignup] PUBLIC_TURNSTILE_SITE_KEY is not set. Copy .env.example to .env (see README, Newsletter).",
+  );
+}
+
+// Turnstile's published testing keys, which pass or block unconditionally. They
+// belong in a local .env and nowhere else — a build carrying one is a form
+// anybody can post to, and the site key is baked into the HTML at build time,
+// so the mistake is only visible by reading the deployed page's source.
+//
+// A LOCAL build gets a warning, because building locally to look at something
+// is normal. A CI build throws: CI is the only thing that deploys (see
+// .github/workflows/ci.yml), so that is the exact moment a testing key would
+// stop being harmless.
+const TESTING_SITE_KEYS = [
+  "1x00000000000000000000AA", // visible, always passes
+  "1x00000000000000000000BB", // invisible, always passes
+  "2x00000000000000000000AB", // visible, always blocks
+  "2x00000000000000000000BB", // invisible, always blocks
+  "3x00000000000000000000FF", // forces an interactive challenge
+];
+//
+// Warned ONCE PER BUILD, not once per render. This frontmatter runs for every
+// page that mounts the component, so the plain console.warn printed 21 copies —
+// and because a warning goes to stderr while Astro's route list goes to stdout,
+// the two interleaved and left the build log looking corrupted
+// ("├─ /about.html[NewsletterSignup] built with a…"). The flag lives on
+// globalThis rather than in module scope because it has to outlive whatever
+// scope Astro gives each render.
+const TESTING_KEY_WARNED = Symbol.for("jaan.io/newsletter-testing-key-warned");
+if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
+  const message =
+    "[NewsletterSignup] built with a Turnstile TESTING site key — this form has no bot protection.";
+  if (process.env.CI) throw new Error(message);
+  const once = globalThis as unknown as Record<symbol, boolean>;
+  if (!once[TESTING_KEY_WARNED]) {
+    once[TESTING_KEY_WARNED] = true;
+    console.warn(`${message} Fine locally; CI refuses to build it.`);
+  }
+}
+---
+
+<section class="newsletter" aria-labelledby="newsletter-title">
+  {
+    /* THE BOX. Modelled on the Config login card: a dark plate on the black
+       page, with the form field sitting on it as a LIGHTER filled box — two
+       steps up the grey ramp (--bg → --card → --field), which is the whole
+       effect. The field carries its label inside it at the top rather than
+       above it, so the box stays one rectangle instead of a label and a
+       rectangle. See tokens.css for the two greys. */
+  }
+  <div class="newsletter__card">
+    {
+      /* The card's own heading is the section's heading — there is no separate
+         line above the box any more, so this is what aria-labelledby points at
+         and what names the section in the page outline. An <h2>, like the
+         article titles it sits under. */
+    }
+    <h2 id="newsletter-title" class="newsletter__title">Newsletter</h2>
+
+    {
+      /* method AND action, even though the script below calls preventDefault on
+         every submit and posts JSON itself. They are the no-JavaScript
+         behaviour, and the default was actively harmful: a <form> with neither
+         is a GET to the CURRENT PAGE, so submitting without scripting reloaded
+         /about with `?email=someone@example.com` in the address bar. That address
+         then sits in browser history, in the Referer header of the next
+         navigation, and in every access log along the way — for a site whose
+         subscribe endpoint deliberately stores no IP and whose alerts
+         deliberately carry no address (see README, Newsletter).
+
+         POSTing to the real endpoint puts it in a request body instead. The
+         submission still cannot SUCCEED without scripting — Turnstile has no
+         way to mint a token, so the endpoint answers 400 — and that is the
+         honest outcome rather than a hidden one. Verified it is a clean 400:
+         the handler parses `request.json()` inside a try/catch, so a
+         form-encoded body is rejected without touching the alert path. */
+    }
+    <form class="newsletter__form" method="post" action="/api/subscribe" data-newsletter>
+      <div class="newsletter__field">
+        {
+          /* Still a real <label>, still always visible — it just lives on top
+             of the input's own top padding now. Which is the point of the
+             pattern: unlike a placeholder it does not vanish when someone
+             starts typing, so the field can be checked mid-fill. */
+        }
+        <label class="newsletter__label" for="newsletter-email">Email</label>
+        <input
+          class="newsletter__input"
+          id="newsletter-email"
+          type="email"
+          name="email"
+          required
+          autocomplete="email"
+        />
+      </div>
+
+      {
+        /* THE ONE MESSAGE LINE, and it lives HERE — directly after the field,
+           inside the form — because on success it has to take the field's
+           place. The success state hides the field and gives this element the
+           field's exact geometry, so the confirmation appears in the box the
+           address was typed into and the card's height does not change. Sitting
+           outside the form it could only ever appear underneath it.
+
+           role="status" is what makes every one of these lines reach a screen
+           reader: the region is in the DOM from the start and empty, so filling
+           it later is an announcement. Building the line after submit instead
+           would insert it silently. */
+      }
+      <p class="newsletter__status" role="status" aria-live="polite" data-newsletter-status></p>
+
+      {
+        /* Honeypot. Off-screen rather than display:none — a field that is not
+           rendered at all is one a headless browser can see is not rendered, and
+           some autofillers skip it too. aria-hidden + tabindex="-1" keep it away
+           from screen readers and the tab order, so the only thing that fills it
+           is something reading the DOM and filling every input it finds. The
+           server answers those with a 200 and writes nothing. */
+      }
+      <div class="newsletter__hp" aria-hidden="true">
+        <label for="newsletter-website">Website</label>
+        <input
+          id="newsletter-website"
+          type="text"
+          name="website"
+          tabindex="-1"
+          autocomplete="off"
+        />
+      </div>
+
+      {
+        /* Managed mode: Turnstile decides whether to show a challenge at all.
+          Three attributes are what keep it out of the way:
+
+          appearance="interaction-only" — per Cloudflare's docs, "the widget
+            becomes visible only when visitor interaction is required". The
+            challenge still runs at page load and still writes its token; it
+            just draws nothing while it is passing, and its container measures
+            0px tall. This is the canonical way to get rid of the box without
+            giving up the checkbox as a fallback — where the dashboard's
+            Invisible widget MODE (a per-widget setting on the site key, not an
+            attribute) would leave a visitor Turnstile is unsure about with a
+            form that fails and no way to prove otherwise. Invisible mode also
+            carries a condition this site cannot meet yet: "you must reference
+            Cloudflare's Turnstile Privacy Addendum in your own privacy
+            policy", and there is no privacy policy.
+          size="flexible" — 100% of the container rather than a fixed 300px
+            card, so on the rare occasion it does appear it lines up with the
+            field and the button instead of sitting in the middle of the box.
+          theme="dark" — pinned rather than left on `auto`, which follows the
+            VISITOR's prefers-color-scheme; this site is dark for everyone, so
+            half the audience was getting a white widget in a dark card. */
+      }
+      <div
+        class="cf-turnstile newsletter__widget"
+        data-sitekey={siteKey}
+        data-theme="dark"
+        data-appearance="interaction-only"
+        data-size="flexible"
+      >
+      </div>
+
+      <button class="cta-primary newsletter__submit" type="submit">Sign up</button>
+
+      {
+        /* Said out loud rather than left to be discovered. The form needs
+           scripting to work at all — Turnstile's token is minted in the browser
+           — so without it the button leads to a bare 400. One line and a real
+           address is a better answer than a control that looks live and is not. */
+      }
+      <noscript>
+        <p class="newsletter__note">
+          This form needs JavaScript. Email <a href="mailto:j@jaan.io">j@jaan.io</a> to be added instead.
+        </p>
+      </noscript>
+    </form>
+  </div>
+</section>
+
+<!-- Turnstile's loader. `is:inline` because this is a third-party URL that must
+     be emitted verbatim and left alone by the bundler; async defer because
+     nothing on the page waits for it — the widget renders itself into the div
+     above whenever it arrives. -->
+<script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+
+<script>
+  // Turnstile installs itself on `window` once its loader arrives. Read at call
+  // time rather than captured up here: this module runs first, and at that
+  // moment the property does not exist yet.
+  const resetWidget = () =>
+    (window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset();
+
+  const COPY = {
+    success: "You're on the list.",
+    // Deliberately one message for every failure mode. The endpoint answers 400
+    // for a bad address, a failed challenge and a malformed body alike, and
+    // guessing which one it was in the browser would only ever be a guess.
+    error: "Something went wrong — please try again.",
+    // Shown only in the seconds where there is no token yet. See waitForToken.
+    waiting: "One moment…",
+  };
+
+  // Turnstile writes its token into a hidden input inside the form, whenever the
+  // challenge it started at page load finishes. Usually that is done long before
+  // anybody has finished typing an address — but not always, and the widget is
+  // invisible (appearance="interaction-only"), so a visitor who submits into
+  // that gap gets no hint that anything is pending. Posting a blank token would
+  // earn a 400 and "Something went wrong" for a signup that was fine.
+  //
+  // Polling rather than Turnstile's data-callback: the callback is looked up by
+  // name on `window`, which means exporting a global out of a bundled module for
+  // something a five-line loop does with no globals at all.
+  const TOKEN_WAIT_MS = 6000;
+  const TOKEN_POLL_MS = 100;
+
+  const tokenIn = (form: HTMLFormElement) =>
+    String(new FormData(form).get("cf-turnstile-response") ?? "");
+
+  async function waitForToken(form: HTMLFormElement, status?: HTMLElement | null) {
+    let token = tokenIn(form);
+    if (token) return token;
+
+    if (status) status.textContent = COPY.waiting;
+    const deadline = Date.now() + TOKEN_WAIT_MS;
+    while (!token && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, TOKEN_POLL_MS));
+      token = tokenIn(form);
+    }
+    // Empty at the deadline means the challenge is stuck or blocked. Falling
+    // through with it lets the one error path below do the reporting and the
+    // widget reset, rather than growing a second kind of failure here.
+    return token;
+  }
+
+  for (const form of document.querySelectorAll<HTMLFormElement>("form[data-newsletter]")) {
+    const status = form.querySelector<HTMLElement>("[data-newsletter-status]");
+    const submit = form.querySelector<HTMLButtonElement>("button[type=submit]");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!submit || submit.disabled) return;
+
+      const data = new FormData(form);
+      // Locking the button is the whole double-submit guard: one Turnstile token
+      // is good for a single verification, so a second in-flight POST would fail
+      // server-side anyway and show an error for a signup that worked.
+      submit.disabled = true;
+      if (status) status.textContent = "";
+
+      // Read after the wait, not from `data` above: the whole point is that the
+      // token may not have existed when that snapshot was taken.
+      const token = await waitForToken(form, status);
+
+      let ok = false;
+      try {
+        const response = await fetch("/api/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: data.get("email"),
+            token,
+            website: data.get("website"),
+          }),
+        });
+        ok = response.ok;
+      } catch {
+        // Offline, or the request never left. Same message as any other failure.
+      }
+
+      if (ok) {
+        // ONE ATTRIBUTE, and the stylesheet does the rest — the field gives up
+        // its place to the message and the button settles onto the field's own
+        // grey. Deliberately not `form.hidden = true`, which is what this used
+        // to be: that took the field, the widget and the button out of the
+        // layout in one go and collapsed the card to the height of a single
+        // line, so the page jumped at the exact moment it was confirming
+        // something. The form still must not be submitted twice — the row
+        // already exists, so a second POST would report an error for a signup
+        // that worked — but `disabled` on the button below is what prevents
+        // that, and it does it without moving anything.
+        //
+        // It lasts until the page is reloaded, and no further: nothing is
+        // written to storage, so this is the state of one form on one screen
+        // rather than a claim about the visitor that has to be kept true later.
+        form.dataset.state = "done";
+        if (status) status.textContent = COPY.success;
+        return;
+      }
+
+      if (status) status.textContent = COPY.error;
+      submit.disabled = false;
+      // A spent token cannot be reused, so the widget has to be re-armed before
+      // the visitor tries again — without this, every retry fails verification.
+      resetWidget();
+    });
+  }
+</script>
+
+<style>
+  /* Offset like every other block on the site — see Section.astro, whose two
+     first lines these are — but deliberately NOT as wide. The card is a form,
+     not prose: at the full 850px measure a single email field ran the whole
+     width of the article list above it and read as another section of the page
+     rather than as one control. 60% of the measure (850 → 510px) is the width
+     it is meant to be.
+     The cap is on max-width rather than on width, so the 60% applies where
+     there is a measure to take 60% OF. Below ~543px viewport the column itself
+     is already narrower than 510px, and the box goes back to filling it; a
+     phone would otherwise get a 220px-wide form.
+
+     CENTRED, which is what auto margins do here and what --site-ml can no
+     longer do. That token is `calc(50% - var(--site-w) / 2)` — it centres a
+     block that is actually --site-w wide, and every OTHER block on the site is.
+     This one is capped at 510px, so the offset went on computing from the full
+     850px column and left the box pinned to the column's left edge. Auto
+     margins centre the box the column actually has.
+     It is centred on the PAGE, not just in its column, on every page that
+     mounts it: each one puts it inside main.is-centered, which is itself
+     symmetric about the viewport centre (measured: main 295→1145 on /writing,
+     /about, /projects, /visualizations, a visualization page and an article —
+     card 465→975, midpoint 720 of 1440 on all six). */
+  .newsletter {
+    width: var(--site-w);
+    margin-inline: auto;
+    max-width: calc(var(--reading-w) * 0.6);
+    padding-top: var(--space-section);
+    margin-bottom: var(--space-block);
+  }
+
+  /* Step one of the ramp: a plate that is lighter than the page and darker than
+     anything on it. Square corners, like everything else here (--hover-radius
+     is 0 by choice — see tokens.css). */
+  /* ONE SANS FOR THE WHOLE BOX, set here so everything in it inherits and no
+     part of the card has to name a face for itself.
+     The site's running text is --font-body, which is Pensum Pro — a serif — and
+     everything in this card that did not override it was picking that up: the
+     "Email" label, the address as it is typed, the confirmation line and the
+     noscript note, all set in the page's prose face inside a control. A form is
+     furniture, not prose. --font-display (Hanken Grotesk) rather than
+     --font-chrome, because the card's own heading is already in it — this way
+     the box has one voice for its type instead of borrowing a third.
+     The submit button keeps its --font-chrome override, deliberately: it is
+     meant to be the same control as ARTICLES in the nav, and the face is most
+     of what makes it read that way. See the note on .newsletter__submit. */
+  .newsletter__card {
+    font-family: var(--font-display);
+    background: var(--card);
+    /* Vertical padding is the biggest single thing setting the box's height, so
+       it takes most of the trim; the horizontal padding is untouched, because
+       the box is narrower now and its inner margins are the one thing keeping
+       the field off the edge. The two are deliberately unequal as a result —
+       20px above and below against 30px either side — which is the usual shape
+       for a card that is wider than it is tall. */
+    padding: clamp(1rem, 3vw, 1.25rem) clamp(1rem, 3vw, 1.875rem);
+  }
+
+  /* --fs-md, which is the SAME SIZE as the SIGN UP label below it — the two
+     are the only pieces of type in the box, and at 38px against 22.4px they
+     were two sizes doing the work of one. Matching them leaves the box with a
+     single text size and lets the weight and the face carry the heading, which
+     is all a two-word title needs.
+     The reference card sets this line large; that is a card with a paragraph
+     under it. This one has a field.
+     Face, weight and tracking are the site's heading voice as before, so it
+     still reads as an <h2> rather than as a second button. */
+  .newsletter__title {
+    /* Restated rather than left to the card's inherited face: this is the
+       site's heading voice, and it should keep reading as one if the box around
+       it is ever repointed at another family. */
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    /* Tightened with the type — 2rem was the gap a 38px line needed — and then
+       again with the box. Flat rather than fluid: at 14px it is already below
+       the bottom of the range the clamp used to cover. */
+    margin-bottom: 0.875rem;
+  }
+
+  /* Positioning context for the label that sits inside the input. */
+  .newsletter__field {
+    position: relative;
+  }
+
+  /* Parked in the input's top padding — see the note beside the markup. It stays
+     a plain <label for>, so clicking it still focuses the field. */
+  .newsletter__label {
+    position: absolute;
+    inset: 0.75rem 1rem auto;
+    font-size: 0.875rem;
+    line-height: 1.25;
+    color: var(--text);
+  }
+
+  /* Step two of the ramp, and the only place --field is used. No border and no
+     radius: the fill IS the edge, which is why the grey has to be a step above
+     the card rather than a shade of it.
+     The top padding is the label's room; without it the two would overlap.
+     No placeholder to go with it — an always-visible label makes one redundant,
+     and grey-on-grey placeholder text lands at 3.9:1, under the 4.5:1 floor the
+     rest of this palette holds to. */
+  .newsletter__input {
+    width: 100%;
+    /* inherit, for the same reason .cta-primary does it: a form control that is
+       not told otherwise falls back to the UA font and reads as a foreign
+       object dropped into the page. What it inherits is the card's sans, so the
+       address is typed in the same face as the label above it. */
+    font-family: inherit;
+    font-size: var(--fs-body);
+    line-height: 1.35;
+    color: var(--text);
+    background: var(--field);
+    border: 0;
+    border-radius: var(--hover-radius);
+    padding: 2rem 1rem 0.5rem;
+    /* The hairline under the field, drawn inside it. Lighter than --line
+       because it sits on --field rather than on --bg — #3d3d3d on #424242 is
+       nothing at all. */
+    box-shadow: inset 0 -1px 0 0 rgba(255, 255, 255, 0.24);
+
+    /* WHITE focus ring on this one control, not the site's green.
+       The green is the site's signal for "this is live" — a link lighting up,
+       a button about to be pressed. An empty text field is not that: nothing
+       happens when you focus it, you are just standing in it, and the ring is
+       telling you where the caret is rather than promising an action. White is
+       the same value as --btn-light, so the field and the button below it are
+       lit by one colour instead of two.
+       Redefining the token rather than writing a :focus-visible rule: the
+       global ring in base.css resolves --focus-ring-color against the focused
+       ELEMENT, so this changes the colour and leaves the width, the offset and
+       the when-to-show-it logic exactly as they are everywhere else. At 12.87:1
+       on --card (scripts/contrast-check.mjs) it clears the 3:1 that WCAG 2.4.13
+       asks of a focus indicator four times over — green gave 7.82:1.
+
+       Drawn INSIDE the field, not around it. The site-wide +2px offset floats
+       the ring clear of whatever it is marking, which is right for a link or a
+       nav item sitting in open space — but this field is a filled box in a
+       column of filled boxes, so an outline 2px larger than it on every side
+       hung out past the button below and read as a second, bigger rectangle.
+       At -2px the outline is drawn just inside the border box: its outer edge
+       lands exactly on the field's edge, flush with the button's left and right
+       edges, and the ring reads as the box lighting up rather than as something
+       around it. */
+    --focus-ring-color: var(--text);
+    --focus-ring-offset: -2px;
+  }
+
+  /* Off-screen, not hidden — see the note beside the field. */
+  .newsletter__hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* No margin, on purpose — and it cannot be made conditional. While the widget
+     is passing quietly its container is 0px tall but NOT empty (Turnstile
+     leaves a hidden <input> in it), so :empty does not match; and the iframe it
+     draws when a challenge IS required lives inside a shadow root, so
+     :has(iframe) cannot see it either. Measured both: a visible widget reports
+     65px tall and zero iframes to querySelectorAll.
+     Any margin here would therefore be a permanent gap between the field and
+     the button for everyone, spacing something almost nobody is shown. The
+     button's own margin does the spacing instead, and on the rare occasion a
+     challenge appears it sits flush under the field. */
+  .newsletter__widget {
+    margin: 0;
+  }
+
+  /* Full width under the field, as on the reference card — but sized to be the
+     SAME BUTTON as ARTICLES in the nav: same face, size, weight, tracking, and
+     the same 0.413rem above and below a line-height:1 line, which is what makes
+     the two exactly the same height (measured: 35.62px each).
+     The values are restated rather than shared with .nav-btn in chrome.css,
+     because that rule is inseparable from the bar it lives in — accent fill,
+     inline-flex, sitting in a fixed 50%-width row. Only the type and the
+     vertical padding are wanted here. The pair is worth re-measuring if
+     chrome.css ever moves.
+     --font-chrome deliberately, which is the one place content borrows the
+     chrome's voice (see the role tokens in tokens.css): the ask was for this to
+     read as the same control as the one in the bar, and the face is most of
+     what makes it read that way.
+     .cta-primary supplies the rest — the light fill, the black label, and the
+     accent hover — so this rule only overrides what has to differ from a
+     mobile-menu-sized CTA. */
+  .newsletter__submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    /* The field/button gap, trimmed with the rest of the box's vertical
+       spacing — see the note on the title. */
+    margin-top: 1rem;
+    padding: 0.413rem 0.963rem;
+    font-family: var(--font-chrome);
+    font-size: var(--fs-md);
+    font-weight: 350;
+    letter-spacing: 0;
+    line-height: 1;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .newsletter__submit:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  /* Empty until something has happened, so it must not reserve space or leave a
+     gap while it is blank. It sits between the field and the button, which is
+     where a line about the field belongs — and where it has to be for the
+     success state below to be able to put it in the field's place. */
+  .newsletter__status:not(:empty) {
+    margin-top: 1rem;
+    font-size: var(--fs-base);
+    color: var(--text);
+  }
+
+  /* ── Signed up ─────────────────────────────────────────────────────────────
+     The field stands down and the message takes its box.
+
+     THE SAME BOX, ARRIVED AT THE SAME WAY rather than measured off the rendered
+     page: --fs-body and 1.35 are the input's own type, 2rem + 0.5rem is its own
+     vertical padding, and box-sizing is border-box site-wide — so
+     `2.5rem + 1.35em` is exactly the height the input had (72.4px today) and
+     follows it if either number ever moves. That is the whole point of writing
+     it this way: the card is the same height signed up as it was before, and
+     nothing on the page moves at the moment it is confirming something.
+
+     Centred in the box rather than left sitting on the input's baseline. A
+     confirmation is a statement about the box, not a value in it — and with the
+     label gone there is no longer anything above it to make room for. */
+  .newsletter__form[data-state="done"] .newsletter__field {
+    display: none;
+  }
+
+  .newsletter__form[data-state="done"] .newsletter__status {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    min-height: calc(2.5rem + 1.35em);
+    padding-inline: 1rem;
+    font-size: var(--fs-body);
+    background: var(--field);
+  }
+
+  /* SPENT, and saying so in the vocabulary the box already has: the button
+     drops off the light fill onto --field, the grey the input was wearing. So
+     the card settles into two plates of one surface — the message where the
+     address was, the button under it — rather than leaving a lit control
+     inviting a second press that would do nothing but report an error for a
+     signup that worked. .cta-primary already transitions background and colour,
+     so the drop is the same 120ms as every other state change on the site.
+     :hover and :focus-visible are restated because .cta-primary lights both in
+     the accent, and a disabled button still matches them both. */
+  .newsletter__form[data-state="done"] .newsletter__submit,
+  .newsletter__form[data-state="done"] .newsletter__submit:hover,
+  .newsletter__form[data-state="done"] .newsletter__submit:focus-visible {
+    background: var(--field);
+    color: var(--text);
+    opacity: 1;
+    cursor: default;
+  }
+
+  .newsletter__note {
+    margin-top: 1rem;
+    font-size: var(--fs-base);
+    line-height: 1.6;
+    color: var(--text-muted);
+    max-width: var(--reading-w-tight);
+  }
+</style>

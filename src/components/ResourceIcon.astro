@@ -1,0 +1,25 @@
+---
+// One glyph on a paper's resource links. The paths, and why they are drawn here
+// rather than pulled from an icon set, are in src/lib/resource-icons.ts.
+import { RESOURCE_ICONS, type ResourceIconName } from "../lib/resource-icons";
+
+interface Props {
+  name: ResourceIconName;
+}
+
+const { name } = Astro.props;
+---
+
+<svg class="ricon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+  <path d={RESOURCE_ICONS[name]} fill="none" stroke="currentColor" stroke-width="1.4"></path>
+</svg>
+
+<style>
+  /* Sized in em so it tracks the label's own font-size, the way the external
+     arrow on /projects tracks its headline. */
+  .ricon {
+    width: 1em;
+    height: 1em;
+    flex: none;
+  }
+</style>

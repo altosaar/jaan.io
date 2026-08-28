@@ -1,0 +1,139 @@
+# Runs on every push and pull request: type-checks, builds the site, runs the
+# SEO/launch gate, and — on a push to main only — publishes to Cloudflare Pages.
+# Formatting is checked too.
+#
+# The gate is what makes the deploy safe: the steps run in order in one job, so a
+# build that fails any check never reaches the deploy step. That sentence used to
+# be aspirational (deploys were run by hand from a laptop, so the gate could not
+# actually stop one); it is now literally true.
+#
+# THIS IS THE ONLY BUILD. The Pages project is Direct Upload, not Git-connected,
+# so Cloudflare never builds anything itself — it receives `dist/` from the step
+# below. Connecting the repo in the Cloudflare dashboard instead is not an
+# option: a Direct Upload project cannot be converted to a Git-integrated one,
+# it would have to be recreated (and would then build a second time, on their
+# infrastructure, with no access to this gate).
+#
+# When this fails on a push to main, the last step opens a GitHub issue. That
+# matters more than it looks: a failed build leaves the site frozen on the last
+# good deploy, with no signal anywhere the author is looking.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  issues: write # for the failure notice below; nothing else writes
+
+env:
+  # The origin every canonical, og:url, and sitemap entry must carry — it is
+  # `site` in astro.config.mjs, and it stays jaan.io even while the site is
+  # served from jaan-io.pages.dev, because those URLs are what 20-30k monthly
+  # organic visits already point at. Asserting it here rather than letting the
+  # audit infer it from the build is the point: a fat-fingered astro.config
+  # `site` is exactly the kind of change that looks fine locally and quietly
+  # de-indexes the site.
+  SITE: https://jaan.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Format check
+        run: npm run format:check
+
+      # astro check over src/, then tsc over functions/ — the Pages Functions are
+      # typed against @cloudflare/workers-types under their own tsconfig, and a
+      # broken one must stop the deploy exactly like a broken page does.
+      - name: Type check
+        run: npm run check
+
+      # Recomputes the WCAG contrast ratios of the colour tokens. Reads the CSS
+      # only, so it doesn't need a build — fail fast, before the slow steps.
+      - name: Contrast check
+        run: npm run a11y
+
+      # Roles (tokens.css) vs @font-face files (fonts.css) vs the preload list
+      # (site.config.ts). Reads source only, so it belongs with the fast checks.
+      - name: Font wiring check
+        run: npm run fonts:check
+
+      # PUBLIC_TURNSTILE_SITE_KEY is a repository VARIABLE, not a secret: a
+      # Turnstile site key is public by design and is inlined into the HTML this
+      # step emits. It has to be here because this is the only build — a Direct
+      # Upload project has no Cloudflare-side build settings to put it in.
+      #
+      # If it is missing or holds one of Turnstile's testing keys, the build
+      # fails in NewsletterSignup.astro rather than deploying a signup form that
+      # silently rejects everyone (or accepts every bot). Set it with:
+      #   gh variable set PUBLIC_TURNSTILE_SITE_KEY --body <site key>
+      - name: Build
+        env:
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
+        run: npm run build
+
+      - name: SEO / launch gate
+        run: node scripts/seo-audit.mjs dist --site "$SITE"
+
+      # Publishes dist/ to https://jaan-io.pages.dev. Reached only when every
+      # check above passed, and only on a push to main — a pull_request run must
+      # never publish, and one from a fork has no access to the secrets anyway.
+      #
+      # --branch is explicit rather than inferred: actions/checkout leaves a
+      # detached HEAD, and the branch name is the whole mechanism by which a
+      # Direct Upload deployment is classed Production rather than Preview (the
+      # project's production branch is `main`). Getting it wrong publishes to a
+      # preview URL and silently leaves the live site on the previous build.
+      #
+      # The wrangler version comes from package-lock.json, so a deploy cannot
+      # change underneath this the way `npx wrangler@latest` could. Dependabot
+      # keeps it current.
+      - name: Deploy to Cloudflare Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run deploy
+
+      # Tell a human. Push only: pull_request runs from a fork (or from Dependabot)
+      # get a read-only token, so trying this there would fail the job a second
+      # time for an unrelated reason.
+      - name: Open an issue if the build failed
+        if: failure() && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHA: ${{ github.sha }}
+        run: |
+          title="Site build failed — the latest push did not go live"
+          body="The deploy did not run, so **https://jaan-io.pages.dev is still showing the previous version**.
+
+          - Commit: \`$SHA\`
+          - What went wrong: $RUN_URL
+
+          Open that link, click the red step, and read the last few red lines — the
+          error names the file and the field. Fix it and push again, or revert the
+          commit from the GitHub UI.
+
+          If the red step is *Deploy to Cloudflare Pages*, the build was fine and
+          the problem is credentials: check that the \`CLOUDFLARE_API_TOKEN\` and
+          \`CLOUDFLARE_ACCOUNT_ID\` repository secrets exist and that the token has
+          not expired."
+          existing=$(gh issue list --state open --search "in:title $title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi

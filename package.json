@@ -1,0 +1,55 @@
+{
+  "name": "jaan-io",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "node scripts/build-visualizations.mjs --if-missing && node scripts/gen-og-cards.mjs --if-missing && astro dev",
+    "build": "node scripts/build-visualizations.mjs && node scripts/gen-og-cards.mjs && astro build && node scripts/check-pages-limits.mjs && node scripts/check-math-css.mjs",
+    "photos": "node scripts/prep-photos.mjs",
+    "marks": "node scripts/prep-paper-marks.mjs",
+    "preview": "astro preview",
+    "check": "astro check && tsc -p functions/tsconfig.json",
+    "audit": "node scripts/seo-audit.mjs dist",
+    "limits": "node scripts/check-pages-limits.mjs",
+    "math:check": "node scripts/check-math-css.mjs",
+    "a11y": "node scripts/contrast-check.mjs",
+    "palettes:light": "node scripts/gen-light-palettes.mjs",
+    "test:newsletter": "node scripts/newsletter-check.mjs",
+    "test:redirects": "node scripts/redirect-check.mjs",
+    "pages:dev": "wrangler pages dev",
+    "fonts:check": "node scripts/fonts-check.mjs",
+    "gen:favicons": "node scripts/gen-favicons.mjs",
+    "og": "node scripts/gen-og-cards.mjs",
+    "deploy": "wrangler pages deploy dist --project-name=jaan-io --branch=main",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "git config core.hooksPath .githooks || true",
+    "viz": "node scripts/build-visualizations.mjs --force && node scripts/gen-og-cards.mjs",
+    "viz:dev": "npm --prefix viz run dev",
+    "viz:local": "node scripts/stage-viz-data.mjs",
+    "test:clickable": "node scripts/clickable-check.mjs"
+  },
+  "dependencies": {
+    "astro": "^7.2.2",
+    "embla-carousel": "^8.6.0",
+    "katex": "0.16.47",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "sharp": "^0.35.3"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1",
+    "katex": "0.16.47"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@astrojs/markdown-remark": "^7.2.2",
+    "@astrojs/sitemap": "^3.7.3",
+    "@cloudflare/workers-types": "^5.20260820.1",
+    "playwright": "^1.58.0",
+    "prettier": "^3.9.6",
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.123.0"
+  }
+}

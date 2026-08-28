@@ -1,0 +1,109 @@
+/* Typefaces.
+   ────────────────────────────────────────────────────────────────────────────
+   Which font plays which ROLE is not decided here — that is --font-display /
+   --font-body / --font-chrome in src/styles/tokens.css. This file only says
+   what a family name resolves to on disk.
+
+   To swap a font, three edits and nothing else:
+
+     1. Drop the new .woff2 files into public/fonts/.
+     2. Add or rewrite the @font-face block below — family name, file name, and
+        the weight range the variable font actually covers.
+     3. Point the role token (src/styles/tokens.css) at the new family name, and
+        update SITE.fonts (src/site.config.ts) so the right files are preloaded.
+
+   Then run `npm run fonts:check`, which fails if a family is preloaded but
+   never used, used but never preloaded, or named in a @font-face whose file is
+   missing. Every font here is variable.
+
+   font-display: optional throughout — paint immediately in the fallback if the
+   font is not ready, with no swap-in shift, which keeps the LCP headline off
+   the font's critical path. */
+
+/* ── Hanken Grotesk — the CONTENT face (--font-display, --font-body) ────────
+   Two files, split on unicode-range, which is how Google Fonts ships it. The
+   browser fetches latin-ext only when a character needs it, so ordinary English
+   pages pay for `latin` alone. That is why only `latin` is preloaded.
+
+   Both files cover the full 100-900 weight axis; neither covers arrows or the
+   maths symbols in the older posts (⟨ ∑ ∂ ≈ …), and no Google subset of this
+   family does. Those fall through to the next family in the stack, as they
+   already did — the maths itself is KaTeX, which brings its own fonts. */
+@font-face {
+  font-family: "Hanken Grotesk";
+  src: url("/fonts/HankenGrotesk-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: optional;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Hanken Grotesk";
+  src: url("/fonts/HankenGrotesk-latin-ext.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: optional;
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+/* ── Pensum Pro — the BODY face, on trial (--font-body) ─────────────────────
+   Two files, roman and italic, both the variable "Demo" release from befonts
+   (Personal Use Only — see the licence beside the download; a paid licence is
+   needed before this ships anywhere public).
+
+   The demo cut carries 70 glyphs and no more:
+
+     A-Z a-z 0-9 space ! & , - .  ?
+
+   No apostrophe, no quotes, no colon, semicolon, parenthesis, slash, em dash,
+   and nothing accented. Every one of those falls through to Hanken Grotesk,
+   which is the next family in the --font-body stack — so running text renders
+   as Pensum with a sans apostrophe inside every contraction. That is a property
+   of the demo, not of the typeface, and it is what makes this a look-at-the-
+   letterforms trial rather than a swap that could ship.
+
+   The wght axis runs 100-900 (its default instance is 900, which is why the
+   range below matters: without it the browser would paint body copy black). */
+@font-face {
+  font-family: "Pensum Pro";
+  src: url("/fonts/PensumPro.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: optional;
+}
+@font-face {
+  font-family: "Pensum Pro";
+  src: url("/fonts/PensumPro-Italic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: optional;
+}
+
+/* ── Inter — the CHROME face (--font-chrome) ────────────────────────────────
+   One file, not subset, so it carries the arrows the content face lacks. */
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter.woff2") format("woff2");
+  font-weight: 200 700;
+  font-display: optional;
+}
+
+/* ── Fraunces — kept, currently unused ──────────────────────────────────────
+   The display face until the content moved to Hanken Grotesk. An @font-face
+   that nothing references costs nothing at runtime: a font file is fetched only
+   when a rule actually asks for the family, and no role token names this one.
+   It stays so that pointing --font-display back at "Fraunces" is a one-line
+   change — add it back to SITE.fonts at the same time, or fonts:check will say
+   it is used but not preloaded.
+
+   If you do: it carries `opsz`, `SOFT` and `WONK` axes, and the h1 rule in
+   base.css used to set `font-optical-sizing: auto` with SOFT 75 / WONK 1. */
+@font-face {
+  font-family: "Fraunces";
+  src: url("/fonts/Fraunces.woff2") format("woff2");
+  font-weight: 300 900;
+  font-display: optional;
+}

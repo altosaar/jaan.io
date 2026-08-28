@@ -1,0 +1,317 @@
+/* Reset, base typography, links, and site-wide button styles.
+   Loaded after tokens.css and fonts.css so page/chrome styles can override cleanly. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--bg);
+}
+
+/* Anchor jumps glide instead of cutting: click a heading in the contents rail
+   and the page travels there rather than teleporting, so you keep your bearings
+   about which direction you moved and how far.
+
+   The browser's own scroller does this, not a script. That matters for more
+   than brevity — it means EVERY way of reaching a fragment behaves the same:
+   the rail, the sixteen footnote markers and their ↩ backlinks in the physics
+   post, the skip-link, and the back button returning you to a fragment. A
+   handler bolted onto the rail's links would smooth exactly one of those and
+   leave the rest cutting, which reads as a bug rather than as restraint. It
+   also stays out of the way of the reader — a native smooth scroll is
+   interrupted the moment they touch the wheel, where a scripted one has to
+   remember to yield and usually does not.
+
+   `no-preference` rather than a `reduce` override: a browser too old to answer
+   the question at all lands on the instant jump, which is the safe end.
+
+   Measured cost, since it scales with distance (Chrome, 1600×1000):
+     one screen      1,000px   531ms
+     three screens   3,000px   901ms
+     rail's last tag 28,603px  1,541ms   ← only the physics post is this tall
+   Under ~3,000px — every hop on every other post — it reads as a glide. The
+   physics post's full-length jumps are the one place it becomes a journey; if
+   that grates, the fix is to stop animating past a few screens, not to make
+   the whole thing faster. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+::-moz-selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+mark {
+  background: var(--select);
+  color: var(--bg);
+  padding: 0 0.15em;
+}
+
+body {
+  font-family: var(--font-body);
+  font-variant-numeric: slashed-zero;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+}
+
+/* ── Viewport-locked pages ──────────────────────── */
+/* Set by <Base fullscreen> (currently the home page only): the page is exactly
+   one screen, so there is nothing below the fold and nothing to scroll to.
+   Because the nav hides itself on scroll-down, a page that cannot scroll also
+   keeps its nav permanently — see SiteHeader.astro.
+
+   The lock is on <html> as well as <body>: iOS Safari ignores overflow:hidden
+   on <body> alone and scrolls the document anyway. 100svh rather than 100% so
+   the height tracks the SMALL viewport — the one with the mobile browser's
+   toolbars showing, which is what the visitor actually has on first paint. */
+html.is-fullscreen {
+  height: 100svh;
+  overflow: hidden;
+}
+html.is-fullscreen body {
+  height: 100%;
+  /* Drops the 100svh floor set below, which would otherwise fight the height
+     above on engines where the two resolve a pixel apart and reintroduce a
+     scrollbar on a page that has just declared it has none. */
+  min-height: 0;
+  overflow: hidden;
+}
+/* `main` is the flex child that absorbs the leftover height. min-height:0 lets
+   it actually shrink (a flex item's default `min-height: auto` refuses to go
+   below its content), so a viewport too short for the composition crops it
+   rather than pushing it past the bottom edge. */
+html.is-fullscreen main {
+  min-height: 0;
+}
+
+/* ── The blur-up placeholder, undone when nothing can undo it ───────────────
+   src/lib/lqip.ts paints a blurred 16px preview as an <img>'s own background
+   and sets `color: transparent` beside it, so the alt text does not sit over
+   the blur while the photo decodes. src/lib/blur-up.client.ts strips that
+   inline style on `load` — and on `error`, so a photo that never arrives shows
+   its alt text rather than nothing.
+
+   With scripting off neither event is listened for and the inline style is
+   permanent. A photo that loads is still fine: it paints over its own
+   placeholder. A photo that FAILS is not — it leaves a bordered box with
+   invisible alt text inside it, which is an empty outlined box and nothing
+   else. Same for a browser that declines to paint the data: URI the
+   placeholder is (a strict CSP, an old engine).
+
+   `.js` is added to <html> by an inline script in Base.astro before first
+   paint, so this never applies to a scripted visitor. `!important` because the
+   thing it overrides is an inline style, which is all it can lose to. */
+html:not(.js) img[data-blur-up] {
+  color: inherit !important;
+  background-image: none !important;
+}
+
+/* Inline links (no class) — underline flush with bg bottom, smooth hover */
+a:not([class]) {
+  color: inherit;
+  text-decoration: none;
+  box-shadow: inset 0 -1.25px 0 0 var(--text);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+a:not([class]):hover,
+a:not([class]):focus-visible {
+  background-color: var(--accent);
+  color: var(--bg);
+  box-shadow: inset 0 -1.25px 0 0 var(--accent);
+  outline: none;
+}
+
+/* Keyboard focus ring, site-wide default.
+   WCAG 1.4.11 / 2.4.13: a focus indicator has to be a visible CHANGE of at
+   least 3:1, not just a different colour on the same glyph. Several icon-only
+   controls here (the logo, the hamburger, the carousel's toggle and close
+   buttons) used to signal focus by swapping --text for --accent, which is a
+   1.64:1 change — invisible to many people, and nothing at all in greyscale.
+   This gives all of them a real ring.
+
+   Controls that invert their whole BACKGROUND on focus (nav links, footer
+   links, .cta-*, mobile menu links) are already unambiguous, so they keep
+   their own `outline: none` and override this rule. */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link: the first thing Tab reaches on every page, so a keyboard or screen
+   reader user isn't walked through six chrome stops (ticker, play/pause, logo,
+   nav links, menu button) before reaching the content. Hidden until focused.
+   `position: fixed` keeps it out of the body's flex column when it appears. */
+.skip-link {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  transform: translateY(-200%);
+  padding: 0.75rem 1.25rem;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  text-decoration: none;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+/* The target is given tabindex="-1" so focus actually lands there; suppress the
+   focus ring it would otherwise draw around the entire page. */
+main:focus {
+  outline: none;
+}
+
+/* Main content column */
+/* ── Main ───────────────────────────────────────── */
+
+main {
+  flex: 1;
+  max-width: var(--main-max-w);
+  width: 100%;
+  margin-inline: auto;
+  /* padding-top removed — site-chrome is in-flow sticky */
+}
+
+/* Centred pages (everything but the home page — see `centered` in Base.astro).
+   <main> was already centred; what wasn't was its contents. Every block on
+   every page sits in a .section / .prose / .carousel-section, and all three
+   size themselves `width: var(--site-w)` with `margin-left: var(--site-ml)` —
+   a deliberate breakout that widens them past <main> to 94vw and re-centres
+   them on the VIEWPORT. On a 1440px screen that put the text column's left
+   edge at x≈43 while <main> sat at x=270, which reads as unaligned rather than
+   full-bleed.
+
+   Redefining the two tokens for the subtree collapses the breakout to nothing
+   without touching a single one of those components: --site-w can no longer
+   exceed the column, so --site-ml resolves to 0 and each block fills <main>
+   exactly. Below ~957px the 94vw term still wins and the layout is unchanged,
+   which is why phones look the same as before.
+
+   The column is sized to --reading-w rather than the wider --main-max-w so it
+   IS the measure. Cap it at 900px instead and the blocks that set their own
+   max-width (Prose, the /writing/ list) would sit at the left of a wider
+   column — centred column, off-centre text — while the uncapped headings above
+   them filled it. One width for both is what keeps every page on a single left
+   edge, which is also why those blocks now derive their cap from --reading-w
+   instead of carrying their own `ch` value.
+
+   The site chrome keeps the full 94vw — it lives outside <main>, and a nav that
+   changed width between the home page and the rest would be the more obvious
+   inconsistency. */
+main.is-centered {
+  max-width: var(--reading-w);
+  --site-w: min(94vw, var(--reading-w));
+  --site-ml: calc(50% - var(--site-w) / 2);
+}
+
+/* Base heading.
+   No font-variation-settings: SOFT/WONK/opsz are Fraunces axes, and the display
+   role is Hanken Grotesk, which has only `wght`. Naming axes a font does not
+   have is silently inert — it reads as tuning that is doing nothing. They are
+   recorded on the Fraunces @font-face in fonts.css for whoever switches back. */
+h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* ── Shared CTA buttons (home + mobile menu) ── */
+/* ── CTA buttons (full site width, stacked) ─────── */
+
+.cta-actions {
+  width: var(--site-w);
+  margin-left: var(--site-ml);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: var(--space-block);
+}
+
+.cta-primary {
+  display: block;
+  text-align: center;
+  text-transform: uppercase;
+  padding: 1.1rem 1.5rem;
+  /* inherit, not a role token: these render in the mobile menu today (chrome
+     face) but are shared with the page body, and a <button> would otherwise
+     fall back to the UA font instead of picking up whichever voice it sits in. */
+  font-family: inherit;
+  font-size: var(--fs-cta);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  color: var(--bg);
+  background: var(--btn-light);
+  text-decoration: none;
+  border-radius: var(--hover-radius);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.cta-primary:hover,
+.cta-primary:focus-visible {
+  background: var(--accent);
+  color: var(--bg);
+  outline: none;
+}
+
+.cta-secondary {
+  display: block;
+  text-align: center;
+  text-transform: uppercase;
+  padding: 1.1rem 1.5rem;
+  /* inherit, not a role token: these render in the mobile menu today (chrome
+     face) but are shared with the page body, and a <button> would otherwise
+     fall back to the UA font instead of picking up whichever voice it sits in. */
+  font-family: inherit;
+  font-size: var(--fs-cta);
+  letter-spacing: -0.04em;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--surface);
+  text-decoration: none;
+  border-radius: var(--hover-radius);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.cta-secondary:hover,
+.cta-secondary:focus-visible {
+  background: var(--accent);
+  color: var(--bg);
+  outline: none;
+}

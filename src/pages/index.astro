@@ -1,0 +1,156 @@
+---
+// The home page is one screen and nothing more: the headline and a single line
+// of invitation. No footer, no scrolling, so the nav — which hides itself on
+// scroll-down — is permanently visible.
+//
+// The portrait used to sit here, beside the sentence. It now opens /about,
+// wrapped by the bio it belongs to (src/pages/about.astro), which leaves this
+// page as two type treatments and nothing else:
+//   • the display h1 (Fraunces, --fs-hero)
+//   • everything else — the nav links and the one sentence — at --fs-md/350
+//
+// The nav's left half — the wordmark and the portrait mark — is dropped here
+// too, via `navHome={false}`. A link to the page you are already on is not
+// navigation, and on a page whose argument is that there is exactly one thing
+// to look at, a name in the corner is a second thing. Dropped rather than
+// hidden, at every width; Base.astro's prop carries the reasoning.
+import Base from "../layouts/Base.astro";
+import { SITE } from "../site.config";
+---
+
+<Base
+  title="Machine learning for health & science"
+  description={SITE.description}
+  fullscreen
+  centered={false}
+  navHome={false}
+>
+  {
+    /* Not <Hero>: that component carries a fixed padding-top and margin-bottom
+       sized for a scrolling page, which fights a composition centred in the
+       viewport. The h1 treatment itself is unchanged — base.css styles every
+       h1 in the display face, and the only override here is Hero's own
+       font-size: var(--fs-hero). */
+  }
+  <div class="home">
+    <h1 class="home__title">I make complex systems legible.</h1>
+
+    <p class="home__contact">
+      Lately: machine learning & data science at Cohere Health, designing interfaces for clinical
+      language models used in high-stakes decisions.<br /><br />
+      <a class="home__cta" href="mailto:j@jaan.io?subject=Inquiry">Get in touch</a> if you want to discuss
+      an idea or grab a coffee. I'm available.
+    </p>
+  </div>
+</Base>
+
+<style>
+  /* Fills the height <main> was given (see html.is-fullscreen in base.css) and
+     centres its contents in it, so the composition sits in the middle of the
+     screen rather than hanging from under the nav. */
+  .home {
+    width: var(--site-w);
+    margin-left: var(--site-ml);
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* The site's vertical rhythm is viewport-WIDTH based, which is the right
+       default for a page that can scroll. This one can't, so its rhythm has to
+       yield on a short viewport too — a landscape phone is 390px tall, and
+       --space-block alone would spend a quarter of that on gaps. Capped at the
+       token, so nothing here is ever looser than the rest of the site. */
+    gap: clamp(1rem, 4svh, var(--space-block));
+    padding-block: clamp(1rem, 4svh, var(--space-block));
+  }
+
+  /* The svh term is the landscape-phone case: --fs-hero is width-driven, and
+     844px of width asks for the full 6rem on a viewport only 390px tall. */
+  .home__title {
+    font-size: min(var(--fs-hero), 12svh);
+  }
+
+  /* Identical in size and weight to .nav-link (chrome.css) — the two are meant
+     to read as one voice. Not `text-transform: uppercase` though: the nav is a
+     set of labels, this is a sentence. */
+  .home__contact {
+    font-size: var(--fs-md);
+    font-weight: 350;
+    line-height: 1.6;
+    /* rem, not ch: a `ch` measure resolves against the element's own font-size,
+       which is easy to get wrong when the size is a variable. */
+    max-width: 30rem;
+  }
+
+  /* ── The one accent on the page ─────────────────────────────────────────
+     The home page carries a single green highlight, and this is it: the thing
+     the page is actually asking you to do. Everything else — the headline, the
+     nav, the sentence around it — is one colour on black.
+
+     It is the site's ordinary inline-link HOVER state (base.css `a:not([class])`),
+     worn at rest. Deliberately no padding: an inline background covers the
+     text's own box and not the line-height's half-leading, so the highlight
+     hugs the words and cannot collide with the line above it when the sentence
+     rewraps on a narrow screen.
+
+     Adding the class is also what detaches it from that base rule — `:not([class])`
+     stops matching — so the rest state below is the whole state, with no
+     underline shadow left underneath to fight the fill. */
+  .home__cta {
+    background-color: var(--accent);
+    color: var(--bg);
+    text-decoration: none;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  /* Hover has to move somewhere, and the direction is the one .nav-btn already
+     established for a filled control: accent at rest, the light fill on hover,
+     black text throughout. --bg on --btn-light is 16.21:1, checked by
+     scripts/contrast-check.mjs.
+
+     `outline: none` follows the note in base.css: the focus ring is for
+     controls whose only focus signal would be a colour swap on the glyph. This
+     one inverts its entire background, which is unambiguous — and an accent
+     ring drawn around an accent-filled box is invisible anyway. */
+  .home__cta:hover,
+  .home__cta:focus-visible {
+    background-color: var(--btn-light);
+    color: var(--bg);
+    outline: none;
+  }
+
+  /* ── The nav's CTA, demoted for this page only ──────────────────────────
+     ARTICLES is `nav.headerCta` in site.config.ts, so site-wide it is the one
+     nav item filled with the accent (chrome.css `.nav-btn`). On the home page
+     that puts a second green box on a page whose whole point is that there is
+     exactly one, and it sits in the corner competing with the invitation in
+     the middle of the screen. Here it reads as a third nav link — the divider
+     stays, because the grouping it marks is still true.
+
+     Scoped by being in THIS page's <style>: Astro only ships a page's styles
+     with that page, so nothing about /writing or any post is touched. The
+     selector carries the parent class purely for weight — `.nav-btn` alone
+     ties with the chrome.css rule and would then depend on sheet order.
+
+     Every declaration below is .nav-link's, copied rather than shared, because
+     the two rules live in different files and a selector list spanning them
+     isn't possible. Size, weight, case and padding are already identical
+     between .nav-btn and .nav-link, so only the four that differ are here. */
+  :global(.nav-links .nav-btn) {
+    background: transparent;
+    color: var(--text);
+    border-radius: var(--hover-radius);
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+  :global(.nav-links .nav-btn:hover),
+  :global(.nav-links .nav-btn:focus-visible) {
+    background: var(--accent);
+    color: var(--bg);
+    outline: none;
+  }
+</style>

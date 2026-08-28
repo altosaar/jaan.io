@@ -1,0 +1,21 @@
+{
+  "name": "jaan-io-visualizations",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "observable build",
+    "dev": "observable preview"
+  },
+  "dependencies": {
+    "@observablehq/framework": "^1.13.4",
+    "@observablehq/plot": "^0.6.17",
+    "d3-array": "^3.2.4",
+    "d3-dsv": "^3.0.1",
+    "jsdom": "^28.0.0"
+  },
+  "devDependencies": {
+    "@mapbox/vector-tile": "^2.0.4",
+    "pbf": "^5.1.2",
+    "pmtiles": "^4.4.0"
+  }
+}

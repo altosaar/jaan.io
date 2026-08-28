@@ -1,0 +1,43 @@
+---
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+// A real 404.astro makes Cloudflare Pages serve this with an HTTP 404 for unknown
+// URLs, instead of SPA-falling-back to index.html with a 200 (soft-404 duplicates).
+---
+
+<Base
+  title="Page not found"
+  description="That page doesn't exist. Head back to the home page."
+  navMode="static"
+>
+  {
+    /* `bottom="block"` rather than a `.notfound { padding-bottom }` rule: the
+       class went onto Section's OWN element, which carries Section's scope id
+       and not this page's, so the rule never matched anything and Astro pruned
+       it. Section already takes the spacing as a prop. */
+  }
+  <Section as="div" top="section" bottom="block">
+    <h1>Page not found</h1>
+    <p>
+      {
+        /* {" "} rather than a line break: the formatter collapses the newline
+          before a tag to nothing, which rendered as "oremail me". */
+      }
+      That page moved or never existed. Head back to the <a href="/">home page</a>, or{" "}
+      <a href="mailto:j@jaan.io">email me</a> if you followed a link that should work.
+    </p>
+  </Section>
+</Base>
+
+<style>
+  /* Targets the <p> directly instead of descending from `.notfound`. Astro
+     scopes a rule to the elements written in THIS file, and the wrapper was not
+     one of them — it is Section's element, stamped with Section's id. There is
+     exactly one paragraph on this page, so no class is needed to reach it. */
+  p {
+    font-size: var(--fs-body);
+    line-height: 1.55;
+    margin-top: 1rem;
+    max-width: var(--reading-w-tight);
+  }
+</style>

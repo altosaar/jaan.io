@@ -1,0 +1,208 @@
+---
+// /writing/ — the index of blog posts, newest first.
+//
+// NOTE ON THE URL, WHICH HAS NOW MOVED TWICE. The Jekyll site's index lived at
+// /blog/ and is still live today; this port first called it /articles, and it
+// is now /writing — the name the nav uses. Two old names to keep alive, and
+// public/_redirects sends BOTH straight here in a single hop rather than
+// chaining /blog → /articles → /writing. The individual POST urls have never
+// moved and must stay that way; only the index does.
+//
+// The word "article" survives inside this file, in the class names and in the
+// `posts` collection: what the list is called and what the things in it are
+// called are two different questions, and the entries are still articles.
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
+import IndexMark from "../components/IndexMark.astro";
+import { getImage } from "astro:assets";
+import { getCollection } from "astro:content";
+
+// `date` still orders the list, it is just no longer printed here — the year
+// lives on the article itself now (src/pages/[slug].astro).
+const posts = (await getCollection("posts")).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+
+// The mark box. The same value /projects uses, so the two index pages line up
+// with each other and not just with themselves.
+const MARK_SIZE = "clamp(3.25rem, 7vw, 5rem)";
+
+// The thumbs, as URLs rather than as <img> elements: IndexMark paints them as a
+// mask over the page's own colour, which is what lets them take the accent on
+// hover like every other mark on the site. getImage() rather than the raw
+// `.src`, so they still go through Astro's pipeline and land in _astro/ hashed.
+// No width asked for — these are trimmed to their ink and 2–7 KB apiece, already
+// more than an 80px box can show, and a size would only upscale the narrow ones.
+const thumbs = new Map<string, string>();
+for (const post of posts) {
+  if (post.data.thumb) thumbs.set(post.id, (await getImage({ src: post.data.thumb })).src);
+}
+---
+
+<Base
+  title="Writing"
+  description="Long-form writing on machine learning, variational inference, physics, and the incentives behind the technology industry."
+>
+  <Section as="header" top="section" bottom="block">
+    <h1 class="sr-only">Writing</h1>
+    <!-- <p class="articles-intro">
+      Long-form writing, mostly on machine learning and physics. Older pieces are kept at their
+      original URLs.
+    </p> -->
+  </Section>
+
+  <Section bottom="gap">
+    <ul class="articles" role="list">
+      {
+        posts.map((post) => (
+          <li class="article">
+            {/* ONE LINK PER ENTRY, wrapping the mark, the headline and the
+                description — so the description is clickable rather than being
+                dead text beside a link. Which part LIGHTS is decided by which
+                part the pointer is actually over; see the stylesheet. */}
+            <a href={`/${post.id}`} class="article__link">
+              {/* Painted as a shape, not placed as a picture — see IndexMark.
+                  Nothing announces it: the mark restates the headline sitting
+                  right beside it, and a mask has no alt text to get wrong. */}
+              {thumbs.has(post.id) && (
+                <IndexMark
+                  size={MARK_SIZE}
+                  mask={thumbs.get(post.id)}
+                  inkRatio={post.data.thumb!.width / post.data.thumb!.height}
+                />
+              )}
+              <div class="article__body">
+                <h2 class="article__title">{post.data.title}</h2>
+                <p class="article__desc">{post.data.description}</p>
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  {
+    /* At the end of the list rather than above it. Someone who has read to the
+       bottom of the index has already decided whether the writing is for them;
+       a form in front of the headlines would be asking before showing. */
+  }
+  <NewsletterSignup />
+</Base>
+
+<style>
+  .articles-intro {
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    max-width: var(--reading-w-tight);
+    margin-top: 1rem;
+    color: var(--text-muted);
+  }
+
+  .articles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: var(--reading-w);
+
+    /* No rules between entries. With only a handful of posts the list does not
+       need dividing — each entry is already a mark, a headline, a year and a
+       line of description, which is shape enough to read as one block. The
+       rules were doing the separating that white space can do on its own, and
+       four hairlines across the measure were the loudest thing on a page whose
+       whole point is three headlines.
+       Which means the space has to carry it, so there is a lot more of it.
+       Entries used to be held apart by 1.5rem of padding from each neighbour,
+       3rem between them; this is that raised by half twice over. At three
+       posts on a tall screen it reads as deliberate rather than as a list —
+       which is the right call at this length, and the thing to revisit if the
+       remaining eleven posts ever land, since twelve entries 108px apart is a
+       page you scroll rather than one you scan. One `gap` rather than padding
+       on both sides so the number in the file IS the gap on screen, instead of
+       half of it. */
+    display: flex;
+    flex-direction: column;
+    gap: 6.75rem;
+  }
+
+  /* Mark on the left, text on the right — the arrangement from the Jekyll blog
+     index, which floated a 160px thumb beside the entry. Flex rather than a
+     float so the text block cannot wrap underneath the mark on a narrow screen
+     and leave it stranded in the margin. On the LINK, because the link is the
+     whole entry now. */
+  .article__link {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(1rem, 3vw, 1.75rem);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .article__body {
+    /* Without this a long unbroken title (or a URL in a description) sets the
+       flex item's minimum width and pushes the row wider than the measure. */
+    min-width: 0;
+  }
+
+  /* The mark's colour and weight, handed down.
+
+     These are line art drawn in BLACK on transparency, for a page that used to
+     be #f9f9f9 — dropped onto this one unchanged they render as nothing at all.
+     That used to be answered with `filter: invert(1)`, which got them visible
+     but left them stuck at whatever colour the flip produced. IndexMark paints
+     them as a MASK instead, so they are simply a shape and take whatever colour
+     is set here.
+
+     Set on the row, not on the mark: these are custom properties and inherit,
+     which is the only way a page can reach into that component — Astro scopes a
+     class selector to this page's id, and the box carries the component's. A
+     rule written the other way round silently never matches, which is exactly
+     how these marks went invisible once.
+
+     The RESTING weight only; the lit state is set on the link below. */
+  .article {
+    --mark-opacity: 0.85;
+  }
+
+  .article__title {
+    color: var(--lit, inherit);
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  /* HOVER ANY ONE OF THE THREE — the drawing, the headline, the description —
+     and all three light together. `:has(:hover)` rather than a plain `:hover` on
+     the link: the link is the whole entry, so a plain hover would also fire from
+     the empty margin beside a short headline and from the gap the mark leaves in
+     its box. Requiring a hovered DESCENDANT narrows it to the parts themselves —
+     the mark's box is out of hit testing (see IndexMark) so only its drawing
+     counts, and the anchor's own dead space has no descendant under the pointer.
+
+     Carried by --lit rather than by four descendant selectors: custom properties
+     inherit, so one declaration here reaches every part below, and each part
+     names its own resting colour as the fallback. :focus-visible lights the same
+     way — one tab stop per entry, and no pointer to say which part of it. */
+  .article__link:has(:hover),
+  .article__link:focus-visible {
+    --lit: var(--accent);
+    --mark-opacity: 1;
+    --mark-color: var(--accent);
+  }
+
+  /* No year here any more; it belongs to the article now. Which gives the
+     description the full measure back — the year was costing it ~42px and
+     breaking the two short ones onto a second line. */
+  .article__desc {
+    color: var(--lit, inherit);
+    transition: color var(--dur-fast) var(--ease-out);
+    margin-top: 1.25rem;
+    font-size: var(--fs-body);
+    line-height: 1.6;
+    max-width: var(--reading-w-tight);
+  }
+</style>

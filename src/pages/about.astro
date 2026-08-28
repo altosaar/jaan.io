@@ -1,0 +1,281 @@
+---
+// /about/ — renders src/content/pages/about.md.
+//
+// A named route rather than a [slug] catch-all: src/pages/[slug].astro already
+// owns the single-segment namespace for blog posts, whose URLs are fixed by
+// what jaan.io has served since 2013. Giving standalone pages their own file
+// keeps the two from competing for the same paths.
+import Base from "../layouts/Base.astro";
+import Prose from "../components/Prose.astro";
+import Toc from "../components/Toc.astro";
+import PortraitBlink from "../components/PortraitBlink.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
+import portraitOpen from "../assets/portrait-open.webp";
+import portraitClosed from "../assets/portrait-closed.webp";
+import { SITE } from "../site.config";
+import { getEntry, render } from "astro:content";
+
+const page = await getEntry("pages", "about");
+if (!page) throw new Error("[about] src/content/pages/about.md is missing.");
+const { Content } = await render(page);
+---
+
+<Base title={page.data.title} description={page.data.description}>
+  {
+    /* No VISIBLE <h1>: the page opens straight into the prose, the way /images/
+       does. The heading is still in the DOM, sr-only, because a page with no
+       h1 at all leaves a screen reader's heading list empty and gives a crawler
+       nothing to read the page as. `title` stays in the frontmatter because it
+       is also the browser-tab title ("About | Jaan Altosaar") and the
+       collection schema requires it — emptying it there fails the build rather
+       than hiding the heading. */
+  }
+  <h1 class="sr-only">{page.data.title}</h1>
+  {
+    /* The same rail the articles carry, in its `links` mode: /about/ has no
+       sections worth listing, but it is the page someone lands on wanting to
+       reach him, and the gutter is already the site's place for that. */
+  }
+  <Toc links={SITE.contact} label="Elsewhere" />
+
+  <div class="about">
+    <Prose>
+      {
+        /* The portrait sits INSIDE <Prose>, before the Markdown, so it is a
+           float in the same block the paragraphs flow through and the bio wraps
+           around it. Putting it in its own wrapper beside the prose would have
+           made it a column, and a column is what the home page already tried:
+           a portrait with one sentence parked next to it. Here it is the
+           picture the text is written about, in the text.
+
+           A float and not a grid, because the wrap has to be RAGGED — the text
+           closes over the bottom of the frame and runs full measure for the
+           remaining paragraphs. A grid track would hold a 320px gutter empty
+           all the way down the page. */
+      }
+      <PortraitBlink
+        class="about__portrait"
+        open={portraitOpen}
+        closed={portraitClosed}
+        alt="Jaan Altosaar, smiling in a floral shirt against blurred greenery."
+        sizes="(max-width: 719.98px) 180px, 320px"
+      />
+      <Content />
+    </Prose>
+  </div>
+
+  {
+    /* THE SAME LIST AS THE RAIL, for the screens the rail cannot serve.
+       Toc.astro hides itself below 1400px — the gutter it lives in is gone by
+       then (see the note at the bottom of that file) — which left a phone with
+       no way to reach any of these at all. This is that list stacked in the
+       flow instead: not a second set of links, the same `SITE.contact`, drawn
+       where there is room for it.
+
+       Rendered as its own markup rather than by giving Toc.astro an inline
+       mode: that component is a fixed-position rail from its first line down —
+       viewport centring, a height cap, its own scrolling — and none of it
+       survives being put in the flow. What the two share is the LINK, and a
+       link is a font, a fill and some padding, which is cheaper to restate
+       than to make configurable. The one thing that must stay in step is the
+       breakpoint: the media query below is the exact complement of the rail's,
+       so at every width exactly one of them is in the document. */
+  }
+  <nav class="contact" aria-label="Elsewhere">
+    <ul class="contact__list">
+      {
+        SITE.contact.map((link) => (
+          <li>
+            <a
+              class="contact__link"
+              href={link.href}
+              target={link.external ? "_blank" : undefined}
+              rel={link.external ? "noopener noreferrer" : undefined}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  {
+    /* Below the bio, not inside it: .about is centred on the viewport and sized
+       to one screen, so anything added to it would push the portrait off-centre.
+       Here it is the thing you find by scrolling past the page you came for,
+       which is the right prominence for it — /about/ is already where someone
+       who wants to keep in touch arrives (see the contact rail above). */
+  }
+  <NewsletterSignup />
+</Base>
+
+<style>
+  /* /about/ alone is centred on the screen's vertical midpoint, so it lines up
+     with the contact rail in the gutter (Toc.astro centres the same way).
+     Everything else on the site hangs from the top.
+
+     Same construction as .gallery on /images/, for the same reasons:
+       · 100svh MINUS the nav, because #chrome-spacer already holds the nav's
+         height in flow above <main> — using the full viewport height would make
+         the document exactly one nav taller than the screen and hand a page
+         with nothing below the fold a scrollbar.
+       · padding-bottom of one nav-height as a counterweight: this box starts
+         BELOW the nav, so centring inside it would sit half a nav low. Taking
+         that much off the other end puts the midpoint back on the viewport's.
+       · `safe center` because the prose is usually TALLER than one screen. Plain
+         `center` overflows a flex container in both directions, which would cut
+         off the first paragraph above the scroll origin where it cannot be
+         reached. `safe` falls back to start-alignment exactly then, so the page
+         behaves like every other article until the content actually fits. The
+         plain `center` before it is the fallback for engines that don't parse
+         the keyword. */
+  .about {
+    min-height: calc(100svh - var(--nav-h));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-content: safe center;
+    padding-bottom: var(--nav-h);
+  }
+
+  /* Prose pays for its own vertical rhythm with padding-top: --space-section
+     and padding-bottom: --space-block. Centring a box with 80px above and 48px
+     below puts the TEXT 16px lower than the box, so the words would sit off the
+     midpoint the rail is on. The wrapper owns the spacing here instead.
+
+     flow-root is what keeps the float above INSIDE this box. Without it the
+     .prose element's height is measured from its in-flow text alone, and a
+     portrait taller than the paragraphs beside it would hang out of the bottom
+     — over whatever follows, and out of the centring calculation above. The bio
+     is comfortably taller than 320px today, so this costs nothing now and is
+     the difference between a trim and a broken page the day someone shortens
+     it. */
+  .about :global(.prose) {
+    padding-block: 0;
+    display: flow-root;
+  }
+
+  /* Stacked and centred by default. A float only earns its keep when what is
+     left beside it is still a readable measure: at 390px the column is ~366px,
+     and a 45% frame would leave the text about twenty characters wide — a
+     ragged stack of two-word lines, which is worse than no wrap at all. So the
+     portrait is a plain block on a phone and starts floating at the same 720px
+     the rest of the site treats as the two-column threshold.
+
+     180px against the 320px it floats at, and the two sizes are tied to the two
+     ROLES rather than to a screen size. Floated, the portrait is read alongside
+     the sentence beside it, and 320px is what leaves that sentence a readable
+     measure. Stacked, nothing sits beside it — it is a band the reader scrolls
+     past before reaching a single word, so its only job is to be recognisable,
+     and its cost is the paragraphs it pushes below the fold. At 320px in a
+     ~366px column it was a cover image and the bio opened off-screen; at 180px
+     it is a portrait the first paragraphs sit under.
+
+     `min(100%, …)` still caps it, though the cap is now almost theoretical: it
+     only binds below a 192px viewport, narrower than any phone. It stays because
+     it is the rule that keeps the frame from ever being wider than the text it
+     belongs to, whatever the column becomes. */
+  .about :global(.about__portrait) {
+    width: min(100%, 180px);
+    margin: 0 auto 1.5rem;
+    /* The border lives here; PortraitBlink clips its own frames to the box.
+       Square corners are deliberate site-wide — see --hover-radius. */
+    border: 1px solid var(--line);
+  }
+
+  /* The stacked contact list. NOT DRAWN BY DEFAULT: above 1400px the rail in
+     the gutter is the one that shows, and two copies of the same five links on
+     one screen is a bug. The query below is the complement of Toc.astro's
+     `@media (max-width: 1400px) { display: none }` — the two breakpoints are
+     the same number written twice and have to move together, so there is a
+     pointer back here in that file. `display: none` and not `visibility` or an
+     off-screen shove, because it also takes the duplicate out of the
+     accessibility tree: at any width a screen reader finds exactly one list
+     labelled "Elsewhere". */
+  .contact {
+    display: none;
+  }
+
+  @media (max-width: 1400px) {
+    .contact {
+      display: block;
+      /* --space-block, not --space-section: the newsletter below already pays
+         a --space-section for its own top gap, and the reader should read
+         these as the tail of the bio rather than as a third section floating
+         between two. */
+      padding-top: var(--space-block);
+      padding-inline: var(--edge);
+    }
+
+    /* One column, centred. `align-items: center` and not `text-align`, so each
+       box shrink-wraps its own label and the fills come out as a centred
+       stack of five different widths — the rail's object, turned on its side.
+       Stretching them to one width would make a menu, which is a heavier thing
+       than this list is. */
+    .contact .contact__list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    /* The rail's link, restated. Same chrome face, same fill, same square
+       corners and same hover inversion as .toc__link in Toc.astro — the two
+       are the same control in two places, and if one of them changes the other
+       should. Slightly roomier padding is the one difference: this one is
+       tapped rather than pointed at, so the row is ~40px tall instead of ~28. */
+    .contact .contact__link {
+      display: inline-block;
+      font-family: var(--font-chrome);
+      font-size: 0.95rem;
+      font-weight: 400;
+      line-height: 1.35;
+      letter-spacing: 0.01em;
+      color: var(--text);
+      background: var(--surface);
+      text-decoration: none;
+      box-shadow: none;
+      padding: 0.6rem 0.9rem;
+      border-radius: var(--hover-radius);
+      transition:
+        background-color var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out);
+    }
+
+    .contact .contact__link:hover,
+    .contact .contact__link:focus-visible {
+      background: var(--accent);
+      color: var(--bg);
+      outline: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .contact .contact__link {
+        transition: none;
+      }
+    }
+  }
+
+  @media (min-width: 720px) {
+    .about :global(.about__portrait) {
+      float: right;
+      /* Back to full size the moment it has text beside it. Restated here
+         rather than left to the rule above, because the width is what makes
+         the wrap readable and the two have to change together — and the
+         `sizes` attribute on the component splits at this same 720px, so the
+         browser is already choosing its srcset rung on the assumption that
+         these two agree. */
+      width: min(100%, 320px);
+      /* --space-gap is the site's column gap and is far too wide against a
+         floated image — it is sized for whole sections. This is the gutter
+         between a picture and the line of text beside it, so it is set to the
+         paragraph's own bottom margin (Prose.astro: 1.25rem) and reads as one
+         consistent space around the frame. */
+      margin: 0.375rem 0 1.25rem 1.25rem;
+    }
+  }
+</style>

@@ -1,0 +1,216 @@
+---
+// /visualizations — the index of the seven ported Observable pages.
+//
+// Reached from /projects. The list itself is src/data/visualizations.ts, which
+// this page and /projects both read, so the count on the projects card cannot
+// drift from what is actually here.
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
+import IndexMark from "../components/IndexMark.astro";
+import { VISUALIZATIONS } from "../data/visualizations";
+import "../styles/viz.css";
+
+// The marks beside each entry, drawn server-side by the data loaders in
+// viz/src/thumbs and written to public/visualizations/thumbs by
+// scripts/build-visualizations.mjs — which npm run dev and npm run build both
+// run first, so the files are there before this page renders.
+//
+// Inlined rather than <img src="…">. These are drawn entirely in currentColor,
+// and an SVG loaded through <img> is a separate document: it inherits no colour
+// and no custom properties from the page, so currentColor would resolve to
+// black and every mark would vanish against this background. Inlining also
+// spends no requests.
+//
+// Resolved from process.cwd(), NOT from import.meta.url. In dev those agree, but
+// in a build Astro prerenders from a bundled chunk whose import.meta.url is
+// dist/.prerender/chunks/…, so "../../public" lands on dist/public and finds
+// nothing. cwd is the project root in both.
+const thumbDir = join(process.cwd(), "public", "visualizations", "thumbs");
+
+// Two different failures, told apart deliberately. No thumbs directory at all
+// means the charts have not been built in this checkout yet — worth a warning,
+// not worth blocking someone reading the page. A missing file inside a
+// directory that does exist means a mark was renamed or its loader broke, and
+// silently rendering the row without it is how a bug ships unnoticed. It has
+// already happened once: an earlier version caught both cases the same way and
+// shipped a production build with all seven marks quietly absent.
+const built = existsSync(thumbDir);
+if (!built) {
+  console.warn(`[visualizations] no marks at ${thumbDir} — run \`npm run viz\``);
+}
+// The mark box. Larger than the one /writing and /projects share — these marks
+// are whole charts rather than single glyphs, and carry correspondingly more to
+// read — and 8:5 rather than square, because every one of them is emitted by the
+// loaders in viz/src/thumbs at exactly 128 x 80. They are already identical to
+// each other, so a square box would only band each one with empty space.
+const MARK_SIZE = "clamp(4.5rem, 11vw, 7.5rem)";
+const MARK_RATIO = 128 / 80;
+
+const marks = new Map(
+  VISUALIZATIONS.map((viz) => [
+    viz.slug,
+    built ? readFileSync(join(thumbDir, `${viz.thumb}.svg`), "utf8") : null,
+  ]),
+);
+---
+
+<Base
+  title="Visualizations"
+  description="Interactive views of large public datasets: healthcare claims, census microdata, New York property records, and hospital glucose readings."
+>
+  <Section as="header" top="section" bottom="block">
+    <!-- <p class="viz-index__eyebrow"><a href="/projects">Projects</a></p> -->
+    <h1 class="sr-only">Visualizations</h1>
+    <!-- <p class="viz-index__intro">
+      Each of these runs its own queries in your browser, against the actual dataset, using DuckDB
+      compiled to WebAssembly. Nothing is pre-rendered, which is why a few of them take a moment to
+      appear — and why you can ask them questions the original authors did not anticipate.
+    </p> -->
+  </Section>
+
+  <Section bottom="gap">
+    <ul class="viz-index" role="list">
+      {
+        VISUALIZATIONS.map((viz) => (
+          <li class="viz-index__item">
+            {/* ONE LINK PER ENTRY, wrapping the mark, the headline and the
+                blurb — so the blurb is clickable rather than dead text beside a
+                link. Which part LIGHTS is decided by which part the pointer is
+                actually over; see the stylesheet. */}
+            <a href={`/visualizations/${viz.slug}`} class="viz-index__link">
+              {marks.get(viz.slug) && (
+                /* aria-hidden is set on the SVG itself by the loader: the mark
+                   is a drawing of the chart whose name is sitting right beside
+                   it, so announcing it would say everything twice. */
+                <IndexMark size={MARK_SIZE} ratio={MARK_RATIO} set:html={marks.get(viz.slug)} />
+              )}
+              <div class="viz-index__body">
+                <h2 class="viz-index__name">{viz.title}</h2>
+                <p class="viz-index__blurb">{viz.blurb}</p>
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <NewsletterSignup />
+</Base>
+
+<style>
+  .viz-index__eyebrow {
+    font-family: var(--font-chrome);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .viz-index__eyebrow a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .viz-index__eyebrow a:hover,
+  .viz-index__eyebrow a:focus-visible {
+    color: var(--accent);
+  }
+
+  .viz-index__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-h1);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  .viz-index__intro {
+    margin-top: 1.5rem;
+    font-size: var(--fs-md);
+    line-height: 1.5;
+    color: var(--text-muted);
+    max-width: var(--reading-w-tight);
+  }
+
+  /* Tighter than /writing' 6.75rem: eight entries rather than nine short ones,
+     so the same spacing would turn a list you scan into a page you scroll. */
+  .viz-index {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: var(--reading-w);
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  /* Mark left, text right — the arrangement /writing uses for its post marks,
+     so the two index pages read as the same kind of page. On the LINK, because
+     the link is the whole entry now. */
+  .viz-index__link {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(1rem, 3vw, 1.75rem);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .viz-index__body {
+    /* Without this a long unbroken blurb sets the flex item's minimum width and
+       pushes the row past the measure. */
+    min-width: 0;
+  }
+
+  /* The mark's colour and weight, handed down. Set on the row rather than on
+     the mark, because these are custom properties and inherit — which is the
+     only way a page can reach into IndexMark; see the note in that file.
+
+     Dimmer at rest than the other two indexes: a row of eight whole charts at
+     full brightness competes with the headlines they belong to. The lit state
+     is set on the link below. */
+  .viz-index__item {
+    --mark-opacity: 0.6;
+  }
+
+  .viz-index__name {
+    color: var(--lit, inherit);
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  /* HOVER ANY ONE OF THE THREE — the drawing, the headline, the description —
+     and all three light together. `:has(:hover)` rather than a plain `:hover` on
+     the link: the link is the whole entry, so a plain hover would also fire from
+     the empty margin beside a short headline and from the gap the mark leaves in
+     its box. Requiring a hovered DESCENDANT narrows it to the parts themselves —
+     the mark's box is out of hit testing (see IndexMark) so only its drawing
+     counts, and the anchor's own dead space has no descendant under the pointer.
+
+     Carried by --lit rather than by four descendant selectors: custom properties
+     inherit, so one declaration here reaches every part below, and each part
+     names its own resting colour as the fallback. :focus-visible lights the same
+     way — one tab stop per entry, and no pointer to say which part of it. */
+  .viz-index__link:has(:hover),
+  .viz-index__link:focus-visible {
+    --lit: var(--accent);
+    --mark-opacity: 1;
+    --mark-color: var(--accent);
+  }
+
+  .viz-index__blurb {
+    color: var(--lit, inherit);
+    transition: color var(--dur-fast) var(--ease-out);
+    margin-top: 0.9rem;
+    font-size: var(--fs-base);
+    line-height: 1.6;
+    max-width: var(--reading-w-tight);
+  }
+</style>

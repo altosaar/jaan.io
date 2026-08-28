@@ -1,0 +1,183 @@
+---
+interface Props {
+  navMode?: "ticker" | "static";
+  /** Render the home link at the left of the bar. Base.astro documents why a
+      route would turn it off, and which rule catches the layout afterwards. */
+  navHome?: boolean;
+}
+import { SITE } from "../site.config";
+import NavLink from "./NavLink.astro";
+import { NAV_MORPH_SCRIPT } from "../lib/nav-morph";
+// No ticker on this site — the scrolling stats bar and its data were a
+// Community Cleanup feature. `navMode` is kept so the "compact" chrome style
+// stays reachable, but "static" is the default here.
+const { navMode = "static", navHome = true } = Astro.props;
+---
+
+<!-- A <header>, not a <div>: this is the site's banner landmark, which screen
+     reader users jump to directly. Every coordinating CSS selector matches on
+     .site-chrome / #site-chrome, and MobileMenu stays a sibling, so the general-
+     sibling rules (.site-chrome.is-fixed ~ …) are unaffected by the element swap. -->
+<header class={`site-chrome ${navMode === "ticker" ? "compact" : "static-nav"}`} id="site-chrome">
+  <!-- Nav: logo left + links right (hidden in compact mode) -->
+  <nav
+    class:list={["nav", !navHome && "nav--links-only"]}
+    id="main-nav"
+    aria-label="Site navigation"
+  >
+    {
+      /* The home link is dropped, not hidden, on the one route that is already
+         home — see Base.astro's navHome prop. */
+      navHome && (
+        <>
+          {/* A wordmark, plus the morphing portrait mark: it REPLACES the wordmark on
+            phone widths, and slides out from behind it on hover on desktop.
+            SITE.features.navMorph is the switch; the reasoning is on it. */}
+          <a
+            href="/"
+            class:list={["nav-home", SITE.features.navMorph && "has-mark"]}
+            aria-label={`${SITE.name} — home`}
+          >
+            {SITE.features.navMorph && (
+              <>
+                {/* The mark lives in a TRACK, not loose in the link. Below 1024px the
+                    track is simply the mark's box; above it the track is a clip with
+                    an animating width, which is what lets the mark slide out from
+                    behind the wordmark on hover and back under it on leave. Doing
+                    the clipping with a wrapper rather than a clip-path keeps the
+                    idle state at zero width, so nothing reserves space in the bar
+                    for a mark that is not showing. chrome.css has both halves.
+
+                    /nav-still.svg, the composite at nav weight, is the src in the
+                    markup on every width — so the reveal always has a face in it
+                    immediately, and a visitor with JS off or reduced motion on keeps
+                    that one. The script below upgrades it to the animated morph,
+                    started on a random portrait: straight away on phone widths where
+                    the mark is the home link, and on first hover on desktop, so the
+                    ~22 KB is only spent by someone who actually went looking for it.
+                    See src/lib/nav-morph.ts. */}
+                <span class="nav-mark">
+                  <img class="nav-morph" src="/nav-still.svg" alt="" width="36" height="36" />
+                </span>
+                <script is:inline set:html={NAV_MORPH_SCRIPT} />
+              </>
+            )}
+            <span class="nav-wordmark">{SITE.name}</span>
+          </a>
+        </>
+      )
+    }
+
+    <div class="nav-links">
+      {SITE.nav.header.map((link) => <NavLink link={link} class="nav-link" />)}
+      {
+        SITE.nav.headerCta && (
+          <>
+            <span class="nav-divider" aria-hidden="true" />
+            <NavLink link={SITE.nav.headerCta} class="nav-btn" />
+          </>
+        )
+      }
+    </div>
+  </nav>
+</header><!-- /.site-chrome -->
+
+<div id="chrome-spacer" aria-hidden="true"></div>
+
+<script>
+  // Site chrome behavior: fill the scrolling ticker and show/hide the nav on
+  // scroll. Coordinates the (sibling) menu button by id, which MobileMenu renders.
+  const chrome = document.getElementById("site-chrome")!;
+  const isStaticNav = chrome.classList.contains("static-nav");
+  const menuBtn = document.getElementById("nav-menu-btn");
+
+  // ── Scroll behavior ─────────────────────────────────────────────
+  if (isStaticNav) {
+    // Static-nav pages: start visible, hide on scroll-down, reveal on scroll-up.
+    let lastY = window.scrollY;
+    let ticking = false;
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (!ticking) {
+          requestAnimationFrame(() => {
+            const y = window.scrollY;
+            if (y > lastY && y > 8) {
+              chrome.classList.add("is-hidden");
+              menuBtn?.classList.add("is-nav-hidden");
+            } else if (y < lastY) {
+              chrome.classList.remove("is-hidden");
+              menuBtn?.classList.remove("is-nav-hidden");
+            }
+            lastY = y;
+            ticking = false;
+          });
+          ticking = true;
+        }
+      },
+      { passive: true },
+    );
+  } else {
+    // Ticker pages: compact in-flow at top → fixed+revealed on scroll-up past 25vh.
+    const threshold = window.innerHeight * 0.25;
+    let lastY = 0;
+    let ticking = false;
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (!ticking) {
+          requestAnimationFrame(() => {
+            const y = window.scrollY;
+            const scrollingDown = y > lastY;
+            const pastThreshold = y > threshold;
+
+            if (!pastThreshold) {
+              if (chrome.classList.contains("is-fixed") && !chrome.dataset.leaving) {
+                // Leaving is-fixed → compact: slide button out with chrome.
+                // CSS switches button back to sticky once compact class is restored.
+                chrome.dataset.leaving = "1";
+                menuBtn?.classList.add("is-nav-hidden");
+                chrome.classList.remove("is-revealed");
+                chrome.addEventListener(
+                  "transitionend",
+                  () => {
+                    delete chrome.dataset.leaving;
+                    if (!chrome.classList.contains("is-revealed")) {
+                      chrome.classList.add("no-transition");
+                      chrome.classList.remove("is-fixed");
+                      chrome.classList.add("compact");
+                      void chrome.offsetHeight;
+                      chrome.classList.remove("no-transition");
+                      menuBtn?.classList.remove("is-nav-hidden");
+                    }
+                  },
+                  { once: true },
+                );
+              }
+              // else: already compact — position: sticky handles everything, no JS needed.
+            } else if (scrollingDown) {
+              chrome.classList.remove("is-revealed");
+              menuBtn?.classList.add("is-nav-hidden");
+            } else {
+              menuBtn?.classList.remove("is-nav-hidden");
+              delete chrome.dataset.leaving;
+              if (!chrome.classList.contains("is-fixed")) {
+                chrome.classList.add("no-transition");
+                chrome.classList.remove("compact");
+                chrome.classList.add("is-fixed");
+                void chrome.offsetHeight;
+                chrome.classList.remove("no-transition");
+              }
+              chrome.classList.add("is-revealed");
+            }
+
+            lastY = y;
+            ticking = false;
+          });
+          ticking = true;
+        }
+      },
+      { passive: true },
+    );
+  }
+</script>
