@@ -30,11 +30,10 @@ ogImageAlt: "A finished light-wood sauna cabin standing against the wall of a
   open behind it."
 ---
 
-For a few glorious years, instead of paying the New York City tax of \$20 every time I set one foot out my door, I could have friends over and _sauna_ like the good Estonian I am. In my one bedroom apartment, unbeknownst to my landlord at the time, I managed to sneak in a disassembled sauna with a friend. It had cost \$500 on eBay, and the U-Haul moving truck cost \$100 to rent. 
+> Saunas are typically thought of as an inaccessible luxury; here's how I think of getting one for your home, workplace, or city.
 
-Saunas are inaccessible; here's how to get one for your home, workplace, and city.
 
-[saunalist.org has global sauna listings too!<span style="display: inline-block; margin-left: 0.25rem;">↗︎</span>](https://saunalist.org)
+For a few glorious years, instead of paying the New York City tax of \$20 every time I set one foot out my door, I could have friends over and _sauna_ like the good Estonian I am. In my one bedroom apartment, unbeknownst to my landlord at the time, Jeff and I managed to sneak in a disassembled sauna. It had cost \$500 on eBay, and the U-Haul moving truck cost \$100 to rent.
 
 <figure>
   <img
@@ -45,21 +44,27 @@ Saunas are inaccessible; here's how to get one for your home, workplace, and cit
     loading="lazy"
     decoding="async"
   />
-  <figcaption>Assembling a $500 sauna, in about thirty seconds.</figcaption>
+  <figcaption>Assembling a sauna in my living room, in about thirty seconds.</figcaption>
 </figure>
 
-Saunas have financial returns and non-financial returns. They also cost variable amounts of money.
+Saunita sat 3 people, lasted a few years, and several dozen friends came through to use it regularly. It was more calming and gregarious to socialize in the comfort of an apartment than in a loud bar. This amenity also led to more meaningful interactions - as a small example, phones overheat so tech is off the table during a sauna hang. 
 
-In the above video, you can see my friend Jeff and I assembling the first sauna I bought. It sat 3 people, lasted for several years, hundreds of friends used it; it cost \$500 off eBay. Jeff and I had a wake-up call during the pandemic where we realized we had spent thousands of dollars at the Russian Turkish Bathhouse in New York, which can cost upwards of \$50 per visit. We decided to buy a sauna instead.
+Our napkin math had worked:
 
-The non-financial returns have been immense, which is why I decided to document a framework for visualizing and thinking about the "capital stacks", or the stack of capital investments that can be made in saunas, from personal saunas to public saunas to workplace saunas to commercial (for-profit) saunas.
+Jeff and I had a wake-up call during the pandemic where we realized we'd collectively spent thousands at the Russian Turkish Bathhouse in New York, which costs upwards of \$50 per visit. We decided then and there to buy a sauna, having calculated it would cost less than \$1 an hour to operate.
 
-The non-financial returns of saunas include:
+This small anecdote can hopefully help you realize that you, too, can find a sauna! 
+
+At a larger scale beyond personal use, saunas can have financial returns and non-financial returns for their investors. But these non-financial returns are ambiguous and difficult to put a dollar value on to calculate expected return. Some of the non-financial returns of saunas include:
 
 - social connection risk score reduction (c.f. reviews on the public health risks of [loneliness](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5598785/))
 - health benefits, such as reduced all-cause mortality (c.f. many articles such as [this one](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6262976/) describing research in cultures in which saunas are common, such as Finland)
 
-Edit the following diagram [here](https://www.mermaidchart.com/app/projects/3eff3399-79fc-46e3-a424-3e78655e6142/diagrams/2168f791-4b5b-4eec-9f86-ca194dee46b7/version/v0.1/edit) if you have any suggestions, or Tweet/DM me on Twitter at [@thejaan](https://x.com/thejaan)!
+These benefits are small in magnitude but large in aggregate, so few entities are positioned to reap the direct financial benefits while keeping costs low. For example, a large employer such as a hospitality group or health system in an area might be incentivized to improve social connection and reduce cardiovascular risk. An employer such as the university where I worked might be incentivized to have a sauna for faculty and students (they did).
+
+That's it - just wanted to encourage more people to consider scouring eBay or Craigslist with their agents, in order to procure and operate a home sauna to realize the manifold benefits and joy. The next time I have such an opportunity, I will take it.
+
+P.S. I also wanted to document the "capital stacks", or the stacks of capital investments necessary to acquire or build a sauna. If we get this right, maybe we can find a way to create the same number of public saunas in North America as there are in Estonia, Finland, or Japan :) Edit the following diagram [here](https://www.mermaidchart.com/app/projects/3eff3399-79fc-46e3-a424-3e78655e6142/diagrams/2168f791-4b5b-4eec-9f86-ca194dee46b7/version/v0.1/edit) if you have any suggestions, or reach me [here](mailto:j@jaan.io)!
 
 ```mermaid
 timeline
