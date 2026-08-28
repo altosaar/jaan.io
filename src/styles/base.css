@@ -61,6 +61,31 @@ mark {
 
 body {
   font-family: var(--font-body);
+  /* RUNNING TEXT IS SET 10% ABOVE REGULAR: 440, not the 400 that `normal` means.
+     A real interpolated weight, not a rounding — Source Serif 4's wght axis runs
+     200-900, so the browser instantiates 440 exactly. (On Lora, the other
+     candidate in the BODY FACE SWAP, the axis is 400-700 and 440 is equally
+     real.)
+
+     IT IS ON `body`, SO EVERYTHING INHERITS IT, and that is the right shape:
+     --font-body is the page's default face and this is the page's default
+     weight, with the chrome and the headings opting out of both together. Most
+     of them already did — the nav, the mobile menu, the footer and every
+     heading declare a weight of their own and were untouched by this.
+
+     FOUR RULES DID NOT, and they were found by measuring rather than by
+     reading: 184 body-face elements moved 400 → 440 as intended, and so did
+     .paper__res, .bib__text (papers), .talk__year (talks) and
+     .newsletter__label, which each set a font-family and then let the weight
+     fall in from here. All four are furniture rather than prose, so they now
+     pin font-weight: 400 at their own rule — which is the same completion the
+     face already has, not a workaround. A new rule that opts into
+     --font-chrome or --font-display should do the same.
+
+     A literal rather than a token, following this file's own rule that a value
+     with one use site stays at that site (see the note above --fs-body in
+     tokens.css). Promote it if a second place ever wants it. */
+  font-weight: 440;
   font-variant-numeric: slashed-zero;
   background: var(--bg);
   color: var(--text);

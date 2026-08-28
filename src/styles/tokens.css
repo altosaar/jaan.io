@@ -69,9 +69,9 @@
        --font-chrome   the header, nav, mobile menu, and footer
 
      Body is on a serif while display stays on Hanken Grotesk — the reason the
-     two are separate tokens. Which serif is the BODY FACE SWAP below: Lora
-     today, Source Serif 4 on the commented line, both declared in fonts.css and
-     both already in public/fonts. Either covers the whole Latin range itself,
+     two are separate tokens. Which serif is the BODY FACE SWAP below: the live
+     line names it, the commented line is the other candidate, and both are
+     declared in fonts.css with their files already in public/fonts. Either covers the whole Latin range itself,
      which is what a trial of Pensum Pro did not — its demo cut carried 70
      glyphs and left every apostrophe, colon, parenthesis, dash and dollar sign
      to be drawn by the sans behind it. fonts.css says more, including why that
@@ -90,8 +90,8 @@
   /* BODY FACE SWAP — one of these two lines is live, the other is commented.
      Move the comment here and in SITE.fonts (src/site.config.ts), then run
      `npm run fonts:check`. See the block of the same name in fonts.css. */
-  /* --font-body: "Source Serif 4", "Hanken Grotesk", "Inter", system-ui, serif; */
-  --font-body: "Lora", "Hanken Grotesk", "Inter", system-ui, serif;
+  /* --font-body: "Lora", "Hanken Grotesk", "Inter", system-ui, serif; */
+  --font-body: "Source Serif 4", "Hanken Grotesk", "Inter", system-ui, serif;
   --font-display: "Hanken Grotesk", "Inter", system-ui, sans-serif;
   --font-chrome: "Inter", system-ui, sans-serif;
 

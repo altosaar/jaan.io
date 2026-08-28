@@ -50,10 +50,12 @@
 }
 
 /* ═══ BODY FACE SWAP ════════════════════════════════════════════════════════
-   TWO FAMILIES ARE DECLARED BELOW AND ONE IS IN USE. Lora is the body face
-   today; Source Serif 4 sits beside it, fully wired, as the one to go back to.
-   Both are SIL OFL 1.1 and both are already in public/fonts, so the swap costs
-   no downloads and no new @font-face.
+   TWO FAMILIES ARE DECLARED BELOW AND ONE IS IN USE. Source Serif 4 and Lora
+   are both wired, both SIL OFL 1.1, and both already in public/fonts, so
+   swapping costs no downloads and no new @font-face. WHICH ONE IS LIVE IS NOT
+   RECORDED HERE — it is whichever tokens.css names first in --font-body, and
+   keeping that fact in one place is what stops these comments going stale on a
+   swap.
 
    TO SWAP, EDIT TWO LINES. Both carry this same marker, so
    `grep -rn "BODY FACE SWAP" src` finds exactly them and nothing else:
@@ -75,23 +77,22 @@
    price of keeping the swap to two lines.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Lora — the BODY face today (--font-body) ───────────────────────────────
+/* ── Lora — a BODY face candidate (--font-body) ─────────────────────────────
    Four files, roman and italic, each split latin / latin-ext on unicode-range,
-   the same arrangement as Hanken Grotesk above and Source Serif below. Only the
-   roman latin file is preloaded; the other three are fetched when a page
-   actually contains italics or an accented character.
+   the same arrangement as Hanken Grotesk above and Source Serif below. When it
+   is the live face, only the roman latin file is preloaded; the other three are
+   fetched when a page actually contains italics or an accented character.
 
-   ONE AXIS, wght 400-700, and that is the one way it is narrower than the face
-   it replaced. Source Serif carries 200-900 plus an opsz axis; Lora has neither.
-   Two consequences, both small and both deliberate to accept:
+   ONE AXIS, wght 400-700, which is the one way it is narrower than Source Serif
+   (200-900 plus opsz 8-60). Two consequences while it is live:
 
-     • The 350 asked for on the home page's opening line (and nowhere else in
-       body copy) clamps up to 400. Two elements site-wide.
+     • Any weight below 400 clamps up to it — the home page's opening line asks
+       for 350, and body copy asks for nothing else under 400.
      • No optical sizing, so a 16px caption and a 24px paragraph are drawn with
        the same letterforms rather than with ones cut for their size.
 
    In exchange the files are a third the size: 36.9 KB against 119.3 KB for the
-   roman latin file that sits on every page's critical path. */
+   roman latin file that sits on the critical path. */
 @font-face {
   font-family: "Lora";
   src: url("/fonts/Lora-latin.woff2") format("woff2");
@@ -135,8 +136,8 @@
     U+A720-A7FF;
 }
 
-/* ── Source Serif 4 — the body face to go back to ───────────────────────────
-   Declared and unused. See BODY FACE SWAP above for how to make it live again.
+/* ── Source Serif 4 — a BODY face candidate (--font-body) ───────────────────
+   Four files, split the same way as Lora's above.
 
    IT REPLACED PENSUM PRO, and the reason was glyph coverage before it was
    taste. Pensum was here on trial as the befonts variable DEMO, which is 70
@@ -151,10 +152,11 @@
    have had to fix. Source Serif 4 is SIL OFL 1.1 and covers the lot.
 
    TWO AXES, wght 200-900 and opsz 8-60 — both wider than Lora's single
-   wght 400-700. font-optical-sizing defaults to auto, so with this face live
-   the optical size follows the font-size with nothing to declare, and the 350
+   wght 400-700. font-optical-sizing defaults to auto, so while this face is
+   live the optical size follows the font-size with nothing to declare, the 350
    the home page asks for resolves to a real interpolated weight rather than
-   clamping to 400. Four files, split the same way as Lora's. */
+   clamping, and the 440 body copy is set at (base.css) is a real weight rather
+   than a rounding of 400. */
 @font-face {
   font-family: "Source Serif 4";
   src: url("/fonts/SourceSerif4-latin.woff2") format("woff2");

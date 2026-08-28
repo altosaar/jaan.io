@@ -167,6 +167,10 @@ const talks = await Promise.all(
   .talk__year {
     margin-top: 0.5rem;
     font-family: var(--font-chrome);
+    /* 400 explicitly, because body copy is set at 440 (base.css) and this is
+       furniture, not prose. A rule that opts into another face has to opt into
+       a weight too, or it inherits the running text's. */
+    font-weight: 400;
     font-size: 0.85rem;
     letter-spacing: 0.02em;
     color: var(--text-muted);

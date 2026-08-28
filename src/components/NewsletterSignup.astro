@@ -418,6 +418,10 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
     position: absolute;
     inset: 0.75rem 1rem auto;
     font-size: 0.875rem;
+    /* 400 explicitly, because body copy is set at 440 (base.css) and this is
+       furniture, not prose. A rule that opts into another face has to opt into
+       a weight too, or it inherits the running text's. */
+    font-weight: 400;
     line-height: 1.25;
     color: var(--text);
   }

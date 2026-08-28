@@ -358,6 +358,10 @@ const papers = await Promise.all(
     align-items: center;
     gap: 0.4em;
     font-family: var(--font-chrome);
+    /* 400 explicitly, because body copy is set at 440 (base.css) and this is
+       furniture, not prose. A rule that opts into another face has to opt into
+       a weight too, or it inherits the running text's. */
+    font-weight: 400;
     font-size: 0.85rem;
     letter-spacing: 0.01em;
     color: var(--text-muted);
@@ -421,6 +425,10 @@ const papers = await Promise.all(
      draws around a code block on an article, because this is one. */
   .bib__text {
     margin: 0;
+    /* 400 explicitly, because body copy is set at 440 (base.css) and this is
+       furniture, not prose. A rule that opts into another face has to opt into
+       a weight too, or it inherits the running text's. */
+    font-weight: 400;
     /* The flex parent aligns its children to the end; this is the one that
        should still span the full width. */
     align-self: stretch;
