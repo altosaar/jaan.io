@@ -1,6 +1,6 @@
 ---
 title: "Wanna Sauna?"
-description: "Saunas are inaccessible; here's how to get one for your home, workplace, and city."
+description: "For a few glorious years, I had a sauna in my living room. I recommend it!"
 # Ported from jaan.li/wanna-sauna, an Observable Framework page. The date is the
 # day the file was added there, not the day it was ported.
 #
@@ -30,7 +30,9 @@ ogImageAlt: "A finished light-wood sauna cabin standing against the wall of a
   open behind it."
 ---
 
-Saunas are inaccessible; here's how to get one for your home, workplace, and city :)
+For a few glorious years, instead of paying the New York City tax of \$20 every time I set one foot out my door, I could have friends over and _sauna_ like the good Estonian I am. In my one bedroom apartment, unbeknownst to my landlord at the time, I managed to sneak in a disassembled sauna with a friend. It had cost \$500 on eBay, and the U-Haul moving truck cost \$100 to rent. 
+
+Saunas are inaccessible; here's how to get one for your home, workplace, and city.
 
 [saunalist.org has global sauna listings too!<span style="display: inline-block; margin-left: 0.25rem;">↗︎</span>](https://saunalist.org)
 

@@ -49,18 +49,21 @@ export const SITE = {
   //
   // Only the files EVERY page needs belong here; a preload the page does not go
   // on to use is pure wasted bandwidth, and the browser warns about it.
-  //   • PensumPro — the body face (--font-body), on trial
-  //   • HankenGrotesk-latin — the display face (--font-display), and the
-  //     fallback that draws the punctuation Pensum's demo cut lacks, so it is
-  //     still on every page's critical path
+  //   • SourceSerif4-latin — the body face (--font-body)
+  //   • HankenGrotesk-latin — the display face (--font-display): the hero and
+  //     every heading, so it is on every page's critical path
   //   • Inter — the chrome face (--font-chrome): nav, mobile menu, footer
-  // Deliberately absent: PensumPro-Italic, which only emphasis asks for;
-  // HankenGrotesk-latin-ext, which its unicode-range fetches only when an
-  // accented character actually appears; and Fraunces, which no role token
-  // names any more.
+  // Deliberately absent: the three other Source Serif files, which only
+  // italics and accented characters ask for; HankenGrotesk-latin-ext, which
+  // its unicode-range fetches only when an accented character actually
+  // appears; and Fraunces, which no role token names any more.
   //
   // `npm run fonts:check` fails the build if this list and the roles disagree.
-  fonts: ["/fonts/PensumPro.woff2", "/fonts/HankenGrotesk-latin.woff2", "/fonts/Inter.woff2"],
+  fonts: [
+    "/fonts/SourceSerif4-latin.woff2",
+    "/fonts/HankenGrotesk-latin.woff2",
+    "/fonts/Inter.woff2",
+  ],
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   // One source of truth. The header, the mobile menu, and the footer all read

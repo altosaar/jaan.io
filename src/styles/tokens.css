@@ -68,14 +68,14 @@
        --font-body     running text, captions, buttons inside the content
        --font-chrome   the header, nav, mobile menu, and footer
 
-     Body is on Pensum Pro while display stays on Hanken Grotesk — the reason
-     the two are separate tokens. Revert the trial by deleting "Pensum Pro"
-     from the body stack below; the @font-face pair in fonts.css can stay,
-     since a family no role names is never fetched.
-
-     Pensum's demo cut covers only A-Z a-z 0-9 ! & , - . ? — Hanken Grotesk
-     sitting behind it in the stack is what draws every apostrophe, colon,
-     parenthesis and dash in the running text. fonts.css says more.
+     Body is on Source Serif 4 while display stays on Hanken Grotesk — the
+     reason the two are separate tokens. It replaced a trial of Pensum Pro,
+     whose demo cut carried 70 glyphs and so left every apostrophe, colon,
+     parenthesis, dash and dollar sign in the running text to be drawn by the
+     sans behind it. Source Serif covers the whole Latin range itself, so
+     nothing in ordinary English or Estonian prose falls through any more, and
+     the punctuation inside a sentence is finally the same typeface as the
+     sentence. fonts.css says more, including why the trial ended.
 
      Inter sits behind Hanken Grotesk in both content stacks so that a glyph it
      lacks is served by a font this site already ships, rather than by whatever
@@ -87,7 +87,7 @@
      footnote backrefs render their arrow from the system font — as they already
      did when body copy was Inter. Nothing regressed there; it is simply not a
      thing either webfont can fix. */
-  --font-body: "Pensum Pro", "Hanken Grotesk", "Inter", system-ui, sans-serif;
+  --font-body: "Source Serif 4", "Hanken Grotesk", "Inter", system-ui, serif;
   --font-display: "Hanken Grotesk", "Inter", system-ui, sans-serif;
   --font-chrome: "Inter", system-ui, sans-serif;
 
