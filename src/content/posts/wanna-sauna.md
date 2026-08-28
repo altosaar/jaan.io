@@ -1,5 +1,5 @@
 ---
-title: "Wanna Sauna?"
+title: "Wanna sauna?"
 description: "For a few glorious years, I had a sauna in my living room. I recommend it!"
 # Ported from jaan.li/wanna-sauna, an Observable Framework page. The date is the
 # day the file was added there, not the day it was ported.
