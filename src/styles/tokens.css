@@ -68,14 +68,14 @@
        --font-body     running text, captions, buttons inside the content
        --font-chrome   the header, nav, mobile menu, and footer
 
-     Body is on Source Serif 4 while display stays on Hanken Grotesk — the
-     reason the two are separate tokens. It replaced a trial of Pensum Pro,
-     whose demo cut carried 70 glyphs and so left every apostrophe, colon,
-     parenthesis, dash and dollar sign in the running text to be drawn by the
-     sans behind it. Source Serif covers the whole Latin range itself, so
-     nothing in ordinary English or Estonian prose falls through any more, and
-     the punctuation inside a sentence is finally the same typeface as the
-     sentence. fonts.css says more, including why the trial ended.
+     Body is on a serif while display stays on Hanken Grotesk — the reason the
+     two are separate tokens. Which serif is the BODY FACE SWAP below: Lora
+     today, Source Serif 4 on the commented line, both declared in fonts.css and
+     both already in public/fonts. Either covers the whole Latin range itself,
+     which is what a trial of Pensum Pro did not — its demo cut carried 70
+     glyphs and left every apostrophe, colon, parenthesis, dash and dollar sign
+     to be drawn by the sans behind it. fonts.css says more, including why that
+     trial ended.
 
      Inter sits behind Hanken Grotesk in both content stacks so that a glyph it
      lacks is served by a font this site already ships, rather than by whatever
@@ -87,7 +87,11 @@
      footnote backrefs render their arrow from the system font — as they already
      did when body copy was Inter. Nothing regressed there; it is simply not a
      thing either webfont can fix. */
-  --font-body: "Source Serif 4", "Hanken Grotesk", "Inter", system-ui, serif;
+  /* BODY FACE SWAP — one of these two lines is live, the other is commented.
+     Move the comment here and in SITE.fonts (src/site.config.ts), then run
+     `npm run fonts:check`. See the block of the same name in fonts.css. */
+  /* --font-body: "Source Serif 4", "Hanken Grotesk", "Inter", system-ui, serif; */
+  --font-body: "Lora", "Hanken Grotesk", "Inter", system-ui, serif;
   --font-display: "Hanken Grotesk", "Inter", system-ui, sans-serif;
   --font-chrome: "Inter", system-ui, sans-serif;
 

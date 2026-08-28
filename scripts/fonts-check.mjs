@@ -25,6 +25,52 @@ const read = (p) => readFileSync(p, "utf8");
 // note about Fraunces is never mistaken for a rule that uses it.
 const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, "");
 
+/**
+ * The same idea for the TypeScript config, and it is load-bearing for the
+ * BODY FACE SWAP in fonts.css: that arrangement keeps the alternative body face
+ * on a commented-out `fonts:` line directly above the live one, and this file
+ * used to read site.config.ts raw. The first `fonts: [...]` the regex found was
+ * then the COMMENTED one, so the gate compared the live role against a preload
+ * list nobody had shipped and failed a build that was correct.
+ *
+ * Not a regex, because site.config.ts is full of "https://…" — a naive
+ * `//.*$` eats half of every URL it meets and the preload paths with it. This
+ * walks the file and only treats `//` and slash-star as a comment when it is
+ * not inside a quote, which is the smallest thing that is actually right.
+ */
+function stripTsComments(src) {
+  let out = "";
+  let quote = null; // the delimiter we are inside, or null
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    const next = src[i + 1];
+    if (quote) {
+      out += c;
+      if (c === "\\") out += src[++i] ?? "";
+      else if (c === quote) quote = null;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === "`") {
+      quote = c;
+      out += c;
+      continue;
+    }
+    if (c === "/" && next === "/") {
+      while (i < src.length && src[i] !== "\n") i++;
+      out += "\n";
+      continue;
+    }
+    if (c === "/" && next === "*") {
+      i += 2;
+      while (i < src.length && !(src[i] === "*" && src[i + 1] === "/")) i++;
+      i++;
+      continue;
+    }
+    out += c;
+  }
+  return out;
+}
+
 // ── The roles ───────────────────────────────────────────────────────────────
 const tokens = stripComments(read("src/styles/tokens.css"));
 const roles = new Map(); // token name → first family in the stack
@@ -58,7 +104,7 @@ for (const [, block] of stripComments(read("src/styles/fonts.css")).matchAll(
 }
 
 // ── The preload list ────────────────────────────────────────────────────────
-const config = read("src/site.config.ts");
+const config = stripTsComments(read("src/site.config.ts"));
 const fontsArray = config.match(/\bfonts\s*:\s*\[([^\]]*)\]/)?.[1];
 if (fontsArray === undefined) fail("site.config.ts: could not find the `fonts:` array.");
 const preloaded = [...(fontsArray ?? "").matchAll(/["']([^"']+)["']/g)].map((m) => m[1]);
