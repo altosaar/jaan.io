@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <title>A signpost pointing both ways, above a road that forks in two</title>
+  <!-- The mark for "Once Upon" on /writing, and the art on its generated share
+       card.
+
+       IT IS A DETAIL OF THE ARTICLE'S OWN THIRD FIGURE. That drawing puts two
+       people either side of this fork — one sitting beside it scratching their
+       head, one already running down the right-hand branch — and illustrates
+       ambivalence, which is the thing "make sense of messiness" is for. The
+       mark keeps the fork and the signpost and drops the figures: at 80px a
+       person is four strokes and a smudge, while a road splitting under a
+       blank signpost still reads as a choice with nothing written on it.
+
+       TWO EDITS TO THE EXPORT, EVERY TIME IT IS REDRAWN. Neither is tidiness
+       and neither survives a re-export, so both have to be made again:
+
+       1. NO XML PROLOG. scripts/gen-og-cards.mjs paints the ink onto this file
+          by rewriting its root tag, anchored at the start of the string
+          (`/^<svg\b[^>]*>/`). A `<?xml …?>` declaration in front — which is
+          what the export arrives with — slides the root tag off position 0,
+          the replace silently matches nothing, and the fill is never applied:
+          the paths keep CSS's initial black and the card ships black on black.
+          Both other SVGs in this directory open on `<svg` for the same reason.
+
+       2. THE STROKE IS currentColor, NOT #000. The signpost is drawn as a
+          stroked line rather than as filled geometry — 8px, which is what
+          carries it at 80px beside a road that is solid black shape — and a
+          stroke does not inherit the root's fill. So the card script's one
+          `fill` on the root reaches the road and not the post. Exported as
+          `stroke:#000` it renders black on the card's black ground: checked,
+          and the card came out as bare road with no signpost at all.
+          `currentColor` is the hook gen-og-cards.mjs substitutes (the same one
+          the /visualizations marks use); on the page it resolves to black,
+          which is irrelevant there because IndexMark uses this file as a MASK
+          and a mask reads alpha, not colour.
+
+       THE VIEWBOX IS THE ARTWORK'S OWN, and the ink very nearly fills it: x
+       19–394, y 5–409 in a 400 box. The road runs ~9 units past the bottom and
+       the viewport clips it flat, which is the road carrying on towards the
+       viewer rather than stopping — leave it. The margin left over on the
+       other three sides is 1–5%, nothing next to the 27–65% frames the rule in
+       src/content.config.ts was written for, and keeping the box square keeps
+       this mark square in a column of square marks. -->
+  <defs>
+    <style>
+      .signpost {
+        stroke: currentColor;
+        stroke-miterlimit: 10;
+        stroke-width: 8px;
+      }
+    </style>
+  </defs>
+  <path class="signpost" d="M258.58,72.55c-.55-.54-.67-1.22-.3-1.68.32-.41.89-.38,1.53.24l41.82,40.26c.51.49.62,1.02.51,1.49-.09.37-.44.8-1.02,1.15l-46.85,28.39.27-17.51-57.72-6.93.34,24.34,1.09,74.89.37,33.4c4.88-1.44,15.15.03,15.68.71.25.32.2.73.03.96-.16.21-.92.73-1.23.63-6.73-2.17-13.11-1.03-19.73.9-2.59.75-5.48.32-8.14,1.31-2.34.87-4.8-.4-6.92-1.17-5.2-1.88-8.77,4.09-15.04,5.06-.2.03-.64-.51-.58-.65s.29-.63.49-.69c6.54-2.08,10.45-8.14,17.05-4.86,1.69.84,3.47,1.14,5.22.38l-.57-35.04-.51-36.86-.79-64.92-47.7-5.79c-.86-.74-.95-1.73-.92-2.87l.33-30.52,46.63,5.28c-.08-7.58-.26-14.65-.98-22.21l-45.75-5.8-.61,11.87c-.02.49-.52.83-.76.88-.66.16-.68-.62-1.04-.97l-38.32-37.88c-.59-.58-1.16-1.2-1.11-1.73.04-.48.25-1.73.87-2.05l38.94-19.96c.53-.27,1.2-.08,1.32.19.23.57.05,1.03-.63,1.38l-38.91,19.98,25.44,25.24,12.44,12.19.83-11.42c.04-.56,1.63-.35,2.02.57l110.31,13.86-.52-31.28-108.07-13.61c-1.14.14-1.75.2-2.73-.14l.39-16c.01-.42.84-.7,1.06-.57s.7.43.69.95l-.32,13.95,108.68,13.54c1.06.13,3.35-.56,2.82,1.49-.19.76-.87,1.49-.84,2.77l.61,28.57c.01.6,1.1,1.47.09,2.29l-50.68-6.33.14,21.98,57.98,6.61.8-18.72c.02-.38.7-.58.92-.54s.79.21.78.69l-.62,17.75c-.03.81.89,1.69.42,2.78l-120.71-13.84-.07,30.01,119.26,14.32c.62.09.95.38,1.04.61.11.28-.62.92-.63,1.25l-.59,14.23,44.36-26.91-25.75-24.74-15.89-15.19ZM195.59,83.97l-.31-21.93-12.47-1.49.84,22.14,11.93,1.28ZM196.74,251.05l-.54-29.79-1.54-103.52-9.08-1.09.38,26.12,1.14,84.4.23,25.52c3.58-.24,6.34-.46,9.39-1.64Z"/>
+  <path d="M21.82,409.26c3.22-4.04,6.96-7.18,10.4-10.93l5.26-5.74,15.3-15.53,3.88-4.34c2.15-2.41,4.5-4.61,6.13-7.45,1.33-2.31,2.43-4.71,4.2-6.77l11.72-13.67c2.9-3.38,7.73-5.37,12.54-12.93,2.29-3.61,4.97-6.74,8.1-9.6,3.31-3.01,5.77-6.39,8.01-10.2,1.02-1.73,2.11-3.33,1.7-5.58.14-3.62-.61-7.06-1.12-10.69l-6.47-8.96c-4.23-3.64-9.03-6.03-13.56-9.21l-9.81-6.91c-4.15-2.92-9.15-3.61-13.83-5.36l-13.28-4.96c-7.03-2.63-13.49-6.44-21.04-7.34l-8.7-1.04c-1.57-.19-2.1-1.98-2.22-3-.2-1.63.39-2.68,1.48-3.78,2.79-2.81,5.86-4.93,9.39-6.55l6.86-3.16,21.21-7.36c1.64-.57,3.39-1.3,5.01-.54l5.8,2.73,5.81,1.52c6.14,1.61,12.33,2.83,18.09,5.56l6.49,3.07c5.51,2.61,10.81,4.81,16.68,6.53,4.02,1.18,7.87,2.86,11.5,4.79,4.05,2.16,7.18,5.28,11.01,7.58l10.56,6.32c4,2.4,6.48,6.52,9.77,9.74l7.13,6.98c1.15,1.12,2.06,2.81,2.65,4.22,2.14.52,4.46-.78,6.54-1.37l14.89-4.22,13.95-3.35,7.54-1.6,9.21-2.62c6.18-2.41,12.26-3.44,18.66-5.08,13.08-3.35,25.86-6.26,39.39-7.21l7.93-1.25,7.3-.91,13.68-1.79,13.44-2.01,6.55-1.11c13.55-2.3,27.88-2.63,41.49-1.99,2.91,1.69,4.57,4.42,7.16,6.26l9.28,6.6c4.11,2.93,9.73,7.51,8.03,11.24-.64,1.4-1.97,1.93-3.68,2.1l-30.58,3.02-29.32,3.64-14.39,1.31-12.4.86-22.49,3.85-24.25,6.03-21.41,4.06c-10.07,5.05-20.25,9.09-30.66,13.38-5.05,2.08-9.73,4-13.79,7.63-4.25,3.8-8.51,7.28-13.47,10.2l-13.14,13.61c-1.87,1.94-3.22,4.07-4.38,6.52-1.98,3.48-3.85,6.85-6.76,9.67-2.89,6.57-7.16,11.88-11.91,17.11l-6.6,9.8c-2.22,2.44-4.29,4.77-5.9,7.75-1.82,3.37-3.87,6.5-6.7,9.23"/>
+</svg>

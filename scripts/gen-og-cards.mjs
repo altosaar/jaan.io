@@ -216,14 +216,25 @@ async function vizMark(file) {
  * survive too, which matters: three of these thumbs carry opaque WHITE detail
  * inside the drawing, and an alpha-mask-and-fill approach would flood it.
  *
- * thesis-icon.svg is the one SVG in the set and takes the other branch. It
- * states no fill at all, so its paths inherit CSS's initial black — setting the
- * fill on the root, which none of its own elements override, is the same
- * substitution `currentColor` gets above, and rasterises at full size for free.
+ * THE SVGs IN THE SET TAKE THE OTHER BRANCH, and are inked twice over:
+ *
+ *   FILL, on the root. These files state no fill of their own, so their paths
+ *   inherit CSS's initial black; setting it on the root, which none of their
+ *   elements override, reaches all of them and rasterises at full size for
+ *   free.
+ *
+ *   STROKE, by the same `currentColor` substitution vizMark does above — and
+ *   this half is not decorative. A mark may draw part of itself as a stroked
+ *   line rather than as filled geometry (fork-in-the-road.svg strokes the
+ *   signpost at 8px, which is what makes it legible at 80px), and a stroke
+ *   does NOT inherit the root's fill. Left to itself it renders at CSS's
+ *   initial black — on this card's black ground, that is invisible, and a
+ *   stroked mark ships with its stroked half silently missing. Verified: the
+ *   fork's signpost vanished entirely and the card came out as bare road.
  */
 async function articleMark(file) {
   if (extname(file) === ".svg") {
-    const raw = readFileSync(file, "utf8");
+    const raw = readFileSync(file, "utf8").replaceAll("currentColor", CARD_INK.fg);
     const inked = raw.replace(
       /^<svg\b[^>]*>/,
       (tag) => `${tag.replace(/\sfill="[^"]*"/, "").slice(0, -1)} fill="${CARD_INK.fg}">`,
