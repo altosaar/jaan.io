@@ -18,6 +18,17 @@ description: "How to use stories to facilitate communication and behavior change
 #     ("A language of lif](…)e").
 #   - The four pictures moved from Google's floating anchors to the paragraph
 #     each one illustrates, and gained alt text, which the export had none of.
+#   - The fork in the road is NO LONGER THE DOC'S PICTURE. It was a 1600x1164
+#     WebP of the drawing on its own white page, which on this site is a lit
+#     slab in the middle of a black one; it is now the same drawing redrawn as
+#     vector (Dropbox/design/260829-once-upon/SVG/fork-in-the-road-people.svg,
+#     copied in unmodified — svgo finds 1% in it, which is not worth a step in
+#     the pipeline). Black paths on nothing, so it takes `class="ink"` like the
+#     line art in the older posts and the palette flips it to white: the
+#     figures draw in white line and the road reads as a lit road rather than
+#     as a hole. See the .ink note in Prose.astro. It is also 32KB against 48,
+#     and it is now resolution-independent, which for a line drawing on a
+#     retina screen is the whole point.
 #   - EVERY HEADING PROMOTED ONE LEVEL, and nothing else about them: the text
 #     is untouched, so every slug — and the two in-document links above, which
 #     point at slugs — is the same. The doc opened with one `#` and then set
@@ -136,12 +147,14 @@ Humans are driven to move towards our aspirations and act on hunches about what 
 
 <figure>
   <img
-    src="/images/once-upon/fork-in-the-road.webp"
-    alt="A line drawing of a road forking in two. One person sits beside it scratching their head over an open book; a signpost points both ways with blank signs; a third person runs off down the right-hand branch."
-    width="1600"
-    height="1164"
+    class="ink"
+    src="/images/once-upon/fork-in-the-road.svg"
+    alt="A line drawing of a road forking in two. One person sits beside it scratching their head over an open book; a signpost points both ways with blank signs; another person runs off to the right."
+    width="1270"
+    height="1135"
     loading="lazy"
     decoding="async"
+    style="max-width: 60%"
   />
 </figure>
 
