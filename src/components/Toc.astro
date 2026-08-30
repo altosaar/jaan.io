@@ -157,10 +157,39 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
        centred box would slide up under the fixed nav. Subtracting twice the nav
        plus a rem means that even when the cap binds, the top edge lands exactly
        one rem below the nav — the same clearance the headings' scroll-margin
-       uses — and the bottom edge mirrors it. Past that it scrolls itself. */
+       uses — and the bottom edge mirrors it. Past that it clips, and the two
+       lines below are what decide who a wheel over the rail belongs to. */
     max-height: calc(100svh - 2 * (var(--nav-h) + 1rem));
-    overflow-y: auto;
-    overscroll-behavior: contain;
+
+    /* A WHEEL OVER THE RAIL IS A WHEEL OVER THE PAGE, ALWAYS.
+       The rail stands in the gutter and holds still while the article moves
+       past it. It is part of the page, not a panel over it, so pointing at it
+       must never be the thing that stops the page — and this line is the whole
+       of what guarantees that.
+
+       It used to be `overflow-y: auto` plus `overscroll-behavior: contain`,
+       which is the reflex for a scrollable box floating above a document and
+       wrong twice over here.
+
+         · `contain` stopped the page DEAD. Blink applies it even when the
+           container has nothing to scroll — the rail's normal state, six tags
+           in a 750px box — so the wheel was swallowed and the article did not
+           move at all. Gecko and WebKit chained anyway, which is why this was
+           a Chrome-only bug and invisible to a check in the other two.
+         · `auto` alone still failed on the screen where the rail overflows (a
+           dozen-plus tags on a short laptop): the wheel latches onto the inner
+           scroller for the whole gesture, so in Blink the article again did not
+           move a pixel.
+
+       `hidden` clips exactly as `auto` did but is scrollable only from script,
+       so no gesture can ever target it and every engine chains to the document.
+       Nothing becomes unreachable: a clipped rail is still scrolled by the spy
+       below, which calls scrollIntoView on the current tag as you read, and by
+       focus, which the browser reveals when you Tab into it. Both verified in
+       all three engines, along with the wheel itself. What is given up is
+       wheeling the rail's own list on a short screen — which cost the page's
+       scroll to have, and is the trade this line makes deliberately. */
+    overflow-y: hidden;
 
     /* Room for the widest tag, bounded so a long heading cannot reach the text
        column. See the media query below for where this stops fitting at all. */
