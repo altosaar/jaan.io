@@ -89,21 +89,21 @@ Use it *for* another person, not *on* another person. (All it can take is a simp
 Once Upon is a tool that draws on the science of behavior change and motivation. Specifically, it's built on a clinical approach to enhancing motivation, called motivational interviewing, and a theory of motivation called self-determination theory. Motivational interviewing has been shown to be effective in eliciting behavior change in various settings, from hostage negotiation to smoking cessation, while self-determination theory is backed by 40 years of psychological studies on the driving forces behind human behavior across domains, from finance to health.
 
 > [!cite]
-> [On the compatibility of motivational interviewing and self-determination theory](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=7d9b461eec6d04a7a4b35a7ed75a2e80609f6dd1)
+> On the compatibility of motivational interviewing and self-determination theory:
 >
-> Vansteenkiste, M., & Sheldon, K. M. (2006). There's nothing more practical than a good theory: Integrating motivational interviewing and self‐determination theory. *British journal of clinical psychology*, *45*(1), 63-82.
+> Vansteenkiste, M., & Sheldon, K. M. (2006). [There's nothing more practical than a good theory: Integrating motivational interviewing and self‐determination theory](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=7d9b461eec6d04a7a4b35a7ed75a2e80609f6dd1). *British journal of clinical psychology*, *45*(1), 63-82.
 >
-> Support for self-determination theory in the workplace
+> Support for self-determination theory in the workplace:
 >
-> Gagné, M., & Deci, E. L. (2005). Self‐determination theory and work motivation. *Journal of Organizational behavior*, *26*(4), 331-362.
+> Gagné, M., & Deci, E. L. (2005). [Self‐determination theory and work motivation](https://doi.org/10.1002/job.322). *Journal of Organizational behavior*, *26*(4), 331-362. [🏴‍☠️ PDF](https://sci-hub.st/10.1002/job.322)
 >
-> Support for self-determination theory in sports coaching
+> Support for self-determination theory in sports coaching:
 >
-> Mageau, G. A., & Vallerand, R. J. (2003). The coach–athlete relationship: A motivational model. Journal of Sports Sciences, 21(11), 883–904. doi:10.1080/0264041031000140374.
+> Mageau, G. A., & Vallerand, R. J. (2003). [The coach–athlete relationship: A motivational model](https://doi.org/10.1080/0264041031000140374). Journal of Sports Sciences, 21(11), 883–904. doi:10.1080/0264041031000140374. [🏴‍☠️ PDF](https://sci-hub.st/10.1080/0264041031000140374)
 >
-> On the effectiveness of Motivational Interviewing
+> On the effectiveness of Motivational Interviewing:
 >
-> Lundahl, B., & Burke, B. L. (2009). The effectiveness and applicability of motivational interviewing: A practice‐friendly review of four meta‐analyses. *Journal of clinical psychology*, *65*(11), 1232-1245.
+> Lundahl, B., & Burke, B. L. (2009). [The effectiveness and applicability of motivational interviewing: A practice‐friendly review of four meta‐analyses](https://doi.org/10.1002/jclp.20638). *Journal of clinical psychology*, *65*(11), 1232-1245. [🏴‍☠️ PDF](https://sci-hub.st/10.1002/jclp.20638)
 
 # Guiding Principles
 
@@ -132,14 +132,13 @@ In the case of the triage nurse, her empathy allowed her to get the patients' st
 Practicing empathy starts with an intention to listen, completely and attentively.
 
 > [!cite]
-> On Empathy in Therapeutic Change
+> On Empathy in Therapeutic Change:
 >
-> Rogers, C. R. (1957). The necessary and sufficient conditions of therapeutic personality change. *Journal of consulting psychology*, *21*(2), 95.
-
-> [!cite]
-> Empathy as a key ingredient in Motivational Interviewing
+> Rogers, C. R. (1957). [The necessary and sufficient conditions of therapeutic personality change](https://psycnet.apa.org/doi/10.1037/0022-006X.60.6.827). *Journal of consulting psychology*, *21*(2), 95. [🏴‍☠️ PDF](https://sci-hub.st/https://psycnet.apa.org/doi/10.1037/0022-006X.60.6.827)
 >
-> Lundahl, B., & Burke, B. L. (2009). The effectiveness and applicability of motivational interviewing: A practice‐friendly review of four meta‐analyses. *Journal of clinical psychology*, *65*(11), 1232-1245.
+> Empathy as a key ingredient in Motivational Interviewing:
+>
+> Lundahl, B., & Burke, B. L. (2009). [The effectiveness and applicability of motivational interviewing: A practice‐friendly review of four meta‐analyses](https://doi.org/10.1002/jclp.20638). *Journal of clinical psychology*, *65*(11), 1232-1245. [🏴‍☠️ PDF](https://sci-hub.st/10.1002/jclp.20638)
 
 ## 3. Make Sense of Messiness
 
@@ -163,15 +162,16 @@ This is where making sense of messiness comes into play. Making sense of messine
 As a listener, you can make this happen by providing a space in which another person can organize, articulate their thoughts, and seek help in navigating the obstacles that arise.
 
 > [!cite]
-> On sense-making
+> On sense-making:
 >
-> Wilson, T. D., & Gilbert, D. T. (2005). Affective forecasting: Knowing what to want. *Current directions in psychological science*, *14*(3), 131-134.
+> Wilson, T. D., & Gilbert, D. T. (2005). [Affective forecasting: Knowing what to want](https://psycnet.apa.org/doi/10.1111/j.0963-7214.2005.00355.x). *Current directions in psychological science*, *14*(3), 131-134. [🏴‍☠️ PDF](https://sci-hub.st/https://psycnet.apa.org/doi/10.1111/j.0963-7214.2005.00355.x)
 >
-> Pennebaker, J. W. (1997). *Opening up: The healing power of expressing emotions*. Guilford Press.
+> Pennebaker, J. W. (1997). [Opening up: The healing power of expressing emotions](https://archive.org/details/openinguphealing00penn/page/n13/mode/2up). Guilford Press.
 > 
-> The neuroscience of mirror neurons and how they are used in ethnography—the study of different cultures
+> The neuroscience of mirror neurons and how they are used in ethnography, for understanding different cultures:
 >
 > [https://drive.google.com/file/d/1aGpfAcJASHaZJVvk8Yb5oqenbjroHnO7/view?usp=sharing](https://drive.google.com/file/d/1aGpfAcJASHaZJVvk8Yb5oqenbjroHnO7/view?usp=sharing)
+> Summers-Effler, E., Van Ness, J., & Hausmann, C. (2015). [Peeking in the Black Box: Studying, Theorizing, and Representing the Micro-Foundations of Day-to-Day Interactions: Studying, Theorizing, and Representing the Micro-Foundations of Day-to-Day Interactions](https://doi.org/10.1177/0891241614545880). Journal of Contemporary Ethnography, 44(4), 450-479. [🏴‍☠️ PDF](https://sci-hub.st/10.1177/0891241614545880)
 
 # Core skills
 
@@ -330,11 +330,9 @@ Once Upon provides a framework for the curious reader to assist others and thems
 
 Whether you are interested in learning new skills in conversation or stewarding behavior change through storytelling with people close to you, we leave the sequel as an exercise for the reader.
 
-This is the initial prototype of this tool; next we aim to integrate technology such as open source heart rate variability monitoring and practice modules built using large language models such as GPT.
+> This was the initial prototype of this tool; next we had hoped to raise money to integrate technology such as open source heart rate variability monitoring and build practice modules using large language models. If you know of anyone who has done this [I would love to hear about it](mailto:j@jaan.io)!
 
-If you have any feedback or are interested in contributing to this non-profit, open source effort, please reach out to us: [hello@onefact.org](mailto:hello@onefact.org) :)
-
-# Story Essentials
+# Appendix
 
 ## When in doubt, get help
 
@@ -378,13 +376,13 @@ Becoming aware of the cultures, countries, and other aspects of ourselves and th
 To respect and align with the values and contexts of diverse cultures, we need to learn to notice and approach differences in culture with openness and curiosity when it is feasible and accessible.
 
 > [!cite]
-> Tools from ethnography can provide context on how researchers in the social sciences, user experience research, and other domains learn about different cultures. The Field Study Handbook has a chapter on [calibrating to various cultures](https://drive.google.com/file/d/1F9zr1pHesGPSOTtXLQu4hTxOGu7zoIRx/view?usp=sharing).
+> Tools from ethnography can provide context on how researchers in the social sciences, user experience research, and other domains learn about different cultures. Jan Chipchase's [Field Study Handbook](https://studiodradiodurans.com/products/the-field-study-handbook-field-edition) has a chapter on [calibrating to various cultures](https://drive.google.com/file/d/1F9zr1pHesGPSOTtXLQu4hTxOGu7zoIRx/view?usp=sharing).
 > 
-> The [Culture Map](https://www.amazon.ca/Culture-Map-Breaking-Invisible-Boundaries/dp/1610392760) includes insights on cultural differences around the world, particularly applied to a business context.
+> The [Culture Map](https://www.amazon.ca/Culture-Map-Breaking-Invisible-Boundaries/dp/1610392760) includes insights on cultural differences around the world, particularly applied to a business context. [🏴‍☠️ Digital Copy](https://libgen.li/index.php?req=Culture+Map+Meyer&curtab=f&order=year&ordermode=desc)
 >
 > The [Hofstede's tool offers](https://www.hofstede-insights.com/country-comparison-tool) a cross-country comparison of values on different cultural dimensions (e.x., uncertainty avoidance, power distance, individualism), but this research comes with many caveats.
 
-As an example of how cultural sensitivity is often an ideal that is hard to reach, consider how difficult translation can be. For example, Mandarin speakers we interviewed for this had difficulty translating the concepts of "consent" and "autonomy", and translations differed between interviewees. Here are translations for some of the guiding principles of Once Upon: consent, autonomy, and empathy in other world languages. Email us at [hello@onefact.org](mailto:hello@onefact.org) if you find better translations!
+As an example of how cultural sensitivity is often an ideal that is hard to reach, consider how difficult translation can be. For example, Mandarin speakers we interviewed for this had difficulty translating the concepts of "consent" and "autonomy", and translations differed between interviewees. Here are translations for some of the guiding principles of Once Upon: consent, autonomy, and empathy in other world languages. [Email me](mailto:j@jaan.io) if you find better translations!
 
 | Language | Consent | Autonomy |
 | :---: | :---: | :---: |
@@ -424,44 +422,34 @@ Jaan Altosaar & the One Fact Foundation [team](https://web.archive.org/web/20240
 > This was released under the <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA 4.0 License<img src="/images/cc/cc.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"><img src="/images/cc/by.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"><img src="/images/cc/sa.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"></a> by One Fact Foundation, a nonprofit I started. I am republishing it here under the same license.
 
 ### References
-
-For your further exploration of these essential concepts in Once Upon:
-
-> [!cite] Reference
+> [!cite]  _
 > The [Story-Telling Animal: How Stories Make us Human](https://www.amazon.com/Storytelling-Animal-Stories-Make-Human/dp/B08XLJ8XC9) is a book about our make-believe nature, traversing storytelling's evolution as a fundamental human instinct
-
-> [!cite] Reference
+> 
 > Pixar's 12 rules for storytelling
-
-> [!cite] Reference
+> 
 > A library on all-things empathy, which may inspire you to practice it in different ways: [https://empathylibrary.com/](https://empathylibrary.com/)
-
-> [!cite] Reference
-> [Empathy: Why It Matters and How to Get it](https://www.amazon.com/Empathy-Why-Matters-How-Get/dp/0399171401) is a book covering the science of empathy and arguing for empathy for a happier, more creative society
-
-> [!cite] Reference
-> A ManyMinds [podcast episode](https://disi.org/the-allure-of-stories/) featuring two researchers covering the psychology and cultural evolution of stories (i.e., why stories stick around so long)
-
-> [!cite] Reference
-> A [talk](https://www.youtube.com/watch?v=0MtsXbTJdt8) by an human behavior researcher on the salient role of non-verbals among successful people
+> 
+> [Empathy: Why It Matters and How to Get it](https://www.amazon.com/Empathy-Why-Matters-How-Get/dp/0399171401) is a book covering the science of empathy and arguing for empathy for a happier, more creative society. [🏴‍☠️ PDF](https://libgen.li/index.php?req=Empathy%3A+Why+It+Matters+and+How+to+Get+it)
+> 
+> A ManyMinds [podcast episode](https://disi.org/the-allure-of-stories/) featuring two researchers covering the psychology and cultural evolution of stories (i.e., why stories stick around so long).
+> 
+> A [talk](https://www.youtube.com/watch?v=0MtsXbTJdt8) by an human behavior researcher on the salient role of non-verbals among successful people.
 > 
 > Foundational psychology texts:
-> [Motivational interviewing](https://www.amazon.com/Motivational-Interviewing-Helping-People-Applications/dp/1609182278/ref=sr_1_2?crid=11X33561NBFCT&keywords=Motivational+interviewing+textbook&qid=1689093354&sprefix=motivational+interviewing+textbook+%2Caps%2C84&sr=8-2)
+> [Motivational interviewing](https://www.amazon.com/Motivational-Interviewing-Helping-People-Applications/dp/1609182278/ref=sr_1_2?crid=11X33561NBFCT&keywords=Motivational+interviewing+textbook&qid=1689093354&sprefix=motivational+interviewing+textbook+%2Caps%2C84&sr=8-2) [🏴‍☠️ PDF](https://libgen.li/index.php?req=Motivational+Interviewing%3A+Helping+People+Change&order=year&ordermode=desc)
 > 
-> [Self-determination theory](https://www.guilford.com/books/Self-Determination-Theory/Ryan-Deci/9781462538966)
+> [Self-determination theory](https://www.guilford.com/books/Self-Determination-Theory/Ryan-Deci/9781462538966) [🏴‍☠️ PDF](https://libgen.li/index.php?req=Self-Determination+Theory+Basic+Psychological+Needs+in+Motivation%2C+Development%2C+and+Wellness&order=year&ordermode=desc)
 > 
-> [Crisis Negotiations: Managing Critical Incidents and Hostage Situations in Law Enforcement and Corrections (Routledge)](https://www.routledge.com/Crisis-Negotiations-Managing-Critical-Incidents-and-Hostage-Situations/McMains-Mullins-Young/p/book/9781138585522)
+> [Crisis Negotiations: Managing Critical Incidents and Hostage Situations in Law Enforcement and Corrections (Routledge)](https://www.routledge.com/Crisis-Negotiations-Managing-Critical-Incidents-and-Hostage-Situations/McMains-Mullins-Young/p/book/9781138585522) [🏴‍☠️ PDF](https://libgen.li/index.php?req=Crisis+Negotiations%3A+Managing+Critical+Incidents+and+Hostage+Situations+in+Law+Enforcement+and+Corrections)
 > 
-> [Psychological Aspects of Crisis Negotiation](https://www.routledge.com/Psychological-Aspects-of-Crisis-Negotiation/Strentz/p/book/9781138557024)
+> [Psychological Aspects of Crisis Negotiation](https://www.routledge.com/Psychological-Aspects-of-Crisis-Negotiation/Strentz/p/book/9781138557024) [🏴‍☠️ PDF](https://libgen.li/index.php?req=Psychological+Aspects+of+Crisis+Negotiationd)
 > 
-> Motivational interviewing for substance use disorders (UpToDate)
-> 
-> [The Happiness Trap, Russ Harris](https://www.amazon.com/Happiness-Trap-Struggling-Living-Second-ebook/dp/B09XQBVS6B/ref=sr_1_1?crid=21CZMMIWBV2FG&keywords=happiness+trap&qid=1690916651&sprefix=happiness+trap%2Caps%2C130&sr=8-1)
-> 
-> [https://www.deceptive.design/types](https://www.deceptive.design/types)
+> Ingersoll, K. (Accessed 2020) Motivational interviewing for substance use disorders. UpToDate. [PDF](https://www.dropbox.com/scl/fi/5w1fuwahni29nj5vdfy10/March-2020-Motivational-interviewing-for-substance-use-disorders-UpToDate.pdf?rlkey=6hyearraywougzjwo5xio0spi&st=d19zav24&dl=0)
+>
+> [The Happiness Trap, Russ Harris](https://www.amazon.com/Happiness-Trap-Struggling-Living-Second-ebook/dp/B09XQBVS6B/ref=sr_1_1?crid=21CZMMIWBV2FG&keywords=happiness+trap&qid=1690916651&sprefix=happiness+trap%2Caps%2C130&sr=8-1) [🏴‍☠️ PDF](https://libgen.li/index.php?req=happiness+trap+russ+harris&order=year&ordermode=desc)
 > 
 > [Motivational and Psychological Triggers in Social Engineering](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3750474)
 > 
 > [Nonviolent Communication: A Language of Life](https://bookshop.org/p/books/nonviolent-communication-a-language-of-life-life-changing-tools-for-healthy-relationships-marshall-b-rosenberg/10180253): Life-Changing Tools for Healthy Relationships
 > 
-> Flow chart for a technique called [Brief Action Planning](https://drive.google.com/file/d/1ajqxBpkHiNJmTLliAlmb-07aU6p_AxWH/view?usp=sharing) (Center for Collaboration, Motivation, and Innovation) based on principles of motivational interviewing and behavior change & [training](https://centrecmi.ca/brief-action-planning/) for the use of this tool
+> Flow chart for a technique called [Brief Action Planning](https://www.kidneywi.org/wp-content/uploads/2019/10/BAP_flow_Chart_2014-03-01.pdf) (Center for Collaboration, Motivation, and Innovation) based on principles of motivational interviewing and behavior change & [training](https://centrecmi.ca/brief-action-planning/) for the use of this tool. Ed. Note: Diagrams like these, viewed in 2026, remind me more and more of agentic skills development for large language models.
