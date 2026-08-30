@@ -168,15 +168,14 @@ As a listener, you can make this happen by providing a space in which another pe
 > Wilson, T. D., & Gilbert, D. T. (2005). Affective forecasting: Knowing what to want. *Current directions in psychological science*, *14*(3), 131-134.
 >
 > Pennebaker, J. W. (1997). *Opening up: The healing power of expressing emotions*. Guilford Press.
-
-> [!cite]
+> 
 > The neuroscience of mirror neurons and how they are used in ethnography—the study of different cultures
 >
 > [https://drive.google.com/file/d/1aGpfAcJASHaZJVvk8Yb5oqenbjroHnO7/view?usp=sharing](https://drive.google.com/file/d/1aGpfAcJASHaZJVvk8Yb5oqenbjroHnO7/view?usp=sharing)
 
-# Core skills: ready, listen, reflect—suck!
+# Core skills
 
-## Give space by practicing listening
+## Give space by listening
 
 A legendary listener:
 
@@ -289,41 +288,9 @@ Here's a summary embracing the Once Upon principles of empathizing, helping make
 
 Paying attention is essential to craft well-crafted summaries that capture the essential elements accurately and concisely. In this summary, the listener checked their understanding of the story so far, allowing the other person to provide feedback, if necessary.
 
-## Practice Sucking at Once Upon
+## Accept awkwardness
 
-At One Fact Foundation, we start some of our curricula with an anecdote about our friend Elman and baby cows.
-
-Baby cows love milk, and need it to survive.
-
-You can feed baby cows with a rubber nipple, like so:
-
-<figure>
-  <img
-    src="/images/once-upon/feeding-a-calf.webp"
-    alt="A man leans over a wooden fence outside a red barn, holding a bottle of milk to a pale calf that has stretched its neck up through the wire to reach it."
-    width="1400"
-    height="1051"
-    loading="lazy"
-    decoding="async"
-  />
-</figure>
-
-You might notice a funny thing after feeding a baby cow:
-
-<figure>
-  <img
-    src="/images/once-upon/calf-sucking-a-doorknob.webp"
-    alt="The same calf indoors, tongue out and milk dripping from its mouth, sucking on the round black doorknob of a wooden barn door."
-    width="1100"
-    height="1466"
-    loading="lazy"
-    decoding="async"
-  />
-</figure>
-
-Like baby cows, we learn to suck. Initially, it might look and feel awkward and mechanical, like a baby cow does trying to extract milk from a metal doorknob. Your interlocutor might be surprised or taken aback, and you might be as well. This is normal.
-
-There is no one "right way" to learn or practice this set of skills. We expect that with time, you will find your own path while honoring the essential aspects of supporting autonomy, expressing empathy, and making sense of messiness we aim to convey here.
+There is no one "right way" to learn or practice this set of skills. Initially, it might look and feel awkward and mechanical and we might feel we aren't doing it "correctly". Your interlocutor might be surprised or taken aback, and you might be as well. This is normal. Find your own path while honoring the essentials of supporting autonomy, expressing empathy, and making sense of messiness.
 
 Simply noticing that this is normal – at how much we all suck at difficult things like communication and Once Upon – can help empower ourselves to continue practicing.
 
@@ -412,11 +379,9 @@ To respect and align with the values and contexts of diverse cultures, we need t
 
 > [!cite]
 > Tools from ethnography can provide context on how researchers in the social sciences, user experience research, and other domains learn about different cultures. The Field Study Handbook has a chapter on [calibrating to various cultures](https://drive.google.com/file/d/1F9zr1pHesGPSOTtXLQu4hTxOGu7zoIRx/view?usp=sharing).
-
-> [!cite]
+> 
 > The [Culture Map](https://www.amazon.ca/Culture-Map-Breaking-Invisible-Boundaries/dp/1610392760) includes insights on cultural differences around the world, particularly applied to a business context.
-
-> [!cite]
+>
 > The [Hofstede's tool offers](https://www.hofstede-insights.com/country-comparison-tool) a cross-country comparison of values on different cultural dimensions (e.x., uncertainty avoidance, power distance, individualism), but this research comes with many caveats.
 
 As an example of how cultural sensitivity is often an ideal that is hard to reach, consider how difficult translation can be. For example, Mandarin speakers we interviewed for this had difficulty translating the concepts of "consent" and "autonomy", and translations differed between interviewees. Here are translations for some of the guiding principles of Once Upon: consent, autonomy, and empathy in other world languages. Email us at [hello@onefact.org](mailto:hello@onefact.org) if you find better translations!
@@ -443,12 +408,20 @@ In fact, there are many sets of psychological tools already in use (Influence: T
 
 Similar to the act of documenting deceptive design patterns ([https://www.deceptive.design/types](https://www.deceptive.design/types)) to make them easier to spot — and, easier to try out on unwitting subjects and running the risk of a lawsuit – we hope that maintaining this guide can highlight when someone is truly supportive of autonomy, expressive of empathy, or helping in sense making. And if they're not, then you can tell even faster that they're faking it.
 
-Transparency is thus an ideal that few of us are lucky to attain or beholden to with any regularity (optional footnote: for example, one of the authors of Once Upon removed this blog post critical of a former employer while waiting for a green card: [https://jaan.io/my-friend-radicalized-this-made-me-rethink-how-i-build-AI/](https://jaan.io/my-friend-radicalized-this-made-me-rethink-how-i-build-AI/)). We trust you to do your best. Safeguards are built into professions such as therapy, psychiatry, and social work where research into these skills is advanced.
+Safeguards are built into professions such as therapy, psychiatry, and social work where research into these skills is advanced and disseminated.
 
-### Note
+Training opportunities:
 
-This was Originally released under CC-BY-SA 4.0 License by One Fact Foundation, a nonprofit I started.
+[Motivational Interviewing Network of Trainers (MINT)](https://motivationalinterviewing.org/motivational-interviewing-training)
 
+
+### Authors
+
+Jaan Altosaar & the One Fact Foundation [team](https://web.archive.org/web/20240816180424/https://www.onefact.org/team) in 2022--2023. Specifically, Katherine Gibb provided input on earlier versions of this work.
+
+### Copyright 
+
+> This was released under the <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA 4.0 License<img src="/images/cc/cc.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"><img src="/images/cc/by.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"><img src="/images/cc/sa.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"></a> by One Fact Foundation, a nonprofit I started. I am republishing it here under the same license.
 
 ### References
 
@@ -471,54 +444,24 @@ For your further exploration of these essential concepts in Once Upon:
 
 > [!cite] Reference
 > A [talk](https://www.youtube.com/watch?v=0MtsXbTJdt8) by an human behavior researcher on the salient role of non-verbals among successful people
-
-Foundational psychology texts:
-
-> [!cite] Reference
+> 
+> Foundational psychology texts:
 > [Motivational interviewing](https://www.amazon.com/Motivational-Interviewing-Helping-People-Applications/dp/1609182278/ref=sr_1_2?crid=11X33561NBFCT&keywords=Motivational+interviewing+textbook&qid=1689093354&sprefix=motivational+interviewing+textbook+%2Caps%2C84&sr=8-2)
-
-> [!cite] Reference
+> 
 > [Self-determination theory](https://www.guilford.com/books/Self-Determination-Theory/Ryan-Deci/9781462538966)
-
-> [!cite] Reference
+> 
 > [Crisis Negotiations: Managing Critical Incidents and Hostage Situations in Law Enforcement and Corrections (Routledge)](https://www.routledge.com/Crisis-Negotiations-Managing-Critical-Incidents-and-Hostage-Situations/McMains-Mullins-Young/p/book/9781138585522)
-
-> [!cite] Reference
+> 
 > [Psychological Aspects of Crisis Negotiation](https://www.routledge.com/Psychological-Aspects-of-Crisis-Negotiation/Strentz/p/book/9781138557024)
-
-> [!cite] Reference
+> 
 > Motivational interviewing for substance use disorders (UpToDate)
-
-> [!cite] Reference
+> 
 > [The Happiness Trap, Russ Harris](https://www.amazon.com/Happiness-Trap-Struggling-Living-Second-ebook/dp/B09XQBVS6B/ref=sr_1_1?crid=21CZMMIWBV2FG&keywords=happiness+trap&qid=1690916651&sprefix=happiness+trap%2Caps%2C130&sr=8-1)
-
-> [!cite] Reference
+> 
 > [https://www.deceptive.design/types](https://www.deceptive.design/types)
-
-> [!cite] Reference
+> 
 > [Motivational and Psychological Triggers in Social Engineering](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3750474)
-
-> [!cite] Reference
+> 
 > [Nonviolent Communication: A Language of Life](https://bookshop.org/p/books/nonviolent-communication-a-language-of-life-life-changing-tools-for-healthy-relationships-marshall-b-rosenberg/10180253): Life-Changing Tools for Healthy Relationships
-
-> [!cite] Reference
+> 
 > Flow chart for a technique called [Brief Action Planning](https://drive.google.com/file/d/1ajqxBpkHiNJmTLliAlmb-07aU6p_AxWH/view?usp=sharing) (Center for Collaboration, Motivation, and Innovation) based on principles of motivational interviewing and behavior change & [training](https://centrecmi.ca/brief-action-planning/) for the use of this tool
-
-Training opportunities:
-
-> [!cite] Reference
-> [Motivational Interviewing Network of Trainers (MINT)](https://motivationalinterviewing.org/motivational-interviewing-training)
-
-# Metadata
-
-## Authors
-
-One Fact Foundation
-
-DOI:
-Pending.
-
-Tentative Release Date: August 1, 2023
-
-Release URL
-One Fact Foundation Employee Handbook: [help.onefact.org/once-upon](https://help.onefact.org/once-upon)
