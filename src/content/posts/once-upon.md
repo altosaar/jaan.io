@@ -1,6 +1,6 @@
 ---
-title: "Once Upon: stories facilitate communication and behavior change"
-description: "A communication and behavior change tool from One Fact Foundation, combining motivational interviewing and self-determination theory with the power of storytelling."
+title: "Once Upon"
+description: "How to use stories to facilitate communication and behavior change"
 # PORTED VERBATIM from the Google Doc "once upon - edit" (One Fact Foundation),
 # via its HTML export — text from the Markdown export, pictures from the HTML
 # one, which is the only place the full-resolution originals survive.
@@ -32,35 +32,22 @@ thumb: ../../assets/thumbs/fork-in-the-road.svg
 date: 2023-08-01
 ---
 
-Owner: [hello@onefact.org](mailto:hello@onefact.org) - email us with feedback 🙂
+Say you're helping someone tell their story of how they might change their life for the better. A story that shows where they are now, and where they want to go.
 
-[visual: story spine - once upon - mission: learn about the origin story]
-Reference: pixar's 12 rules for storytelling
+As a listener, you can help someone discover meaning: by demonstrating understanding and supporting the evolution of the stories that matter to them. Such stories can shape their behavior.
 
-Imagine you are helping someone tell their story of how they might change their life for the better.
-
-A story that shows where they are now, and where they want to go.
-
-As a listener you can help someone discover meaning by helping understand and evolve the stories that matter to them and can shape their behavior.
-
-Connecting communication to behavior requires using narrative: learning what motivates someone can help incite change. You can let them be the main character of their story, and get to choose which set of roles to play in support.
-
-Background
+Connecting communication with behavior requires using narrative: learning what motivates someone can help incite change. You can let them be the main character of their story, and get to choose which set of roles to play in support.
 
 > [!cite]
-> [Why inspiring stories make us react: The neuroscience of narrative.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4445577/)
->
-> Zak, P. J. (2015, January). Why inspiring stories make us react: The neuroscience of narrative. In *Cerebrum: the Dana forum on brain science* (Vol. 2015). Dana Foundation.
+> Zak, P. J. (2015). [Why inspiring stories make us react: The neuroscience of narrative](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4445577/). In *Cerebrum: the Dana forum on brain science*.
 
-## Change is hard for all of us
+<!--**Change is hard for all of us.**-->
 
-Once Upon is a communication and behavior change tool you can decide to learn to empower yourself—and, perhaps, someone around you—to take actions aligned with values and make meaningful change.
+*Once Upon* is a communication and behavior change tool you can decide to learn to empower yourself—and, perhaps, someone around you—to take actions aligned with values and make meaningful change.
 
-Once Upon combines tried-and-tested interpersonal skills, with the power of storytelling to enable caring and productive dialogue.
+This requires combining tried-and-tested interpersonal skills such as active listening and motivational interviewing with the power of storytelling to enable caring and productive dialogue.
 
-Good news: you have likely already experienced the core skills needed for Once Upon!
-
-Every time you support your own or someone else's freedom to make choices, express empathy, ask open-ended questions, or help make sense of messiness, you are using elements of Once Upon.
+Good news: you already experience the core skills needed for this. Every time you support your own or someone else's freedom to make choices, express empathy, ask open-ended questions, or help make sense of messiness, you use these muscles.
 
 The bad news: it's hard!
 
@@ -70,21 +57,17 @@ We might suck at first. And, it can feel vulnerable to be transparent with someo
 
 It can also take practice to get curious and intentional about the roles we play in interacting with people we care about. Similarly, learning to be attentive to our own emotions in addition to someone else's can be intense – especially when giving someone space to lead a conversation.
 
-So please proceed with caution: this material is designed to be used with intention, care, and responsibility. Please email us at [hello@onefact.org](mailto:hello@onefact.org) if you have any suggestions on how to improve it :)
+So please proceed with caution: this material is designed to be used with intention, care, and responsibility.
 
-## Once upon a time… there was transparency
-
-Smile, you're being Once Uponned!
+# Transparency
 
 As an interpersonal tool, Once Upon is collaborative: if only one person holds the keys to the tool or bestows its use, it doesn't count. The intention in its use is to help foster the growth and well-being of the person being listened to, not for another purpose that benefits the listener.
 
 Use it *for* another person, not *on* another person. (All it can take is a simple "Hey, I learned about this approach to conversation – mind if we try it? Let me know if you don't feel like continuing at any point.")
 
-## Foundations: the science of behavior change and motivation
+## Foundations
 
-Once Upon is a tool that draws on a clinical approach to enhancing motivation, called motivational interviewing, and a theory of motivation called self-determination theory. Motivational interviewing has been shown to be effective in eliciting behavior change in various settings, from hostage negotiation to smoking cessation, while self-determination theory is backed by 40 years of psychological studies on the driving forces behind human behavior across domains, from finance to health.
-
-Background
+Once Upon is a tool that draws on the science of behavior change and motivation. Specifically, it's built on a clinical approach to enhancing motivation, called motivational interviewing, and a theory of motivation called self-determination theory. Motivational interviewing has been shown to be effective in eliciting behavior change in various settings, from hostage negotiation to smoking cessation, while self-determination theory is backed by 40 years of psychological studies on the driving forces behind human behavior across domains, from finance to health.
 
 > [!cite]
 > [On the compatibility of motivational interviewing and self-determination theory](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=7d9b461eec6d04a7a4b35a7ed75a2e80609f6dd1)
@@ -132,8 +115,6 @@ In the case of the triage nurse, her empathy allowed her to get the patients' st
 
 Practicing empathy starts with an intention to listen, completely and attentively.
 
-Background
-
 > [!cite]
 > On Empathy in Therapeutic Change
 >
@@ -162,8 +143,6 @@ Humans are driven to move towards our aspirations and act on hunches about what 
 This is where making sense of messiness comes into play. Making sense of messiness serves to help individuals identify goals, overcome obstacles, and move forward with greater purpose and alignment. Not surprisingly then, sense-making has been shown as key in healing from life's tragedies. Those who tell their story, make sense of past tragedies, and see the benefit of them tend to cope better, close chapters and write new ones.
 
 As a listener, you can make this happen by providing a space in which another person can organize, articulate their thoughts, and seek help in navigating the obstacles that arise.
-
-Background
 
 > [!cite]
 > On sense-making
@@ -394,8 +373,6 @@ A World Health Organization handbook, [*Doing what matters in times of stress: A
 
 Paying attention to your breath during a conversation can help us develop awareness of patterns in ourselves and others. Practicing outside of a conversation can make it easier to practice on the spot when it feels accessible to do so. For in-the-moment practice, you can try deep, slow breathing that engages the diaphragm, the breathing muscle located under your lungs. There are open source apps like this one: [https://oneminch.github.io/breathe/](https://oneminch.github.io/breathe/), and plenty of other resources, apps, and tools to learn skills like heart rate variability biofeedback. For a simple approach at home, a simple hand on the belly to notice how it expands and contracts on every breath can help, as can another hand on your neck, to see whether you can feel your heart rate vary, with more variability being easier to notice the deeper you breathe.
 
-Background
-
 > [!cite]
 > The science behind this: your heart rate varies as you breathe thanks to your autonomous nervous system and the "intrathoracic" pressure that increases and decreases as your lungs and other organs around your heart move closer and further away from it on every breath!
 
@@ -414,8 +391,6 @@ Digital mental health apps and resources may assist in providing convenient and 
 Becoming aware of the cultures, countries, and other aspects of ourselves and those we talk to is crucial when practicing Once Upon. For example, in an informal culture like the United States, people from other countries might be aware of how "hello, how is it going?" might seem disingenuous, while in the United States it is a routine part of daily life.
 
 To respect and align with the values and contexts of diverse cultures, we need to learn to notice and approach differences in culture with openness and curiosity when it is feasible and accessible.
-
-Background
 
 > [!cite]
 > Tools from ethnography can provide context on how researchers in the social sciences, user experience research, and other domains learn about different cultures. The Field Study Handbook has a chapter on [calibrating to various cultures](https://drive.google.com/file/d/1F9zr1pHesGPSOTtXLQu4hTxOGu7zoIRx/view?usp=sharing).
@@ -452,60 +427,68 @@ Similar to the act of documenting deceptive design patterns ([https://www.decept
 
 Transparency is thus an ideal that few of us are lucky to attain or beholden to with any regularity (optional footnote: for example, one of the authors of Once Upon removed this blog post critical of a former employer while waiting for a green card: [https://jaan.io/my-friend-radicalized-this-made-me-rethink-how-i-build-AI/](https://jaan.io/my-friend-radicalized-this-made-me-rethink-how-i-build-AI/)). We trust you to do your best. Safeguards are built into professions such as therapy, psychiatry, and social work where research into these skills is advanced.
 
+#### Note
+
+This was Originally released under CC-BY-SA 4.0 License by One Fact Foundation, a nonprofit I started.
+
+
 #### References
 
 For your further exploration of these essential concepts in Once Upon:
 
-> [!cite]
+> [!cite] Reference
 > The [Story-Telling Animal: How Stories Make us Human](https://www.amazon.com/Storytelling-Animal-Stories-Make-Human/dp/B08XLJ8XC9) is a book about our make-believe nature, traversing storytelling's evolution as a fundamental human instinct
 
-> [!cite]
+> [!cite] Reference
+> Pixar's 12 rules for storytelling
+
+> [!cite] Reference
 > A library on all-things empathy, which may inspire you to practice it in different ways: [https://empathylibrary.com/](https://empathylibrary.com/)
 
-> [!cite]
+> [!cite] Reference
 > [Empathy: Why It Matters and How to Get it](https://www.amazon.com/Empathy-Why-Matters-How-Get/dp/0399171401) is a book covering the science of empathy and arguing for empathy for a happier, more creative society
 
-> [!cite]
+> [!cite] Reference
 > A ManyMinds [podcast episode](https://disi.org/the-allure-of-stories/) featuring two researchers covering the psychology and cultural evolution of stories (i.e., why stories stick around so long)
 
-> [!cite]
+> [!cite] Reference
 > A [talk](https://www.youtube.com/watch?v=0MtsXbTJdt8) by an human behavior researcher on the salient role of non-verbals among successful people
 
 Foundational psychology texts:
 
-> [!cite]
+> [!cite] Reference
 > [Motivational interviewing](https://www.amazon.com/Motivational-Interviewing-Helping-People-Applications/dp/1609182278/ref=sr_1_2?crid=11X33561NBFCT&keywords=Motivational+interviewing+textbook&qid=1689093354&sprefix=motivational+interviewing+textbook+%2Caps%2C84&sr=8-2)
 
-> [!cite]
+> [!cite] Reference
 > [Self-determination theory](https://www.guilford.com/books/Self-Determination-Theory/Ryan-Deci/9781462538966)
 
-> [!cite]
+> [!cite] Reference
 > [Crisis Negotiations: Managing Critical Incidents and Hostage Situations in Law Enforcement and Corrections (Routledge)](https://www.routledge.com/Crisis-Negotiations-Managing-Critical-Incidents-and-Hostage-Situations/McMains-Mullins-Young/p/book/9781138585522)
 
-> [!cite]
+> [!cite] Reference
 > [Psychological Aspects of Crisis Negotiation](https://www.routledge.com/Psychological-Aspects-of-Crisis-Negotiation/Strentz/p/book/9781138557024)
 
-> [!cite]
+> [!cite] Reference
 > Motivational interviewing for substance use disorders (UpToDate)
 
-> [!cite]
+> [!cite] Reference
 > [The Happiness Trap, Russ Harris](https://www.amazon.com/Happiness-Trap-Struggling-Living-Second-ebook/dp/B09XQBVS6B/ref=sr_1_1?crid=21CZMMIWBV2FG&keywords=happiness+trap&qid=1690916651&sprefix=happiness+trap%2Caps%2C130&sr=8-1)
 
-> [!cite]
+> [!cite] Reference
 > [https://www.deceptive.design/types](https://www.deceptive.design/types)
 
-> [!cite]
+> [!cite] Reference
 > [Motivational and Psychological Triggers in Social Engineering](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3750474)
 
-> [!cite]
+> [!cite] Reference
 > [Nonviolent Communication: A Language of Life](https://bookshop.org/p/books/nonviolent-communication-a-language-of-life-life-changing-tools-for-healthy-relationships-marshall-b-rosenberg/10180253): Life-Changing Tools for Healthy Relationships
 
-> [!cite]
+> [!cite] Reference
 > Flow chart for a technique called [Brief Action Planning](https://drive.google.com/file/d/1ajqxBpkHiNJmTLliAlmb-07aU6p_AxWH/view?usp=sharing) (Center for Collaboration, Motivation, and Innovation) based on principles of motivational interviewing and behavior change & [training](https://centrecmi.ca/brief-action-planning/) for the use of this tool
 
 Training opportunities:
 
-> [!cite]
+> [!cite] Reference
 > [Motivational Interviewing Network of Trainers (MINT)](https://motivationalinterviewing.org/motivational-interviewing-training)
 
 ## Metadata

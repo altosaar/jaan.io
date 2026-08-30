@@ -153,10 +153,10 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
   }
 
   /* ── Citation tiles ───────────────────────────────────────────────────────
-     A reference, on a plate of its own. Written in Markdown as a `> [!cite]`
-     blockquote and turned into <aside class="citation"> by
-     src/lib/remark-citation.mjs, which is where the syntax and the reasoning
-     for it live.
+     A reference, on a plate of its own, folded shut until it is wanted. Written
+     in Markdown as a `> [!cite]` blockquote and turned into
+     <details class="citation"> by src/lib/remark-citation.mjs, which is where
+     the syntax and the reasoning for it live.
 
      THE SAME PLATE AS THE SIGNUP CARD, deliberately, and the numbers are copied
      rather than approximated: --card is the first step of the grey ramp above
@@ -199,6 +199,88 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
   .prose :global(.citation p) {
     font-size: var(--fs-md);
     margin-bottom: 0.75rem;
+  }
+
+  /* ── The lid ──────────────────────────────────────────────────────────────
+     A <summary> is a button, and every browser gives it a disclosure triangle
+     on the LEFT that cannot be styled — only removed, which takes two rules
+     because Firefox reads `list-style` and Safari only its own pseudo-element.
+     With the marker gone the row is an ordinary flex line, and everything in
+     it sits hard right: a closed tile is then a bar with its label in the top
+     right corner, which is the corner nothing else in the prose occupies.
+
+     THE LABEL IS THE SITE'S SECTION LABEL, one size down. Same face, same
+     weight, same 0.15em — see .section-heading in SectionHeading.astro, which
+     is the voice this site uses for "this is a label, not prose" everywhere
+     else. At 0.75rem against the tile's 1.4rem body it reads as a tab on the
+     box rather than as a line of it. Full-strength --text, like the rest of
+     the tile: see the note above on why nothing in here is dimmed. */
+  .prose :global(.citation__summary) {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    cursor: pointer;
+    list-style: none;
+    color: var(--text);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .prose :global(.citation__summary::-webkit-details-marker) {
+    display: none;
+  }
+
+  /* Only when open. Closed, the summary is the tile's only child and the
+     padding is the whole box; a standing bottom margin would leave a closed
+     tile taller at the bottom than the top. */
+  .prose :global(.citation[open] .citation__summary) {
+    margin-bottom: 0.75rem;
+  }
+
+  .prose :global(.citation__label) {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  /* The carousel's caret, and the carousel's flip: same glyph, same half turn,
+     same curve (.card__toggle-icon in Carousel.astro). It is DRAWN pointing up,
+     because there it opens a panel that rises; here the tile opens downward, so
+     the resting state is the drawn glyph turned over and opening unrolls it
+     back to 0. Turning through −180° rather than +180° is what makes it travel
+     the same way round as the carousel's. */
+  .prose :global(.citation__caret) {
+    flex-shrink: 0;
+    opacity: 0.85;
+    transform: rotate(-180deg);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .prose :global(.citation[open] .citation__caret) {
+    transform: rotate(0deg);
+  }
+
+  /* Hover only on hover-capable devices — on touch, :hover sticks after a tap
+     and would leave the label green until you tapped elsewhere. Touch gets
+     :active, which flashes during the press and clears on release. The focus
+     ring is base.css's global one; the colour swap alone would not be an
+     indicator. */
+  @media (hover: hover) {
+    .prose :global(.citation__summary:hover) {
+      color: var(--accent);
+    }
+  }
+  .prose :global(.citation__summary:active) {
+    color: var(--accent);
+  }
+
+  /* The caret is the one thing here that moves. Reduced motion keeps the flip,
+     drops the travel. */
+  @media (prefers-reduced-motion: reduce) {
+    .prose :global(.citation__caret) {
+      transition: none;
+    }
   }
 
   /* The tile's padding is the tile's padding. Without this the last paragraph
