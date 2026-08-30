@@ -59,13 +59,11 @@ It can also take practice to get curious and intentional about the roles we play
 
 So please proceed with caution: this material is designed to be used with intention, care, and responsibility.
 
-# Transparency
-
-As an interpersonal tool, Once Upon is collaborative: if only one person holds the keys to the tool or bestows its use, it doesn't count. The intention in its use is to help foster the growth and well-being of the person being listened to, not for another purpose that benefits the listener.
+**Transparency.** As an interpersonal tool, Once Upon is collaborative: if only one person holds the keys to the tool or bestows its use, it doesn't count. The intention in its use is to help foster the growth and well-being of the person being listened to, not for another purpose that benefits the listener.
 
 Use it *for* another person, not *on* another person. (All it can take is a simple "Hey, I learned about this approach to conversation – mind if we try it? Let me know if you don't feel like continuing at any point.")
 
-## Foundations
+# Foundations
 
 Once Upon is a tool that draws on the science of behavior change and motivation. Specifically, it's built on a clinical approach to enhancing motivation, called motivational interviewing, and a theory of motivation called self-determination theory. Motivational interviewing has been shown to be effective in eliciting behavior change in various settings, from hostage negotiation to smoking cessation, while self-determination theory is backed by 40 years of psychological studies on the driving forces behind human behavior across domains, from finance to health.
 
@@ -73,18 +71,15 @@ Once Upon is a tool that draws on the science of behavior change and motivation.
 > [On the compatibility of motivational interviewing and self-determination theory](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=7d9b461eec6d04a7a4b35a7ed75a2e80609f6dd1)
 >
 > Vansteenkiste, M., & Sheldon, K. M. (2006). There's nothing more practical than a good theory: Integrating motivational interviewing and self‐determination theory. *British journal of clinical psychology*, *45*(1), 63-82.
-
-> [!cite]
+>
 > Support for self-determination theory in the workplace
 >
 > Gagné, M., & Deci, E. L. (2005). Self‐determination theory and work motivation. *Journal of Organizational behavior*, *26*(4), 331-362.
-
-> [!cite]
+>
 > Support for self-determination theory in sports coaching
 >
 > Mageau, G. A., & Vallerand, R. J. (2003). The coach–athlete relationship: A motivational model. Journal of Sports Sciences, 21(11), 883–904. doi:10.1080/0264041031000140374.
-
-> [!cite]
+>
 > On the effectiveness of Motivational Interviewing
 >
 > Lundahl, B., & Burke, B. L. (2009). The effectiveness and applicability of motivational interviewing: A practice‐friendly review of four meta‐analyses. *Journal of clinical psychology*, *65*(11), 1232-1245.

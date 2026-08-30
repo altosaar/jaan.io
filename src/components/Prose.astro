@@ -231,11 +231,13 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     display: none;
   }
 
-  /* Only when open. Closed, the summary is the tile's only child and the
-     padding is the whole box; a standing bottom margin would leave a closed
-     tile taller at the bottom than the top. */
-  .prose :global(.citation[open] .citation__summary) {
-    margin-bottom: 0.75rem;
+  /* The gap under the lid is set on the first thing BELOW it, not as a bottom
+     margin on the summary itself. Both look identical at rest; only this one
+     animates. A margin on the summary sits outside ::details-content, so it
+     would appear and vanish in one frame at each end of the slide, jolting the
+     text by 0.75rem just as it starts to move. */
+  .prose :global(.citation > summary + *) {
+    margin-top: 0.75rem;
   }
 
   .prose :global(.citation__label) {
@@ -281,6 +283,74 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
      drops the travel. */
   @media (prefers-reduced-motion: reduce) {
     .prose :global(.citation__caret) {
+      transition: none;
+    }
+  }
+
+  /* ── Opening ──────────────────────────────────────────────────────────────
+     The box grows to fit its contents on the same spring the mobile menu and
+     the carousel's testimonial panel travel on — a critically damped spring
+     (stiffness 500, mass 1) written as a linear() curve: quick and springy off
+     the mark, easing in, stopping exactly on target with no overshoot. The
+     stops are copied from --menu-spring in chrome.css, which is where the
+     reasoning for the shape lives; the carousel copies them too (--panel-spring
+     in Carousel.astro), for the same reason each time — that variable is
+     declared inside another component's selector, not as a token, so it cannot
+     be reached from here.
+
+     The animation is the CANONICAL one for a <details>: transition the
+     ::details-content pseudo-element's own block-size between 0 and auto, with
+     `content-visibility` transitioned `allow-discrete` alongside it, because a
+     closed <details> hides its content with content-visibility and would
+     otherwise vanish in the first frame of the close rather than slide away.
+     `interpolate-size: allow-keywords` is the opt-in that makes `auto` an
+     animatable value at all; it is set on the tile rather than on :root so it
+     changes nothing else on the site. Nothing here is JavaScript, and nothing
+     measures a height.
+
+     WHERE THIS DOES NOT RUN, it degrades to what a <details> has always done:
+     an engine without ::details-content ignores all three rules and the tile
+     opens in one frame, which is the behaviour every browser had until 2024.
+     Same for the reduced-motion case below, deliberately: this is a box
+     growing under the pointer, the kind of travel that setting asks to lose. */
+  .prose :global(.citation) {
+    --citation-spring: linear(
+      0 0%,
+      0.095 6%,
+      0.276 11%,
+      0.458 17%,
+      0.611 22%,
+      0.728 28%,
+      0.814 33%,
+      0.875 39%,
+      0.917 44%,
+      0.946 50%,
+      0.964 56%,
+      0.977 61%,
+      0.985 67%,
+      0.991 72%,
+      0.994 78%,
+      0.996 83%,
+      0.998 89%,
+      1 100%
+    );
+    interpolate-size: allow-keywords;
+  }
+
+  .prose :global(.citation::details-content) {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size 0.44s var(--citation-spring),
+      content-visibility 0.44s allow-discrete;
+  }
+
+  .prose :global(.citation[open]::details-content) {
+    block-size: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .prose :global(.citation::details-content) {
       transition: none;
     }
   }
