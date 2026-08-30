@@ -16,7 +16,8 @@
 // because only it has sections you can be inside.
 //
 // It renders nothing when there is nothing to navigate: fewer than two
-// headings, or an empty link list.
+// top-level headings (see `items` below for what counts as top level), or an
+// empty link list.
 //
 // WHY IT IS `position: fixed` AND NOT `position: sticky`
 // Sticky needs the element in the normal flow of something tall enough to
@@ -31,13 +32,11 @@ interface Props {
   headings?: MarkdownHeading[];
   /** An authored rail. Mutually exclusive with `headings`. */
   links?: SiteLink[];
-  /** Deepest heading level to list, as a tag number: 3 keeps h1-h3. */
-  maxDepth?: number;
   /** Accessible name for the landmark. */
   label?: string;
 }
 
-const { headings, links, maxDepth = 3, label } = Astro.props;
+const { headings, links, label } = Astro.props;
 
 if (headings && links) {
   throw new Error("[Toc] Pass `headings` or `links`, not both — they are two modes of one rail.");
@@ -69,27 +68,30 @@ if (headings && links) {
 const APPARATUS_SLUGS = new Set(["footnotes", "footnote-label"]);
 
 /*
- * Every heading in the body is a section of the article, h1 INCLUDED.
+ * THE RAIL LISTS THE POST'S TOP LEVEL AND NOTHING BELOW IT.
  *
- * The title is not one of them and never was: [slug].astro sets it from
- * frontmatter, outside the Markdown, so `headings` holds only what the author
- * wrote inside the post. Skipping depth 1 as "the title" therefore skipped real
- * sections — the physics post opens its six with `#`, so all six were dropped
- * and the rail vanished, one surviving `## References` being too few to draw.
- */
-const items = (headings ?? []).filter((h) => h.depth <= maxDepth && !APPARATUS_SLUGS.has(h.slug));
-
-/*
- * The rail indents by DISTANCE FROM THE SHALLOWEST HEADING, not by tag number.
+ * A contents list is an outline, not an index. Listing three levels made the
+ * rail a second, smaller copy of the article, and — worse — it taxed the prose:
+ * an author who wanted a `###` to break up a long section had to weigh that
+ * against three more tags in the gutter, so the sub-heading did not get
+ * written. Sub-headings are free now. Every one of them is still a destination;
+ * it is reached by the # that appears beside it on hover
+ * (src/lib/rehype-heading-anchors.mjs) rather than by a tag in the rail.
  *
- * Posts here disagree about which tag opens a section: most use `##` and nest
- * with `###`, the physics post uses `#`. Indenting on the absolute depth has to
- * get one of those wrong — either every physics section sits flat where the
- * others step, or its `## References` steps in under a parent it does not have.
- * Measuring from whatever the post's own top level turns out to be makes both
- * shapes read the same, and costs one pass over the list.
+ * TOP LEVEL IS MEASURED, NOT ASSUMED. The title is not in `headings` at all —
+ * [slug].astro sets it from frontmatter, outside the Markdown — so nothing in
+ * the post is spoken for and a piece may open its sections with `#` as validly
+ * as with `##`. Every post here currently uses `##`; a fixed `depth === 2`
+ * would nonetheless empty the rail of the first post that does not, which is a
+ * silent failure. The shallowest depth that actually appears lists the sections
+ * of either shape, and costs one pass over the list.
+ *
+ * Every heading in the body is a candidate, h1 INCLUDED — see above for why
+ * skipping depth 1 as "the title" is exactly the bug this measures around.
  */
-const top = items.reduce((min, h) => Math.min(min, h.depth), Infinity);
+const body = (headings ?? []).filter((h) => !APPARATUS_SLUGS.has(h.slug));
+const top = body.reduce((min, h) => Math.min(min, h.depth), Infinity);
+const items = body.filter((h) => h.depth === top);
 
 // A contents list of one is not worth a rail; an authored list of one is, since
 // the author asked for exactly those.
@@ -115,7 +117,7 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
               </li>
             ))
           : items.map((h) => (
-              <li class:list={["toc__item", `toc__item--sub${Math.min(h.depth - top, 2)}`]}>
+              <li class="toc__item">
                 <a class="toc__link" href={`#${h.slug}`} data-toc-link={h.slug}>
                   {h.text}
                 </a>
@@ -193,18 +195,6 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
     /* Tight, like the reference: the stack should read as one object. */
     align-items: flex-start;
     gap: 0.25rem;
-  }
-
-  /* Nested headings step in, so the rail shows structure rather than a flat
-     list. The number is levels below the post's own top heading, not the tag
-     depth — see `top` above — and it stops at two because maxDepth lists three
-     levels and anything deeper would be indenting past the tag's own text. */
-  .toc .toc__item--sub1 {
-    padding-left: 0.75rem;
-  }
-
-  .toc .toc__item--sub2 {
-    padding-left: 1.5rem;
   }
 
   .toc .toc__link {

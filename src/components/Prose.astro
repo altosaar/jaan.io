@@ -115,6 +115,72 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     margin: 1.5rem 0 0.5rem;
   }
 
+  /* ── The `#` that appears beside a heading on hover ──────────────────────
+     Every heading in a Markdown body carries an empty <a class="heading-anchor">
+     pointing at its own id; src/lib/rehype-heading-anchors.mjs puts it there and
+     explains why it has to be empty (the short version: a text node inside a
+     heading ends up in the heading's TEXT, and so in the contents rail).
+
+     It is the counterpart to the rail listing only a post's top level. The rail
+     addresses the sections; this addresses every heading, so a `###` can break
+     up a long section without being unlinkable.
+
+     ON HOVER AND FOCUS, NOT ALWAYS. A permalink is something you go looking
+     for, and a column of grey #s down the left of every heading is a piece of
+     apparatus asking to be read as punctuation. Hidden by OPACITY rather than
+     display, so it keeps its space in the line at all times: revealing it by
+     display would re-wrap the last word of a long heading under the pointer,
+     which is a heading that moves when you approach it.
+
+     Nothing reveals it on a touch screen, which has no hover — the same
+     condition under which the rail is display:none. Both are desktop
+     affordances for an address you can copy; neither is a way to read. */
+  .prose :global(.heading-anchor) {
+    /* The chrome voice, like the rail: this is navigation attached to the
+       content, not a word of it. */
+    font-family: var(--font-chrome);
+    font-size: 0.7em;
+    font-weight: 400;
+    color: var(--text-muted);
+    /* Not `a:not([class])`, so it takes none of base.css's underline — but the
+       reset is written out anyway, since a future `.prose a` rule would
+       otherwise put a rule under the glyph. */
+    text-decoration: none;
+    box-shadow: none;
+    margin-left: 0.4em;
+    /* Vertically where the text sits, not where the glyph's own box would put
+       it — `#` is a full-height character in a smaller size. */
+    vertical-align: baseline;
+    opacity: 0;
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  .prose :global(.heading-anchor::before) {
+    content: "#";
+  }
+
+  .prose :global(:is(h1, h2, h3, h4, h5, h6):hover .heading-anchor),
+  .prose :global(.heading-anchor:focus-visible) {
+    opacity: 1;
+  }
+
+  /* --text rather than --accent: this is a glyph rendered in the colour, not a
+     fill behind one, and --accent is chosen to be read as a background across
+     the palettes. --text is the one colour guaranteed to carry text on any of
+     them. */
+  .prose :global(.heading-anchor:hover),
+  .prose :global(.heading-anchor:focus-visible) {
+    color: var(--text);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .prose :global(.heading-anchor) {
+      transition: none;
+    }
+  }
+
   .prose :global(ul),
   .prose :global(ol) {
     margin: 0 0 1.25rem 1.25rem;

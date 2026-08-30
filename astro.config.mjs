@@ -1,10 +1,11 @@
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
-import { unified } from "@astrojs/markdown-remark";
+import { unified, rehypeHeadingIds } from "@astrojs/markdown-remark";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeMermaid from "./src/lib/rehype-mermaid.mjs";
 import remarkCitation from "./src/lib/remark-citation.mjs";
+import rehypeHeadingAnchors from "./src/lib/rehype-heading-anchors.mjs";
 // Vendored, not an npm dependency — see the header of that file for why.
 import deleteUnusedImages from "./src/integrations/delete-unused-images/index.js";
 
@@ -99,7 +100,17 @@ export default defineConfig({
       // to look inside. That is the reason the diagram is a FENCE and not raw
       // HTML — it is nothing but dollar signs ("$60", "$3,000", "$200M") and
       // this site parses single `$…$` as inline maths.
-      rehypePlugins: [rehypeKatex, rehypeMermaid],
+      //
+      // The last two are ONE STEP AND ITS PREREQUISITE, in this order and no
+      // other. rehype-heading-anchors builds each anchor's href out of the
+      // heading's id, and @astrojs/markdown-remark assigns those ids in a pass
+      // that runs AFTER every user plugin here — so without Astro's own
+      // rehypeHeadingIds named first, the anchors would be written against ids
+      // that do not exist yet. Running it here does not duplicate the later
+      // pass: that one only assigns an id to a heading which has none, and by
+      // then none is left. See the header of rehype-heading-anchors.mjs for
+      // the second thing that ordering decides — why the anchor is empty.
+      rehypePlugins: [rehypeKatex, rehypeMermaid, rehypeHeadingIds, rehypeHeadingAnchors],
       // smartypants restores the punctuation kramdown applied on the old site.
       // dashes:"oldschool" is required, not cosmetic: the default only maps
       // `--` to an em dash and leaves `---` untouched, which is the exact
