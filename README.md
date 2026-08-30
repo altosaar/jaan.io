@@ -72,20 +72,21 @@ npm run test:redirects -- https://jaan.io   # or any deployed origin
 
 ## Where things live
 
-|                                      |                                              |
-| ------------------------------------ | -------------------------------------------- |
-| Name, nav, social, feature switches  | `src/site.config.ts`                         |
-| Colours, type, spacing               | `src/styles/tokens.css`                      |
-| Blog posts — **filename is the URL** | `src/content/posts/*.md`                     |
-| Long-form page content               | `src/content/pages/*.md`                     |
-| Index lists (projects, viz, gallery) | `src/data/*.ts`                              |
-| Papers, talks, and their BibTeX      | `src/data/papers.ts`, `talks.ts`, `bibtex/`  |
-| Trailing-slash and legacy redirects  | `public/_redirects`                          |
-| Newsletter form                      | `src/components/NewsletterSignup.astro`      |
-| Newsletter endpoints + D1 bindings   | `functions/api/`, `wrangler.toml`            |
-| Share images (og:image)              | `src/lib/og.ts`, `scripts/gen-og-cards.mjs`  |
-| The Atom feed                        | `src/pages/feed.xml.ts`                      |
-| GA4 + webmaster verification tags    | `src/site.config.ts`, `src/lib/analytics.ts` |
+|                                        |                                              |
+| -------------------------------------- | -------------------------------------------- |
+| Name, nav, social, feature switches    | `src/site.config.ts`                         |
+| Colours, type, spacing                 | `src/styles/tokens.css`                      |
+| Blog posts — **filename is the URL**   | `src/content/posts/*.md`                     |
+| Long-form page content                 | `src/content/pages/*.md`                     |
+| Index lists (projects, viz, gallery)   | `src/data/*.ts`                              |
+| Papers, talks, and their BibTeX        | `src/data/papers.ts`, `talks.ts`, `bibtex/`  |
+| Trailing-slash and legacy redirects    | `public/_redirects`                          |
+| Citation tiles — `> [!cite]` in a post | `src/lib/remark-citation.mjs`                |
+| Newsletter form                        | `src/components/NewsletterSignup.astro`      |
+| Newsletter endpoints + D1 bindings     | `functions/api/`, `wrangler.toml`            |
+| Share images (og:image)                | `src/lib/og.ts`, `scripts/gen-og-cards.mjs`  |
+| The Atom feed                          | `src/pages/feed.xml.ts`                      |
+| GA4 + webmaster verification tags      | `src/site.config.ts`, `src/lib/analytics.ts` |
 
 ## URLs, redirects and the feed
 

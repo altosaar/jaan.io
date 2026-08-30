@@ -56,7 +56,7 @@ const PAIRS = [
     fg: "--text",
     bg: "--card",
     min: 4.5,
-    what: "Signup card: heading and status line",
+    what: "Signup card heading and status line, and the text of a citation tile",
   },
   { fg: "--text-muted", bg: "--card", min: 4.5, what: "Microcopy under the signup form" },
   {

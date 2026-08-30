@@ -47,8 +47,10 @@ Connecting communication to behavior requires using narrative: learning what mot
 
 Background
 
-1. [Why inspiring stories make us react: The neuroscience of narrative.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4445577/)
-   Zak, P. J. (2015, January). Why inspiring stories make us react: The neuroscience of narrative. In *Cerebrum: the Dana forum on brain science* (Vol. 2015). Dana Foundation.
+> [!cite]
+> [Why inspiring stories make us react: The neuroscience of narrative.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4445577/)
+>
+> Zak, P. J. (2015, January). Why inspiring stories make us react: The neuroscience of narrative. In *Cerebrum: the Dana forum on brain science* (Vol. 2015). Dana Foundation.
 
 ## Change is hard for all of us
 
@@ -84,14 +86,25 @@ Once Upon is a tool that draws on a clinical approach to enhancing motivation, c
 
 Background
 
-1. [On the compatibility of motivational interviewing and self-determination theory](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=7d9b461eec6d04a7a4b35a7ed75a2e80609f6dd1)
-   Vansteenkiste, M., & Sheldon, K. M. (2006). There's nothing more practical than a good theory: Integrating motivational interviewing and self‐determination theory. *British journal of clinical psychology*, *45*(1), 63-82.
-2. Support for self-determination theory in the workplace
-   Gagné, M., & Deci, E. L. (2005). Self‐determination theory and work motivation. *Journal of Organizational behavior*, *26*(4), 331-362.
-3. Support for self-determination theory in sports coaching
-   Mageau, G. A., & Vallerand, R. J. (2003). The coach–athlete relationship: A motivational model. Journal of Sports Sciences, 21(11), 883–904. doi:10.1080/0264041031000140374.
-4. On the effectiveness of Motivational Interviewing
-   Lundahl, B., & Burke, B. L. (2009). The effectiveness and applicability of motivational interviewing: A practice‐friendly review of four meta‐analyses. *Journal of clinical psychology*, *65*(11), 1232-1245.
+> [!cite]
+> [On the compatibility of motivational interviewing and self-determination theory](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=7d9b461eec6d04a7a4b35a7ed75a2e80609f6dd1)
+>
+> Vansteenkiste, M., & Sheldon, K. M. (2006). There's nothing more practical than a good theory: Integrating motivational interviewing and self‐determination theory. *British journal of clinical psychology*, *45*(1), 63-82.
+
+> [!cite]
+> Support for self-determination theory in the workplace
+>
+> Gagné, M., & Deci, E. L. (2005). Self‐determination theory and work motivation. *Journal of Organizational behavior*, *26*(4), 331-362.
+
+> [!cite]
+> Support for self-determination theory in sports coaching
+>
+> Mageau, G. A., & Vallerand, R. J. (2003). The coach–athlete relationship: A motivational model. Journal of Sports Sciences, 21(11), 883–904. doi:10.1080/0264041031000140374.
+
+> [!cite]
+> On the effectiveness of Motivational Interviewing
+>
+> Lundahl, B., & Burke, B. L. (2009). The effectiveness and applicability of motivational interviewing: A practice‐friendly review of four meta‐analyses. *Journal of clinical psychology*, *65*(11), 1232-1245.
 
 ## Guiding Principles
 
@@ -121,13 +134,15 @@ Practicing empathy starts with an intention to listen, completely and attentivel
 
 Background
 
-1. On Empathy in Therapeutic Change
+> [!cite]
+> On Empathy in Therapeutic Change
+>
+> Rogers, C. R. (1957). The necessary and sufficient conditions of therapeutic personality change. *Journal of consulting psychology*, *21*(2), 95.
 
-   Rogers, C. R. (1957). The necessary and sufficient conditions of therapeutic personality change. *Journal of consulting psychology*, *21*(2), 95.
-
-2. Empathy as a key ingredient in Motivational Interviewing
-
-   Lundahl, B., & Burke, B. L. (2009). The effectiveness and applicability of motivational interviewing: A practice‐friendly review of four meta‐analyses. *Journal of clinical psychology*, *65*(11), 1232-1245.
+> [!cite]
+> Empathy as a key ingredient in Motivational Interviewing
+>
+> Lundahl, B., & Burke, B. L. (2009). The effectiveness and applicability of motivational interviewing: A practice‐friendly review of four meta‐analyses. *Journal of clinical psychology*, *65*(11), 1232-1245.
 
 ### 3. Make Sense of Messiness
 
@@ -150,10 +165,17 @@ As a listener, you can make this happen by providing a space in which another pe
 
 Background
 
-1. On sense-making
-   Wilson, T. D., & Gilbert, D. T. (2005). Affective forecasting: Knowing what to want. *Current directions in psychological science*, *14*(3), 131-134.
-   Pennebaker, J. W. (1997). *Opening up: The healing power of expressing emotions*. Guilford Press.
-2. The neuroscience of mirror neurons and how they are used in ethnography—the study of different cultures - [https://drive.google.com/file/d/1aGpfAcJASHaZJVvk8Yb5oqenbjroHnO7/view?usp=sharing](https://drive.google.com/file/d/1aGpfAcJASHaZJVvk8Yb5oqenbjroHnO7/view?usp=sharing)
+> [!cite]
+> On sense-making
+>
+> Wilson, T. D., & Gilbert, D. T. (2005). Affective forecasting: Knowing what to want. *Current directions in psychological science*, *14*(3), 131-134.
+>
+> Pennebaker, J. W. (1997). *Opening up: The healing power of expressing emotions*. Guilford Press.
+
+> [!cite]
+> The neuroscience of mirror neurons and how they are used in ethnography—the study of different cultures
+>
+> [https://drive.google.com/file/d/1aGpfAcJASHaZJVvk8Yb5oqenbjroHnO7/view?usp=sharing](https://drive.google.com/file/d/1aGpfAcJASHaZJVvk8Yb5oqenbjroHnO7/view?usp=sharing)
 
 ## Core skills: ready, listen, reflect—suck!
 
@@ -374,7 +396,8 @@ Paying attention to your breath during a conversation can help us develop awaren
 
 Background
 
-1. The science behind this: your heart rate varies as you breathe thanks to your autonomous nervous system and the "intrathoracic" pressure that increases and decreases as your lungs and other organs around your heart move closer and further away from it on every breath!
+> [!cite]
+> The science behind this: your heart rate varies as you breathe thanks to your autonomous nervous system and the "intrathoracic" pressure that increases and decreases as your lungs and other organs around your heart move closer and further away from it on every breath!
 
 #### Scripts
 
@@ -394,11 +417,14 @@ To respect and align with the values and contexts of diverse cultures, we need t
 
 Background
 
-Tools from ethnography can provide context on how researchers in the social sciences, user experience research, and other domains learn about different cultures. The Field Study Handbook has a chapter on [calibrating to various cultures](https://drive.google.com/file/d/1F9zr1pHesGPSOTtXLQu4hTxOGu7zoIRx/view?usp=sharing).
+> [!cite]
+> Tools from ethnography can provide context on how researchers in the social sciences, user experience research, and other domains learn about different cultures. The Field Study Handbook has a chapter on [calibrating to various cultures](https://drive.google.com/file/d/1F9zr1pHesGPSOTtXLQu4hTxOGu7zoIRx/view?usp=sharing).
 
-The [Culture Map](https://www.amazon.ca/Culture-Map-Breaking-Invisible-Boundaries/dp/1610392760) includes insights on cultural differences around the world, particularly applied to a business context.
+> [!cite]
+> The [Culture Map](https://www.amazon.ca/Culture-Map-Breaking-Invisible-Boundaries/dp/1610392760) includes insights on cultural differences around the world, particularly applied to a business context.
 
-The [Hofstede's tool offers](https://www.hofstede-insights.com/country-comparison-tool) a cross-country comparison of values on different cultural dimensions (e.x., uncertainty avoidance, power distance, individualism), but this research comes with many caveats.
+> [!cite]
+> The [Hofstede's tool offers](https://www.hofstede-insights.com/country-comparison-tool) a cross-country comparison of values on different cultural dimensions (e.x., uncertainty avoidance, power distance, individualism), but this research comes with many caveats.
 
 As an example of how cultural sensitivity is often an ideal that is hard to reach, consider how difficult translation can be. For example, Mandarin speakers we interviewed for this had difficulty translating the concepts of "consent" and "autonomy", and translations differed between interviewees. Here are translations for some of the guiding principles of Once Upon: consent, autonomy, and empathy in other world languages. Email us at [hello@onefact.org](mailto:hello@onefact.org) if you find better translations!
 
@@ -430,28 +456,57 @@ Transparency is thus an ideal that few of us are lucky to attain or beholden to 
 
 For your further exploration of these essential concepts in Once Upon:
 
-1. The [Story-Telling Animal: How Stories Make us Human](https://www.amazon.com/Storytelling-Animal-Stories-Make-Human/dp/B08XLJ8XC9) is a book about our make-believe nature, traversing storytelling's evolution as a fundamental human instinct
-2. A library on all-things empathy, which may inspire you to practice it in different ways: [https://empathylibrary.com/](https://empathylibrary.com/)
-3. [Empathy: Why It Matters and How to Get it](https://www.amazon.com/Empathy-Why-Matters-How-Get/dp/0399171401) is a book covering the science of empathy and arguing for empathy for a happier, more creative society
-4. A ManyMinds [podcast episode](https://disi.org/the-allure-of-stories/) featuring two researchers covering the psychology and cultural evolution of stories (i.e., why stories stick around so long)
-5. A [talk](https://www.youtube.com/watch?v=0MtsXbTJdt8) by an human behavior researcher on the salient role of non-verbals among successful people
+> [!cite]
+> The [Story-Telling Animal: How Stories Make us Human](https://www.amazon.com/Storytelling-Animal-Stories-Make-Human/dp/B08XLJ8XC9) is a book about our make-believe nature, traversing storytelling's evolution as a fundamental human instinct
+
+> [!cite]
+> A library on all-things empathy, which may inspire you to practice it in different ways: [https://empathylibrary.com/](https://empathylibrary.com/)
+
+> [!cite]
+> [Empathy: Why It Matters and How to Get it](https://www.amazon.com/Empathy-Why-Matters-How-Get/dp/0399171401) is a book covering the science of empathy and arguing for empathy for a happier, more creative society
+
+> [!cite]
+> A ManyMinds [podcast episode](https://disi.org/the-allure-of-stories/) featuring two researchers covering the psychology and cultural evolution of stories (i.e., why stories stick around so long)
+
+> [!cite]
+> A [talk](https://www.youtube.com/watch?v=0MtsXbTJdt8) by an human behavior researcher on the salient role of non-verbals among successful people
 
 Foundational psychology texts:
 
-1. [Motivational interviewing](https://www.amazon.com/Motivational-Interviewing-Helping-People-Applications/dp/1609182278/ref=sr_1_2?crid=11X33561NBFCT&keywords=Motivational+interviewing+textbook&qid=1689093354&sprefix=motivational+interviewing+textbook+%2Caps%2C84&sr=8-2)
-2. [Self-determination theory](https://www.guilford.com/books/Self-Determination-Theory/Ryan-Deci/9781462538966)
-3. [Crisis Negotiations: Managing Critical Incidents and Hostage Situations in Law Enforcement and Corrections (Routledge)](https://www.routledge.com/Crisis-Negotiations-Managing-Critical-Incidents-and-Hostage-Situations/McMains-Mullins-Young/p/book/9781138585522)
-4. [Psychological Aspects of Crisis Negotiation](https://www.routledge.com/Psychological-Aspects-of-Crisis-Negotiation/Strentz/p/book/9781138557024)
-5. Motivational interviewing for substance use disorders (UpToDate)
-6. [The Happiness Trap, Russ Harris](https://www.amazon.com/Happiness-Trap-Struggling-Living-Second-ebook/dp/B09XQBVS6B/ref=sr_1_1?crid=21CZMMIWBV2FG&keywords=happiness+trap&qid=1690916651&sprefix=happiness+trap%2Caps%2C130&sr=8-1)
-7. [https://www.deceptive.design/types](https://www.deceptive.design/types)
-8. [Motivational and Psychological Triggers in Social Engineering](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3750474)
-9. [Nonviolent Communication: A Language of Life](https://bookshop.org/p/books/nonviolent-communication-a-language-of-life-life-changing-tools-for-healthy-relationships-marshall-b-rosenberg/10180253): Life-Changing Tools for Healthy Relationships
-10. Flow chart for a technique called [Brief Action Planning](https://drive.google.com/file/d/1ajqxBpkHiNJmTLliAlmb-07aU6p_AxWH/view?usp=sharing) (Center for Collaboration, Motivation, and Innovation) based on principles of motivational interviewing and behavior change & [training](https://centrecmi.ca/brief-action-planning/) for the use of this tool
+> [!cite]
+> [Motivational interviewing](https://www.amazon.com/Motivational-Interviewing-Helping-People-Applications/dp/1609182278/ref=sr_1_2?crid=11X33561NBFCT&keywords=Motivational+interviewing+textbook&qid=1689093354&sprefix=motivational+interviewing+textbook+%2Caps%2C84&sr=8-2)
+
+> [!cite]
+> [Self-determination theory](https://www.guilford.com/books/Self-Determination-Theory/Ryan-Deci/9781462538966)
+
+> [!cite]
+> [Crisis Negotiations: Managing Critical Incidents and Hostage Situations in Law Enforcement and Corrections (Routledge)](https://www.routledge.com/Crisis-Negotiations-Managing-Critical-Incidents-and-Hostage-Situations/McMains-Mullins-Young/p/book/9781138585522)
+
+> [!cite]
+> [Psychological Aspects of Crisis Negotiation](https://www.routledge.com/Psychological-Aspects-of-Crisis-Negotiation/Strentz/p/book/9781138557024)
+
+> [!cite]
+> Motivational interviewing for substance use disorders (UpToDate)
+
+> [!cite]
+> [The Happiness Trap, Russ Harris](https://www.amazon.com/Happiness-Trap-Struggling-Living-Second-ebook/dp/B09XQBVS6B/ref=sr_1_1?crid=21CZMMIWBV2FG&keywords=happiness+trap&qid=1690916651&sprefix=happiness+trap%2Caps%2C130&sr=8-1)
+
+> [!cite]
+> [https://www.deceptive.design/types](https://www.deceptive.design/types)
+
+> [!cite]
+> [Motivational and Psychological Triggers in Social Engineering](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3750474)
+
+> [!cite]
+> [Nonviolent Communication: A Language of Life](https://bookshop.org/p/books/nonviolent-communication-a-language-of-life-life-changing-tools-for-healthy-relationships-marshall-b-rosenberg/10180253): Life-Changing Tools for Healthy Relationships
+
+> [!cite]
+> Flow chart for a technique called [Brief Action Planning](https://drive.google.com/file/d/1ajqxBpkHiNJmTLliAlmb-07aU6p_AxWH/view?usp=sharing) (Center for Collaboration, Motivation, and Innovation) based on principles of motivational interviewing and behavior change & [training](https://centrecmi.ca/brief-action-planning/) for the use of this tool
 
 Training opportunities:
 
-1. [Motivational Interviewing Network of Trainers (MINT)](https://motivationalinterviewing.org/motivational-interviewing-training)
+> [!cite]
+> [Motivational Interviewing Network of Trainers (MINT)](https://motivationalinterviewing.org/motivational-interviewing-training)
 
 ## Metadata
 

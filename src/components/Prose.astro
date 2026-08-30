@@ -147,6 +147,72 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     color: var(--text-muted);
   }
 
+  /* ── Citation tiles ───────────────────────────────────────────────────────
+     A reference, on a plate of its own. Written in Markdown as a `> [!cite]`
+     blockquote and turned into <aside class="citation"> by
+     src/lib/remark-citation.mjs, which is where the syntax and the reasoning
+     for it live.
+
+     THE SAME PLATE AS THE SIGNUP CARD, deliberately, and the numbers are copied
+     rather than approximated: --card is the first step of the grey ramp above
+     --bg (tokens.css), and the padding is .newsletter__card's own
+     `clamp(1rem, 3vw, 1.25rem) clamp(1rem, 3vw, 1.875rem)` — unequal on the two
+     axes, which is the shape a box wider than it is tall wants. So the two
+     objects on the site that sit ON something rather than IN the page read as
+     one material. If that card's plate is ever repointed, this follows it as
+     far as the token goes; the padding would have to be moved by hand, which is
+     the cost of it being a component's private value rather than a token.
+
+     Square corners come from --hover-radius being 0 site-wide (tokens.css). It
+     is named rather than hardcoded so a future rounded palette rounds these
+     too, instead of leaving them the one sharp object on the page.
+
+     No border and no left rule: the fill IS the edge, which is the same bargain
+     .newsletter__input makes one step further up the ramp. A citation that also
+     carried the blockquote's 2px left rule read as two treatments of one idea.
+
+     TEXT STAYS --text AND FULL STRENGTH. The plate is doing the separating, so
+     the type does not also have to — and --text on --card is a pair
+     scripts/contrast-check.mjs already holds at 4.5:1 (it is the signup card's
+     heading). Muting it would have meant a second checked pair for a gain the
+     background already delivers, and links inside a citation inherit their
+     colour (see `a:not([class])` in base.css), so a muted tile would have
+     produced links dimmer than the underline drawn beneath them. */
+  .prose :global(.citation) {
+    margin: 1.5rem 0;
+    padding: clamp(1rem, 3vw, 1.25rem) clamp(1rem, 3vw, 1.875rem);
+    background: var(--card);
+    border-radius: var(--hover-radius);
+  }
+
+  /* One step down from body copy — --fs-md against --fs-body, 1.4rem against
+     1.5rem. Small on purpose: reference matter is set below running text
+     everywhere it appears, and at the same size the tile reads as a highlighted
+     paragraph rather than as apparatus. It is not smaller than that because
+     --fs-sm is currently the same 1.5rem as --fs-body (tokens.css), so the
+     scale has exactly one step available here and this is it. */
+  .prose :global(.citation p) {
+    font-size: var(--fs-md);
+    margin-bottom: 0.75rem;
+  }
+
+  /* The tile's padding is the tile's padding. Without this the last paragraph
+     adds its own bottom margin inside the box and the plate sits visibly
+     heavier at the bottom than at the top — the classic card-with-prose bug. */
+  .prose :global(.citation > :last-child) {
+    margin-bottom: 0;
+  }
+
+  /* A RUN OF THEM IS ONE STACK. Most of these arrive four at a time under a
+     "Background" line, and at the full 1.5rem apart they read as four unrelated
+     interruptions rather than as one apparatus block. Tightening the gap
+     BETWEEN adjacent tiles — while keeping the full margin above the first and
+     below the last — is what makes the group read as a single object with the
+     prose resuming after it. */
+  .prose :global(.citation + .citation) {
+    margin-top: 0.5rem;
+  }
+
   .prose :global(figure) {
     margin: 2rem 0;
   }

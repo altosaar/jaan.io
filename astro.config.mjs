@@ -4,6 +4,7 @@ import { unified } from "@astrojs/markdown-remark";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeMermaid from "./src/lib/rehype-mermaid.mjs";
+import remarkCitation from "./src/lib/remark-citation.mjs";
 // Vendored, not an npm dependency — see the header of that file for why.
 import deleteUnusedImages from "./src/integrations/delete-unused-images/index.js";
 
@@ -86,7 +87,12 @@ export default defineConfig({
     // naming the key replaces the list rather than adding to it.
     syntaxHighlight: { type: "shiki", excludeLangs: ["math", "mermaid"] },
     processor: unified({
-      remarkPlugins: [remarkMath],
+      // remarkCitation turns `> [!cite]` blockquotes into the reference tiles —
+      // see src/lib/remark-citation.mjs. It runs on the mdast, after parsing,
+      // so it is independent of remarkMath beside it (which is a SYNTAX
+      // extension and has already done its work by the time any transformer
+      // walks the tree); the order of these two is not load-bearing.
+      remarkPlugins: [remarkMath, remarkCitation],
       // Order matters between these two only in that they never see the same
       // node: rehype-katex rewrites the spans remark-math produced, and
       // rehype-mermaid rewrites a code fence, which remark-math is not allowed
