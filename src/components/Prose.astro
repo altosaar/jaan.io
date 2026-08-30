@@ -249,17 +249,23 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     line-height: 1;
   }
 
-  /* The carousel's caret, and the carousel's flip: same glyph, same half turn,
-     same curve (.card__toggle-icon in Carousel.astro). It is DRAWN pointing up,
-     because there it opens a panel that rises; here the tile opens downward, so
-     the resting state is the drawn glyph turned over and opening unrolls it
-     back to 0. Turning through −180° rather than +180° is what makes it travel
-     the same way round as the carousel's. */
+  /* The carousel's caret and the carousel's flip: same glyph, same half turn
+     (.card__toggle-icon in Carousel.astro). It is DRAWN pointing up, because
+     there it opens a panel that rises; here the tile opens downward, so the
+     resting state is the drawn glyph turned over and opening unrolls it back to
+     0. Turning through −180° rather than +180° is what makes it travel the same
+     way round as the carousel's.
+
+     The CURVE is no longer the carousel's, which is the one thing here that
+     deliberately parts company with it: the caret rides the box's own duration
+     and easing (see Opening, below) so the two stop together. On the carousel's
+     0.3s the caret used to land while the box was still growing, which read as
+     two animations rather than one thing opening. */
   .prose :global(.citation__caret) {
     flex-shrink: 0;
     opacity: 0.85;
     transform: rotate(-180deg);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--citation-dur) var(--citation-ease);
   }
   .prose :global(.citation[open] .citation__caret) {
     transform: rotate(0deg);
@@ -288,70 +294,158 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
   }
 
   /* ── Opening ──────────────────────────────────────────────────────────────
-     The box grows to fit its contents on the same spring the mobile menu and
-     the carousel's testimonial panel travel on — a critically damped spring
-     (stiffness 500, mass 1) written as a linear() curve: quick and springy off
-     the mark, easing in, stopping exactly on target with no overshoot. The
-     stops are copied from --menu-spring in chrome.css, which is where the
-     reasoning for the shape lives; the carousel copies them too (--panel-spring
-     in Carousel.astro), for the same reason each time — that variable is
-     declared inside another component's selector, not as a token, so it cannot
-     be reached from here.
+     0.5s of `ease-in-out`, and the content fades up over the same 0.5s. The
+     shape of this — one duration driving the box, the fade and the caret
+     together — is the Figma Config FAQ accordion
+     (config.figma.com/san-francisco/faq), which is `grid-template-rows 0.4s
+     ease, opacity 0.4s ease` on the panel and `transform 0.4s ease` on the
+     chevron.
 
-     The animation is the CANONICAL one for a <details>: transition the
-     ::details-content pseudo-element's own block-size between 0 and auto, with
-     `content-visibility` transitioned `allow-discrete` alongside it, because a
-     closed <details> hides its content with content-visibility and would
-     otherwise vanish in the first frame of the close rather than slide away.
-     `interpolate-size: allow-keywords` is the opt-in that makes `auto` an
-     animatable value at all; it is set on the tile rather than on :root so it
-     changes nothing else on the site. Nothing here is JavaScript, and nothing
-     measures a height.
+     THE CURVE IS NOT THEIRS, AND THE REASON IS THE DISTANCE. Their answers are
+     three or four lines, so an accordion there travels ~120px; the
+     five-reference Background tile under "Foundations" travels 670. `ease`
+     leaves the mark with velocity already on the clock — 9% of the distance
+     inside the first 10% of the time — which over 670px peaks at about 3800
+     px/s and lands as a shove rather than as a box opening. `ease-in-out`
+     starts from a standstill (2% in the first 10%), and at 0.5s peaks near
+     2300. Same arrival, about 40% less speed through the middle, and the short
+     tiles — 84px of travel — are far below the threshold where anyone could
+     tell the two curves apart.
+
+     WHY NOT SLOWER STILL: 0.6s takes another 400 px/s off the peak, but the
+     three-line tiles are the common case on this page (there are about thirty
+     of them and most are one reference), and at 0.6s those read as sluggish.
+     0.5s is the point where the tall one has stopped shoving and the short ones
+     have not started dragging.
+
+     IT USED TO BE THE MENU'S SPRING — the critically damped linear() curve the
+     mobile menu and the carousel's testimonial panel travel on. A spring is
+     right for a panel of fixed height; on a tile that can be three lines or
+     forty it is not, because the curve dumps most of its distance in the first
+     third and then crawls. That was the same fault as `ease`, one degree worse.
+
+     WHAT WOULD ACTUALLY BE RIGHT is a duration that scales with the distance,
+     so every tile travels at one speed instead of in one time. CSS cannot do
+     it: there is no way to read an element's height into a <time>, and the
+     tile's height is not known until it is laid out, so it cannot be written in
+     by the plugin either. It would take JavaScript measuring scrollHeight on
+     every toggle — which is what this whole file is built to avoid. One
+     duration for every tile is the compromise, and 0.5s is where it was set.
+
+     THE TILE IS A TWO-ROW GRID: the summary, then ::details-content, whose
+     track goes 0fr → 1fr. The summary's track is `min-content` and NOT `auto`,
+     which is not a nicety — see "the label used to bob", below.
+
+      An fr track measures its own contents, so this is
+     the one way to animate a box to its natural height that needs neither a
+     measured pixel value nor `auto` as an animatable value — the trick every
+     CSS-only accordion has used since subgrid-era Firefox, applied to the
+     pseudo-element the platform now gives us instead of to a wrapper div we
+     would have to emit. `min-block-size: 0` on the content is what lets the
+     0fr track actually reach zero (a grid item's automatic minimum size would
+     otherwise floor it at its content), and `overflow: hidden` is what clips
+     the text while the track is shorter than it. Nothing here is JavaScript,
+     and nothing measures a height.
+
+     WHAT THIS REPLACED, AND WHY. The obvious spelling — transition
+     ::details-content's `block-size` from 0 to auto under
+     `interpolate-size: allow-keywords` — is the one the CSSWG blessed and the
+     one every write-up shows, and it runs in exactly one engine. Blink shipped
+     `interpolate-size` in 2024; as of Firefox 153 and Safari 26 neither Gecko
+     nor WebKit has it, and both fail SILENTLY and in the worst possible way:
+     they support ::details-content, so they honour `block-size: 0` and clip the
+     tile shut, then jump straight to `auto` with no interpolation in between.
+     The tile worked — it just snapped, which is what it did on this site until
+     this rule was rewritten. The grid version animates in all three.
 
      WHERE THIS DOES NOT RUN, it degrades to what a <details> has always done:
-     an engine without ::details-content ignores all three rules and the tile
-     opens in one frame, which is the behaviour every browser had until 2024.
-     Same for the reduced-motion case below, deliberately: this is a box
-     growing under the pointer, the kind of travel that setting asks to lose. */
+     `@supports selector(::details-content)` is what keeps the grid off engines
+     without the pseudo-element (Safari before 18.4, Firefox before 139), where
+     `grid-template-rows: min-content 0fr` would otherwise collapse the FIRST
+     PARAGRAPH of the tile — with no pseudo to slot into, the children are
+     themselves the grid items — rather than its content box. There, and under reduced motion below, the
+     tile opens in one frame, which is the behaviour every browser had until
+     2024. That is deliberate for reduced motion: this is a box growing under
+     the pointer, the kind of travel that setting asks to lose.
+
+     ONE ASYMMETRY, ACCEPTED. Closing is a full slide only in Blink. Gecko
+     shrinks the plate with the text already gone (it does not hold the
+     `content-visibility: hidden` the UA sets on a closed ::details-content
+     through the `allow-discrete` transition), and WebKit collapses the track in
+     one frame. Opening — the direction you watch, because it is the one that
+     reveals something — travels everywhere.
+
+     THE LABEL USED TO BOB, and this was the whole of what read as bounce. An
+     `auto` track is a STRETCHABLE one: with the default `align-content`, auto
+     tracks absorb whatever space the grid thinks is going spare. Mid-transition
+     the fr track is deliberately shorter than the content it holds, so the
+     summary's auto track ate the difference — swelling from 20px to 187px and
+     back on the big tile, and carrying the label and caret ~99px down the page
+     and back up with it, because a <summary> is a stretched grid item and this
+     one centres its flex line. The tile's TOTAL height was correct throughout;
+     only the split between the two tracks was wrong, which is why this looked
+     like a motion-curve problem and was not one. `min-content` is not
+     stretchable, so the row is the summary's height at every frame and the
+     label, the caret and the plate's top edge do not move at all. Measured at
+     0px of drift in all three engines, opening and closing.
+
+     THE FADE IS DECLARED TWICE, and it has to be, because no single spelling of
+     it runs in all three engines. Blink refuses to start a transition on an
+     element that was being skipped for `content-visibility`, so the plain
+     [open] swap never fires there and the text just appears; it honours
+     @starting-style instead, which is the mechanism for exactly this case.
+     Gecko and WebKit are the other way round — they run the [open] swap and
+     ignore the @starting-style. The two never both fire in one engine, so the
+     opacities cannot compound; whichever an engine ignores, its end state is
+     the same `opacity: 1`. The fade is on the tile's CHILDREN rather than on
+     ::details-content because Gecko does not apply opacity to that pseudo at
+     all. */
   .prose :global(.citation) {
-    --citation-spring: linear(
-      0 0%,
-      0.095 6%,
-      0.276 11%,
-      0.458 17%,
-      0.611 22%,
-      0.728 28%,
-      0.814 33%,
-      0.875 39%,
-      0.917 44%,
-      0.946 50%,
-      0.964 56%,
-      0.977 61%,
-      0.985 67%,
-      0.991 72%,
-      0.994 78%,
-      0.996 83%,
-      0.998 89%,
-      1 100%
-    );
-    interpolate-size: allow-keywords;
+    --citation-dur: 0.5s;
+    --citation-ease: ease-in-out;
   }
 
-  .prose :global(.citation::details-content) {
-    block-size: 0;
-    overflow: hidden;
-    transition:
-      block-size 0.44s var(--citation-spring),
-      content-visibility 0.44s allow-discrete;
-  }
+  @supports selector(::details-content) {
+    .prose :global(.citation) {
+      display: grid;
+      grid-template-rows: min-content 0fr;
+      transition: grid-template-rows var(--citation-dur) var(--citation-ease);
+    }
 
-  .prose :global(.citation[open]::details-content) {
-    block-size: auto;
-  }
+    .prose :global(.citation[open]) {
+      grid-template-rows: min-content 1fr;
+    }
 
-  @media (prefers-reduced-motion: reduce) {
+    /* `content-visibility` transitioned `allow-discrete` alongside the track,
+       because a closed <details> hides its content with content-visibility and
+       it would otherwise vanish in the first frame of the close rather than
+       slide away. Blink is currently the only engine that honours this. */
     .prose :global(.citation::details-content) {
-      transition: none;
+      min-block-size: 0;
+      overflow: hidden;
+      transition: content-visibility var(--citation-dur) allow-discrete;
+    }
+
+    .prose :global(.citation > :not(summary)) {
+      opacity: 0;
+      transition: opacity var(--citation-dur) var(--citation-ease);
+    }
+
+    .prose :global(.citation[open] > :not(summary)) {
+      opacity: 1;
+    }
+
+    @starting-style {
+      .prose :global(.citation[open] > :not(summary)) {
+        opacity: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .prose :global(.citation),
+      .prose :global(.citation > :not(summary)) {
+        transition: none;
+      }
     }
   }
 
