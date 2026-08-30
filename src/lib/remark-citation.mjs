@@ -50,6 +50,13 @@
 // LOOK: the same 20px chevron, flipping through the same half turn on the same
 // curve (see .citation__caret in Prose.astro).
 
+// IF YOU EDIT THIS FILE AND THE DEV SERVER DOES NOT CHANGE, that is not your
+// change failing. Astro's content layer caches the RENDERED HTML of every post
+// in .astro/data-store.json, keyed by the Markdown file's own digest — which a
+// change to a Markdown plugin does not touch. The build is unaffected (it keeps
+// its own store under node_modules/.astro), so the two can silently disagree.
+// Delete .astro/data-store.json, or start the dev server with `--force`.
+
 /**
  * The marker, at the very start of the blockquote's first paragraph. Whatever
  * follows it on that line is the tile's label; the capture is deliberately

@@ -1,6 +1,6 @@
 ---
 title: "Once Upon"
-description: "How to use stories to facilitate communication and behavior change"
+description: "How to use stories to facilitate communication and behavior change."
 # PORTED VERBATIM from the Google Doc "once upon - edit" (One Fact Foundation),
 # via its HTML export — text from the Markdown export, pictures from the HTML
 # one, which is the only place the full-resolution originals survive.
