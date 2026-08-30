@@ -36,6 +36,8 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     padding-bottom: var(--space-block);
   }
 
+  /* The post title, and only the post title: src/pages/[slug].astro names it
+     .post-title for exactly this reason. */
   .prose :global(h1) {
     margin-bottom: 1.25rem;
   }
@@ -46,11 +48,10 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
      the table of contents measures against (Toc.astro), so the heading you
      land on is the one the rail then lights up.
 
-     h1 is in the list only for the post title above, which picks the rule up
-     harmlessly — nothing links to it. Posts open their sections with `##`
-     (the physics one used to use `#`, which gave it eight h1s and section
-     headings as large as its own title); those h2s are the rail's
-     destinations. */
+     The post title picks the rule up harmlessly — nothing links to it. A
+     post's sections may be `##` or `#`, whichever it opens with, and either
+     way they are the rail's destinations (Toc.astro measures the shallowest
+     level rather than assuming one). */
   .prose :global(h1),
   .prose :global(h2),
   .prose :global(h3),
@@ -58,6 +59,36 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
   .prose :global(h5),
   .prose :global(h6) {
     scroll-margin-top: calc(var(--nav-h) + 1rem);
+  }
+
+  /* A BODY `#` IS A SECTION, NOT A SECOND TITLE.
+     Without this rule it is both: base.css sets every h1 at --fs-h1 (3rem,
+     weight 700), the article title's own size, so a post that opens its
+     sections with `#` gets a column of headings as large as its headline —
+     the regression the physics post hit and which demoting its Markdown fixed
+     at the time. once-upon.md does open its sections with `#` (see the port
+     note in that file: it is what gets the contents rail, which lists a post's
+     shallowest heading level), so this is the rule that makes that safe for
+     any post.
+
+     ITS SIZE IS A STEP OF ITS OWN, between the title and h2, and that step is
+     the point. Promoting a post's headings moves every level up one, so the
+     `##` beneath these is now an h2 — and if a body h1 simply borrowed the h2
+     treatment, a section and its sub-sections would set at the same 32px and
+     the outline would read flat. Sized here, the ramp down the page is 48 /
+     38 / 32 / 24, and the 3.6vw tracks h2's 3vw so the gap holds at every
+     width rather than only at the cap.
+
+     .post-title is set in src/pages/[slug].astro. The :not() also outranks the
+     .prose h1 rule above on specificity, so this margin wins over its
+     margin-bottom rather than depending on which rule the bundler emits
+     second. */
+  .prose :global(h1:not(.post-title)) {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.6vw, 2.375rem);
+    font-weight: 700;
+    letter-spacing: calc(-0.015em + var(--track-sans));
+    margin: 2.5rem 0 0.875rem;
   }
 
   .prose :global(h2) {
@@ -467,7 +498,7 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
      ::details-content because Gecko does not apply opacity to that pseudo at
      all. */
   .prose :global(.citation) {
-    --citation-dur: 0.5s;
+    --citation-dur: 0.4s;
     --citation-ease: ease-in-out;
   }
 

@@ -96,7 +96,13 @@ if (post.data.ogImage) {
   publishedTime={post.data.date.toISOString()}
 >
   <Prose>
-    <h1>{post.data.title}</h1>
+    {
+      /* The class is what tells the title apart from a section: a post may set
+         its sections in `#` (once-upon does), and those are h1s too. Prose
+         styles `h1:not(.post-title)` as a section heading, so this one keeps
+         the title treatment by being named rather than by being an h1. */
+    }
+    <h1 class="post-title">{post.data.title}</h1>
     {
       /* AFTER THE TITLE IN DOM ORDER, and that is the whole reason it sits
          here rather than above <Prose> where it used to.

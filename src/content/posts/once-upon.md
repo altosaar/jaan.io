@@ -18,6 +18,16 @@ description: "How to use stories to facilitate communication and behavior change
 #     ("A language of lif](…)e").
 #   - The four pictures moved from Google's floating anchors to the paragraph
 #     each one illustrates, and gained alt text, which the export had none of.
+#   - EVERY HEADING PROMOTED ONE LEVEL, and nothing else about them: the text
+#     is untouched, so every slug — and the two in-document links above, which
+#     point at slugs — is the same. The doc opened with one `#` and then set
+#     its remaining five sections in `##`, which left the piece with a single
+#     top-level heading. The contents rail lists a post's shallowest heading
+#     level (src/components/Toc.astro) and suppresses a list of one, so the
+#     rail disappeared from this post entirely. Promoted, the six sections are
+#     six `#`s and the rail lists them; sub-sections that were `###` are `##`
+#     and stay out of it. Body `#`s are styled as section headings rather than
+#     at title size — see `h1:not(.post-title)` in Prose.astro.
 #
 # STILL TO DECIDE BEFORE THIS SHIPS (see the branch it lives on):
 #   - The "[visual: story spine …]" note and the "Owner:" line at the top are
@@ -84,11 +94,11 @@ Once Upon is a tool that draws on the science of behavior change and motivation.
 >
 > Lundahl, B., & Burke, B. L. (2009). The effectiveness and applicability of motivational interviewing: A practice‐friendly review of four meta‐analyses. *Journal of clinical psychology*, *65*(11), 1232-1245.
 
-## Guiding Principles
+# Guiding Principles
 
 We identify three commitments to guide the practice of Once Upon: to support autonomy, to express empathy, and to make sense of messiness. These principles—rooted in self-determination theory and motivational interviewing—serve as a foundation from which to develop the skills essential to enable communication and behavior change, described in the following section.
 
-### 1. Support Autonomy
+## 1. Support Autonomy
 
 Autonomy is the ability to be the main character of one's own life and to make decisions freely based on what one cares about.
 
@@ -96,7 +106,7 @@ Supporting autonomy in Once Upon is allowing the other person to take the lead, 
 
 The result is psychological empowerment: when a person believes they have control over their lives, can successfully make changes, and envision different possibilities for themselves. In other words, supporting autonomy creates possibilities for change. Extensive research on autonomy-supportive communication backs this as a key behavior change: when people are autonomous, behavior change is more effective and lasting. Supporting autonomy isn't just stepping back and acting as a sounding board. You'll need to listen and empathize too.
 
-### 2. Express Empathy
+## 2. Express Empathy
 
 *As the ER doors swung open, the nurse was immediately hit with a wave of chaos. The smell of antiseptic mixed with the sounds of moaning patients and pacing family members, all vying for her attention.*
 
@@ -120,7 +130,7 @@ Practicing empathy starts with an intention to listen, completely and attentivel
 >
 > Lundahl, B., & Burke, B. L. (2009). The effectiveness and applicability of motivational interviewing: A practice‐friendly review of four meta‐analyses. *Journal of clinical psychology*, *65*(11), 1232-1245.
 
-### 3. Make Sense of Messiness
+## 3. Make Sense of Messiness
 
 Humans are driven to move towards our aspirations and act on hunches about what would bring us joy or fulfillment, whether it be as simple as getting a soda at the nearby store, or aiming to become a partner at the firm. Yet we often face obstacles that prevent us from achieving our goals, one of which is ambivalence: the uncertainty or indecision stemming from a simultaneous experience of conflicting feelings. Ambivalence can be a considerable problem, to the point that it can lead us to abandon a goal altogether.
 
@@ -151,9 +161,9 @@ As a listener, you can make this happen by providing a space in which another pe
 >
 > [https://drive.google.com/file/d/1aGpfAcJASHaZJVvk8Yb5oqenbjroHnO7/view?usp=sharing](https://drive.google.com/file/d/1aGpfAcJASHaZJVvk8Yb5oqenbjroHnO7/view?usp=sharing)
 
-## Core skills: ready, listen, reflect—suck!
+# Core skills: ready, listen, reflect—suck!
 
-### Give space by practicing listening
+## Give space by practicing listening
 
 A legendary listener:
 
@@ -179,7 +189,7 @@ Non-verbal communication patterns can vary across cultures. Read more about cult
 
 Being an attentive listener is essential for personal growth, yet hard to perfect. It requires mindfulness to engage with the other. See "[Put yourself first](#put-yourself-first-empower-yourself-to-empower-someone-else)".
 
-### Storyboard: notice and develop arcs in stories
+## Storyboard: notice and develop arcs in stories
 
 The Once Upon tools help another person develop their story, guiding its flow and development:
 
@@ -199,7 +209,7 @@ The same goes for communication. **One tiny shift in how we communicate has the 
 
 So let's learn the skills first:
 
-#### Ask
+### Ask
 
 Open-ended questions are questions that open up different pathways of discussions and help uncover new insights and perspectives. This type of question contrasts with close-ended questions, which elicit specific information that can usually be offered with a short answer ("yes" or "no").
 
@@ -218,7 +228,7 @@ Closed-ended questions may also be helpful in supporting the development of one'
 
 Questions are helpful, yet tend to be overused. If it feels like the other person is bombarded with all the questions, try changing a question to a reflection by removing the intonation at the end.
 
-#### Advise
+### Advise
 
 Advising involves sharing information to help develop the story. In the case of a person aiming to take better care of their health, this might mean identifying resources ("There's a help center nearby that offers free consults" or sharing knowledge ("This hospital has a cheaper option for the treatment you're looking for").
 
@@ -226,7 +236,7 @@ Advising can be done in an empathic, autonomy-supportive way. Listen to understa
 
 Avoid imposing acceptance of the solutions you provided. Instead, focus on accepting where the person is in their journey and empower them to make their own choices.
 
-#### Reflect
+### Reflect
 
 Reflections are thought to be the most useful tools of Once Upon. They are stand-alone statements, not questions, and contain hypotheses about what you may have noticed (sensed, heard, or seen). They are typically used to continue personal exploration and help people understand their motivations more clearly.
 
@@ -245,7 +255,7 @@ More complex reflections involve finding a deeper meaning in what you hear or se
   />
 </figure>
 
-#### Convey Affirmations
+### Convey Affirmations
 
 Affirmations are positive statements about a person's strengths, efforts, and resources that foster a mindset of empowerment. They are particularly helpful when building rapport and when supporting a person during the process of change.
 
@@ -256,7 +266,7 @@ Noticing easy-to-miss positive qualities calls for a listening mindset. The more
 
 The [Mother's Affirmation](https://www.tiktok.com/@wallstreetwizards/video/7206692364662869253) is another brilliant example of the use of affirmation in the context of a close relationship.
 
-#### Summarize
+### Summarize
 
 Summaries are essentially reflections that recap what the person has conveyed so far. They serve to ensure understanding, transition to new topics, highlight important statements, and connect different pieces of information.
 
@@ -266,7 +276,7 @@ Here's a summary embracing the Once Upon principles of empathizing, helping make
 
 Paying attention is essential to craft well-crafted summaries that capture the essential elements accurately and concisely. In this summary, the listener checked their understanding of the story so far, allowing the other person to provide feedback, if necessary.
 
-### Practice Sucking at Once Upon
+## Practice Sucking at Once Upon
 
 At One Fact Foundation, we start some of our curricula with an anecdote about our friend Elman and baby cows.
 
@@ -332,7 +342,7 @@ This means shifting attention as a listener to channel the character's strengths
 
 Now you're ready to start navigating through stories with Once Upon… time to try them out!
 
-## Yes, and… the end?
+# Yes, and… the end?
 
 We leave the *ever after* part of the story to you and your interlocutors to co-create. Who gets to choose the ending?
 
@@ -344,9 +354,9 @@ This is the initial prototype of this tool; next we aim to integrate technology 
 
 If you have any feedback or are interested in contributing to this non-profit, open source effort, please reach out to us: [hello@onefact.org](mailto:hello@onefact.org) :)
 
-## Story Essentials
+# Story Essentials
 
-### When in doubt, get help
+## When in doubt, get help
 
 Self-assessment and judgment is vital in helping you decide whether or not you are the best person to help another, how you can help, and if you have the right skills to do so.
 
@@ -354,34 +364,34 @@ Remember, it is always better to err on the side of caution and seek professiona
 
 By engaging in training, you can ensure the best support possible and avoid potential harm to others. Once Upon is available to those who would like to explore their own positive development and help others who might not be able to access formal training.
 
-### Put yourself first: Empower yourself to empower someone else
+## Put yourself first: Empower yourself to empower someone else
 
 Once Upon puts an enormous burden on you as a listener to manage and attend to responses of the self and of the other. And on top of that – you're practicing a new skill! The following strategies are known to reduce the overwhelm and increase mindfulness. Experiment with different tools to find what works best for you. Think about strategies that you know have helped you in the past.
 
-#### Using mindfulness when practicing other skills
+### Using mindfulness when practicing other skills
 
 Mindfulness comes down to awareness–which a leading mindfulness trainer, Jon Kabat Zinn, defines as the state which "arises when we pay attention on purpose in the present moment, non-judgmentally". This awareness is essential during a Once Upon conversation to take care of yourself first.
 
 A World Health Organization handbook, [*Doing what matters in times of stress: An illustrated guide*](https://www.who.int/publications/i/item/9789240003927), covers different mindfulness-based tools, namely grounding, unhooking, engaging, being kind, and making room. It is based on an evidence-based therapy approach called Acceptance and Commitment Therapy and available in several languages.
 
-#### Breathe to recenter in a conversation
+### Breathe to recenter in a conversation
 
 Paying attention to your breath during a conversation can help us develop awareness of patterns in ourselves and others. Practicing outside of a conversation can make it easier to practice on the spot when it feels accessible to do so. For in-the-moment practice, you can try deep, slow breathing that engages the diaphragm, the breathing muscle located under your lungs. There are open source apps like this one: [https://oneminch.github.io/breathe/](https://oneminch.github.io/breathe/), and plenty of other resources, apps, and tools to learn skills like heart rate variability biofeedback. For a simple approach at home, a simple hand on the belly to notice how it expands and contracts on every breath can help, as can another hand on your neck, to see whether you can feel your heart rate vary, with more variability being easier to notice the deeper you breathe.
 
 > [!cite]
 > The science behind this: your heart rate varies as you breathe thanks to your autonomous nervous system and the "intrathoracic" pressure that increases and decreases as your lungs and other organs around your heart move closer and further away from it on every breath!
 
-#### Scripts
+### Scripts
 
 The more you practice Once Upon, the more you may begin to get a sense of the moments in which you have difficulty supporting another person the way you would like to.
 
 Writing scripts for predictable situations may help. For example, if you tend to feel overwhelmed when the other speaks too quickly for you to process, your script might be, "Do you mind if we pause for a moment? What you just said is really important to me and I want to make sure I'm getting it". If you need help generating a script, large language models like ChatGPT can help generate different responses, or can act as a role play partner.
 
-#### Technology aids
+### Technology aids
 
 Digital mental health apps and resources may assist in providing convenient and accessible mental health care, particularly for those who cannot otherwise access a healthcare professional in times of need. [One Mind PsyberGuide | A Mental Health App Guide](https://onemindpsyberguide.org/) features mental health resources and a guide to finding mental health apps that are right for you.
 
-### Consider how culture shapes stories
+## Consider how culture shapes stories
 
 Becoming aware of the cultures, countries, and other aspects of ourselves and those we talk to is crucial when practicing Once Upon. For example, in an informal culture like the United States, people from other countries might be aware of how "hello, how is it going?" might seem disingenuous, while in the United States it is a routine part of daily life.
 
@@ -406,7 +416,7 @@ As an example of how cultural sensitivity is often an ideal that is hard to reac
 | Turkish | Rıza | Otonomi |
 | Arabic | موافقة (muwāfaqah) | استقلالية (istiqlaliya) |
 
-### The dark side of tools from psychology and behavior change
+## The dark side of tools from psychology and behavior change
 
 Not being transparent and intending to change someone's behavior without their consent is an intense thing to do.
 
@@ -422,12 +432,12 @@ Similar to the act of documenting deceptive design patterns ([https://www.decept
 
 Transparency is thus an ideal that few of us are lucky to attain or beholden to with any regularity (optional footnote: for example, one of the authors of Once Upon removed this blog post critical of a former employer while waiting for a green card: [https://jaan.io/my-friend-radicalized-this-made-me-rethink-how-i-build-AI/](https://jaan.io/my-friend-radicalized-this-made-me-rethink-how-i-build-AI/)). We trust you to do your best. Safeguards are built into professions such as therapy, psychiatry, and social work where research into these skills is advanced.
 
-#### Note
+### Note
 
 This was Originally released under CC-BY-SA 4.0 License by One Fact Foundation, a nonprofit I started.
 
 
-#### References
+### References
 
 For your further exploration of these essential concepts in Once Upon:
 
@@ -486,9 +496,9 @@ Training opportunities:
 > [!cite] Reference
 > [Motivational Interviewing Network of Trainers (MINT)](https://motivationalinterviewing.org/motivational-interviewing-training)
 
-## Metadata
+# Metadata
 
-### Authors
+## Authors
 
 One Fact Foundation
 
