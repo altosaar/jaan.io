@@ -20,10 +20,17 @@
    font is not ready, with no swap-in shift, which keeps the LCP headline off
    the font's critical path. */
 
-/* ── Hanken Grotesk — the CONTENT face (--font-display, --font-body) ────────
+/* ── Hanken Grotesk — the former DISPLAY face, kept, currently unused ───────
+   The display face until --font-display moved to Inter; see the DISPLAY FACE
+   SWAP in tokens.css, where the old line is commented directly above the live
+   one. Both files stay here for the same reason Fraunces does at the bottom of
+   this file: an @font-face nothing references costs nothing at runtime, and
+   keeping it makes the revert a moved comment rather than a re-download.
+
    Two files, split on unicode-range, which is how Google Fonts ships it. The
    browser fetches latin-ext only when a character needs it, so ordinary English
-   pages pay for `latin` alone. That is why only `latin` is preloaded.
+   pages paid for `latin` alone. That is why only `latin` was preloaded — and
+   why, now that no role names this family, neither file is.
 
    Both files cover the full 100-900 weight axis; neither covers arrows or the
    maths symbols in the older posts (⟨ ∑ ∂ ≈ …), and no Google subset of this

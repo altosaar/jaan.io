@@ -263,16 +263,22 @@ main.is-centered {
 }
 
 /* Base heading.
-   No font-variation-settings: SOFT/WONK/opsz are Fraunces axes, and the display
-   role is Hanken Grotesk, which has only `wght`. Naming axes a font does not
-   have is silently inert — it reads as tuning that is doing nothing. They are
-   recorded on the Fraunces @font-face in fonts.css for whoever switches back. */
+   No font-variation-settings: SOFT and WONK are Fraunces axes, and the display
+   role is Inter, which carries `wght` and `opsz` only. Naming axes a font does
+   not have is silently inert — it reads as tuning that is doing nothing. They
+   are recorded on the Fraunces @font-face in fonts.css for whoever switches
+   back.
+
+   `opsz` is left alone deliberately rather than pinned here: font-optical-sizing
+   defaults to auto, so Inter picks its own optical size from the rendered
+   px — which at --fs-h1 is exactly the display end of its 14–32 range, and is
+   the axis doing real work now that the headline and the nav are one family. */
 h1 {
   font-family: var(--font-display);
   font-size: var(--fs-h1);
   font-weight: 700;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: calc(-0.02em + var(--track-sans));
 }
 
 /* ── Shared CTA buttons (home + mobile menu) ── */

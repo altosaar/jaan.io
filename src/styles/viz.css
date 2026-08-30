@@ -128,7 +128,7 @@
   font-size: var(--fs-lg);
   font-weight: 600;
   line-height: 1.2;
-  letter-spacing: -0.01em;
+  letter-spacing: calc(-0.01em + var(--track-sans));
   /* Keeps the slider from stepping left and right as the year's glyph widths
      change under a drag. */
   font-variant-numeric: tabular-nums;
@@ -151,7 +151,7 @@
   color: var(--text-muted);
   font-family: var(--font-chrome);
   font-size: 0.85rem;
-  letter-spacing: 0.04em;
+  letter-spacing: calc(0.04em + var(--track-sans));
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -169,7 +169,7 @@
   color: var(--text-muted);
   font-family: var(--font-chrome);
   font-size: 0.85rem;
-  letter-spacing: 0.04em;
+  letter-spacing: calc(0.04em + var(--track-sans));
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -234,7 +234,7 @@
   font-family: var(--font-chrome);
   font-size: 0.7rem;
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: calc(0.06em + var(--track-sans));
   text-transform: uppercase;
   text-align: left;
   padding: 0.4rem 0.75rem 0.4rem 0;
@@ -326,7 +326,7 @@
   font-family: var(--font-display);
   font-size: clamp(1.25rem, 2.2vw, 1.5rem);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: calc(-0.01em + var(--track-sans));
   line-height: 1.25;
   max-width: var(--reading-w-tight);
   margin-top: var(--space-block);

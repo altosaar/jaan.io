@@ -365,9 +365,11 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
      up: the
      "Email" label, the address as it is typed, the confirmation line and the
      noscript note, all set in the page's prose face inside a control. A form is
-     furniture, not prose. --font-display (Hanken Grotesk) rather than
-     --font-chrome, because the card's own heading is already in it — this way
-     the box has one voice for its type instead of borrowing a third.
+     furniture, not prose. --font-display rather than --font-chrome, because
+     the card's own heading is already in it — this way the box has one voice
+     for its type instead of borrowing a third. (Both roles resolve to Inter
+     today, so the two render identically; the token still says which reason
+     applies, which is what matters the next time the display face moves.)
      The submit button keeps its --font-chrome override, deliberately: it is
      meant to be the same control as ARTICLES in the nav, and the face is most
      of what makes it read that way. See the note on .newsletter__submit. */
@@ -399,7 +401,7 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
     font-family: var(--font-display);
     font-size: var(--fs-md);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: calc(-0.01em + var(--track-sans));
     line-height: 1;
     /* Tightened with the type — 2rem was the gap a 38px line needed — and then
        again with the box. Flat rather than fluid: at 14px it is already below
@@ -530,7 +532,7 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
     font-family: var(--font-chrome);
     font-size: var(--fs-md);
     font-weight: 350;
-    letter-spacing: 0;
+    letter-spacing: calc(0em + var(--track-sans));
     line-height: 1;
     border: 0;
     cursor: pointer;

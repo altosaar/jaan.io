@@ -51,7 +51,7 @@ const { columns = 3, class: className } = Astro.props;
     font-family: var(--font-display);
     font-size: clamp(2rem, 3vw, 2rem);
     font-weight: 300;
-    letter-spacing: -0.03em;
+    letter-spacing: calc(-0.03em + var(--track-sans));
     font-optical-sizing: auto;
     font-variation-settings:
       "SOFT" 50,

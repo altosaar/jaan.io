@@ -215,7 +215,7 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
     font-size: 0.95rem;
     font-weight: 400;
     line-height: 1.35;
-    letter-spacing: 0.01em;
+    letter-spacing: calc(0.01em + var(--track-sans));
     /* NOT uppercased, unlike the reference and unlike .nav-link. Those are
        one-word category labels; these are sentences ("Mean-field versus
        amortized inference"), and uppercasing them costs a line of wrapping

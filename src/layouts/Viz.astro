@@ -162,7 +162,7 @@ const share = hasCard
     display: inline-block;
     font-family: var(--font-chrome);
     font-size: 0.8rem;
-    letter-spacing: 0.12em;
+    letter-spacing: calc(0.12em + var(--track-sans));
     text-transform: uppercase;
     color: var(--text-muted);
     margin-bottom: 1rem;
@@ -182,7 +182,7 @@ const share = hasCard
     font-family: var(--font-display);
     font-size: var(--fs-h1);
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: calc(-0.02em + var(--track-sans));
     line-height: 1.05;
     max-width: var(--reading-w);
   }
@@ -207,7 +207,7 @@ const share = hasCard
   .viz-sources__heading {
     font-family: var(--font-chrome);
     font-size: 0.8rem;
-    letter-spacing: 0.12em;
+    letter-spacing: calc(0.12em + var(--track-sans));
     text-transform: uppercase;
     color: var(--text-muted);
     font-weight: 500;

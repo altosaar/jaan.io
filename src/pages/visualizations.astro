@@ -105,7 +105,7 @@ const marks = new Map(
   .viz-index__eyebrow {
     font-family: var(--font-chrome);
     font-size: 0.8rem;
-    letter-spacing: 0.12em;
+    letter-spacing: calc(0.12em + var(--track-sans));
     text-transform: uppercase;
     margin-bottom: 1rem;
   }
@@ -124,7 +124,7 @@ const marks = new Map(
     font-family: var(--font-display);
     font-size: var(--fs-h1);
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: calc(-0.02em + var(--track-sans));
     line-height: 1.05;
   }
 
@@ -181,7 +181,7 @@ const marks = new Map(
     font-family: var(--font-display);
     font-size: clamp(1.25rem, 2.2vw, 1.5rem);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: calc(-0.01em + var(--track-sans));
     line-height: 1.2;
     transition: color var(--dur-fast) var(--ease-out);
   }

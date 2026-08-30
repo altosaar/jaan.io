@@ -15,6 +15,24 @@
 .mobile-menu,
 .site-footer {
   font-family: var(--font-chrome);
+
+  /* SLASHED ZERO, which is Inter's `zero` feature — verified present in the
+     subset we ship (public/fonts/Inter.woff2 keeps the feature and the
+     alternate glyph it substitutes to, so this is not a no-op against a
+     stripped file). Written as font-variant-numeric rather than
+     font-feature-settings so it inherits like a property instead of being
+     overwritten wholesale by the next rule that sets a feature, and so a
+     fallback that lacks the glyph simply ignores it.
+
+     ONLY HERE, ON THE CHROME ROOTS, and that is now a choice rather than a
+     technicality. It was written when Inter rendered nothing but the chrome;
+     --font-display has since moved to Inter too, so the headings could take
+     the slashed zero and do not. The chrome is where a zero is part of a
+     number someone reads as data — a year, a count — while a heading's zero
+     is part of a sentence, and a slash through it there is a tic. If the
+     headings should match, move this declaration up to :root and delete it
+     here rather than repeating it. */
+  font-variant-numeric: slashed-zero;
 }
 
 /* ── Ticker + site chrome + nav ── */
@@ -136,7 +154,7 @@
   will-change: transform;
   font-size: 0.85rem;
   font-weight: 400;
-  letter-spacing: 0.04em;
+  letter-spacing: calc(0.04em + var(--track-sans));
   color: var(--text);
   font-variant-numeric: tabular-nums slashed-zero;
   white-space: nowrap;
@@ -321,7 +339,7 @@
 .nav-wordmark {
   font-size: var(--fs-md);
   font-weight: 350;
-  letter-spacing: 0.05rem;
+  letter-spacing: calc(0.05rem + var(--track-sans));
   text-transform: uppercase;
 }
 
@@ -439,7 +457,7 @@
   line-height: 1;
   font-size: var(--fs-md);
   font-weight: 350;
-  letter-spacing: 0rem;
+  letter-spacing: calc(0rem + var(--track-sans));
   text-transform: uppercase;
   color: var(--text);
   text-decoration: none;
@@ -462,7 +480,7 @@
   line-height: 1;
   font-size: var(--fs-md);
   font-weight: 350;
-  letter-spacing: 0rem;
+  letter-spacing: calc(0rem + var(--track-sans));
   text-transform: uppercase;
   color: var(--bg);
   /* Accent-filled at rest, inverting to the light fill on hover. The template
@@ -562,7 +580,7 @@
 .footer-col a {
   font-size: var(--fs-base);
   font-weight: 400;
-  letter-spacing: 0.03em;
+  letter-spacing: calc(0.03em + var(--track-sans));
   text-transform: uppercase;
   color: var(--text);
   text-decoration: none;
@@ -584,7 +602,7 @@
 .footer-right {
   font-size: var(--fs-base);
   font-weight: 200;
-  letter-spacing: 0em;
+  letter-spacing: calc(0em + var(--track-sans));
   text-align: right;
   display: flex;
   flex-direction: column;
@@ -603,7 +621,7 @@
 .footer-copyright {
   /*font-size: 0.6875rem;
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: calc(0.12em + var(--track-sans));
     color: var(--text);*/
   /*opacity: 0.3;*/
 }
@@ -820,7 +838,7 @@
 .mobile-menu-link {
   font-size: clamp(2.5rem, 10vw, 3.5rem);
   font-weight: 300;
-  letter-spacing: 0.04em;
+  letter-spacing: calc(0.04em + var(--track-sans));
   text-transform: uppercase;
   color: var(--text);
   text-decoration: none;
@@ -844,6 +862,22 @@
   gap: 0.75rem;
   padding: clamp(1.25rem, 4vw, 2rem);
 }
+/* THE ONE PLACE THE SANS TRACKING HAS TO BE SCOPED RATHER THAN SET AT THE RULE.
+   .cta-primary / .cta-secondary (base.css) declare `font-family: inherit` on
+   purpose — the same two buttons render in the chrome face here and in the body
+   serif on the home page, from one rule. So their -0.04em cannot carry
+   --track-sans at its own declaration the way every other Inter rule does; that
+   would open up the serif copy of the button too. It is added here instead,
+   where the buttons are demonstrably inside .mobile-menu and therefore in Inter.
+
+   Keep this in step with base.css if that -0.04em ever changes: this repeats
+   the value rather than adding to it, because CSS has no way to say "whatever
+   you inherited, plus this". */
+.mobile-menu-ctas .cta-primary,
+.mobile-menu-ctas .cta-secondary {
+  letter-spacing: calc(-0.04em + var(--track-sans));
+}
+
 .mobile-menu-ctas .cta-primary {
   background: var(--accent);
   color: var(--bg);
