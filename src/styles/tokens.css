@@ -68,8 +68,9 @@
        --font-body     running text, captions, buttons inside the content
        --font-chrome   the header, nav, mobile menu, and footer
 
-     Body is on a serif while display stays on Hanken Grotesk — the reason the
-     two are separate tokens. Which serif is the BODY FACE SWAP below: the live
+     Body is on a serif while display is on a sans — the reason the two are
+     separate tokens. Which sans is the DISPLAY FACE SWAP below; which serif
+     is the BODY FACE SWAP under it: in both cases the live
      line names it, the commented line is the other candidate, and both are
      declared in fonts.css with their files already in public/fonts. Either covers the whole Latin range itself,
      which is what a trial of Pensum Pro did not — its demo cut carried 70
@@ -77,23 +78,60 @@
      to be drawn by the sans behind it. fonts.css says more, including why that
      trial ended.
 
-     Inter sits behind Hanken Grotesk in both content stacks so that a glyph it
-     lacks is served by a font this site already ships, rather than by whatever
-     the OS happens to offer. It is free: Inter is downloaded for the chrome on
-     every page anyway.
+     Inter sits behind the body serif so that a glyph it lacks is served by a
+     font this site already ships, rather than by whatever the OS happens to
+     offer. It is free: Inter is downloaded for the chrome on every page anyway,
+     and with the display face on Inter too it is the only sans in the build.
 
      It does NOT rescue the arrows. Measured with CSS.getPlatformFontsForNode:
      neither family contains ← (U+2190) or ↩ (U+21A9), so "← Home" and the
      footnote backrefs render their arrow from the system font — as they already
      did when body copy was Inter. Nothing regressed there; it is simply not a
      thing either webfont can fix. */
+  /* DISPLAY FACE SWAP — one of these two lines is live, the other is commented.
+     Hanken Grotesk was the display face until this swap; its @font-face blocks
+     and both .woff2 files are still there, so moving the comment back is the
+     whole revert. Do it together with SITE.fonts (src/site.config.ts), which
+     has to carry HankenGrotesk-latin.woff2 again for the live line to be
+     preloaded, then run `npm run fonts:check`.
+
+     WITH INTER LIVE, THE CONTENT SANS AND THE CHROME SANS ARE THE SAME FAMILY,
+     which softens the content/chrome split described above: the headings and
+     the nav now differ by size, weight and spacing rather than by voice. That
+     is the thing to judge this swap on. It is also one font file lighter on
+     every page — Inter is preloaded for the chrome regardless, so the display
+     role now costs nothing where it used to cost 34 KB. */
+  /* --font-display: "Hanken Grotesk", "Inter", system-ui, sans-serif; */
+  --font-display: "Inter", system-ui, sans-serif;
   /* BODY FACE SWAP — one of these two lines is live, the other is commented.
      Move the comment here and in SITE.fonts (src/site.config.ts), then run
      `npm run fonts:check`. See the block of the same name in fonts.css. */
-  /* --font-body: "Lora", "Hanken Grotesk", "Inter", system-ui, serif; */
-  --font-body: "Source Serif 4", "Hanken Grotesk", "Inter", system-ui, serif;
-  --font-display: "Hanken Grotesk", "Inter", system-ui, sans-serif;
+  /* --font-body: "Lora", "Inter", system-ui, serif; */
+  --font-body: "Source Serif 4", "Inter", system-ui, serif;
   --font-chrome: "Inter", system-ui, sans-serif;
+
+  /* TRACKING ADDED TO EVERY RULE SET IN INTER — a delta, not a value.
+     Each of those rules reads `letter-spacing: calc(<its own> + var(--track-sans))`,
+     so the number the designer chose for that element stays legible on its own
+     line and this token only says how much wider than that the sans runs. Set
+     it to 0 and every rule falls back to exactly the tracking it had before.
+
+     It is a DELTA because the values it modifies are not one design decision
+     but thirty: the h1 is cut tight at -0.02em, the footer's copyright line is
+     opened to 0.12em because it is small caps furniture, and flattening both
+     to a single number would throw away that whole scale. 0.04em ≈ 4% of the
+     em at any size, which is why it can be one number across sizes at all.
+
+     ONLY THE SANS. The body serif's own tracking is untouched — a serif at
+     reading size does not want the same treatment, and the two faces are
+     tuned separately on purpose. Rules whose face is `inherit` rather than a
+     role token (the CTA buttons in base.css) take this only where they render
+     in Inter; see the mobile-menu override in chrome.css.
+
+     `npm run fonts:check` does NOT police this: it checks faces, files and
+     preloads, and knows nothing about tracking. A new rule set in Inter that
+     forgets the calc() simply runs 4% tighter than everything around it. */
+  --track-sans: 0.02em;
 
   /* The sizes this design actually reuses. One-off sizes stay inline at their
      use site; promote one here once a second place wants it. */

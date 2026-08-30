@@ -51,26 +51,24 @@ export const SITE = {
   // on to use is pure wasted bandwidth, and the browser warns about it.
   //   • the live body face (--font-body) — see the BODY FACE SWAP below, which
   //     is the only place that decides between Lora and Source Serif 4
-  //   • HankenGrotesk-latin — the display face (--font-display): the hero and
-  //     every heading, so it is on every page's critical path
-  //   • Inter — the chrome face (--font-chrome): nav, mobile menu, footer
+  //   • Inter — now BOTH the display face (--font-display: the hero and every
+  //     heading) and the chrome face (--font-chrome: nav, mobile menu, footer),
+  //     so one file covers two roles and the list is two entries, not three
   // Deliberately absent: the three other files of whichever body face is live,
   // which only italics and accented characters ask for; every file of the face
-  // that is NOT live, which nothing asks for at all; HankenGrotesk-latin-ext,
-  // which its unicode-range fetches only when an accented character actually
-  // appears; and Fraunces, which no role token names any more.
+  // that is NOT live, which nothing asks for at all; BOTH HankenGrotesk files,
+  // since the DISPLAY FACE SWAP in tokens.css put that face out of use (a
+  // preload for it would now fail fonts:check as dead weight — put it back at
+  // the same time as the token if you revert); and Fraunces, which no role
+  // token names any more.
   //
   // `npm run fonts:check` fails the build if this list and the roles disagree.
   //
   // BODY FACE SWAP — the first entry follows --font-body (src/styles/tokens.css).
   // Move the comment in both places together, then run `npm run fonts:check`.
   // See the block of the same name in src/styles/fonts.css.
-  // fonts: ["/fonts/Lora-latin.woff2", "/fonts/HankenGrotesk-latin.woff2", "/fonts/Inter.woff2"],
-  fonts: [
-    "/fonts/SourceSerif4-latin.woff2",
-    "/fonts/HankenGrotesk-latin.woff2",
-    "/fonts/Inter.woff2",
-  ],
+  // fonts: ["/fonts/Lora-latin.woff2", "/fonts/Inter.woff2"],
+  fonts: ["/fonts/SourceSerif4-latin.woff2", "/fonts/Inter.woff2"],
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   // One source of truth. The header, the mobile menu, and the footer all read

@@ -64,7 +64,7 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     font-family: var(--font-display);
     font-size: clamp(1.5rem, 3vw, 2rem);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: calc(-0.01em + var(--track-sans));
     margin: 2rem 0 0.75rem;
   }
 
@@ -89,6 +89,11 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
      that nobody caught it. Adding the element to this selector puts it
      unambiguously on top and leaves the page nothing to get wrong. */
   .prose :global(p.prose-dateline) {
+    /* On the sans, not the body serif: the dateline is a label about the
+       article rather than a line of it, and setting it in --font-display —
+       the same face as the headline right above it — says so without needing
+       a rule, a bracket or a smaller size to do the separating. */
+    font-family: var(--font-display);
     font-size: var(--fs-sm);
     color: var(--text-muted);
     margin-bottom: 2.5rem;
@@ -98,7 +103,7 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     font-family: var(--font-display);
     font-size: clamp(1.25rem, 2.2vw, 1.5rem);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: calc(-0.01em + var(--track-sans));
     margin: 2rem 0 0.625rem;
   }
 
