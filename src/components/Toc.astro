@@ -197,8 +197,46 @@ const name = label ?? (links ? "Elsewhere" : "On this page");
     gap: 0.25rem;
   }
 
+  /* THE GAP IS THE GAP, AND THIS IS WHAT KEEPS IT THAT WAY.
+     Both declarations undo something Prose does to a plain <li>, and neither
+     is visible in this file's own numbers — which is why the rail measured
+     18.3px between tags on a post and 4px on /about/, from one `gap: 0.25rem`.
+     The difference is only ever where the rail is rendered: inside <Prose> on
+     an article (src/pages/[slug].astro), outside it on /about/.
+
+       margin: 0     `.prose li` carries `margin-bottom: 0.375rem`, and in a
+                     flex column an item's margin ADDS to the gap rather than
+                     collapsing into it. Worth 6px.
+       the tag is    the other ~8px, and the subtler one. `.prose li` also sets
+       a BLOCK       `font-size: var(--fs-body)` (1.5rem), and the tag used to
+                     be an inline-block, so the <li> drew a 1.5rem LINE BOX
+                     around a 0.95rem control — half-leading above it and the
+                     descender space below. A block-level child gives the <li>
+                     no inline content and so no line box at all, and the row
+                     becomes the tag's own height.
+
+                     `display: flex` on the <li> removes the same line box and
+                     is the more obvious fix, but it makes the tag a FLEX ITEM,
+                     which shrinks below its content: "Core skills: ready,
+                     listen, reflect—suck!" came out 95px wide with the rest of
+                     itself outside the box. A block fills the width the <li>
+                     shrink-wrapped to and wraps inside it, which is what the
+                     inline-block did.
+
+     The result is the 4px the /about/ stack has always had, at both of the
+     rail's two call sites; .contact__list in src/pages/about.astro is the same
+     0.25rem, and the two lists now agree by measurement and not just by
+     declaration. */
+  .toc .toc__item {
+    margin: 0;
+  }
+
   .toc .toc__link {
-    display: inline-block;
+    /* Block, not inline-block — see the note on .toc__item above: it is what
+       keeps `.prose li`'s 1.5rem line box from padding out every row. The tag
+       still shrink-wraps, because the <li> it fills is a flex item under
+       `align-items: flex-start`. */
+    display: block;
     /* Navigation, so it takes the chrome voice rather than the content face —
        see the role tokens in tokens.css. */
     font-family: var(--font-chrome);
