@@ -36,7 +36,7 @@ Say you're helping someone tell their story of how they might change their life 
 
 As a listener, you can help someone discover meaning: by demonstrating understanding and supporting the evolution of the stories that matter to them. Such stories can shape their behavior.
 
-Connecting communication with behavior requires using narrative: learning what motivates someone can help incite change. You can let them be the main character of their story, and get to choose which set of roles to play in support.
+Connecting communication with behavior requires using narrative – learning what motivates someone can help incite change. You can let them be the main character of their story, and get to choose which set of roles to play in support.
 
 > [!cite]
 > Zak, P. J. (2015). [Why inspiring stories make us react: The neuroscience of narrative](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4445577/). In *Cerebrum: the Dana forum on brain science*.
