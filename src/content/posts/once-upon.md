@@ -55,38 +55,38 @@ date: 2023-08-01
 
 Say you're helping someone tell their story of how they might change their life for the better. A story that shows where they are now, and where they want to go.
 
-As a listener, you can help someone discover meaning: by demonstrating understanding and supporting the evolution of the stories that matter to them. Such stories can shape their behavior.
+As a listener, you can help someone discover meaning by demonstrating understanding and supporting the evolution of the stories that matter to them. Such stories, in turn, shape their behavior.
 
-Connecting communication with behavior requires using narrative – learning what motivates someone can help incite change. You can let them be the main character of their story, and get to choose which set of roles to play in support.
+Connecting communication with behavior requires using narrative: learning what motivates someone can using help shift their story and incite change. At each stage of this process, giving them space to be the main character of their story requires awareness of which roles you might play in support.
 
 > [!cite]
 > Zak, P. J. (2015). [Why inspiring stories make us react: The neuroscience of narrative](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4445577/). In *Cerebrum: the Dana forum on brain science*.
 
 <!--**Change is hard for all of us.**-->
 
-*Once Upon* is a communication and behavior change tool you can decide to learn to empower yourself—and, perhaps, someone around you—to take actions aligned with values and make meaningful change.
+*Once Upon* is a communication and behavior change tool to empower yourself—and, perhaps, someone around you—to take actions aligned with values and make meaningful change.
 
 This requires combining tried-and-tested interpersonal skills such as active listening and motivational interviewing with the power of storytelling to enable caring and productive dialogue.
 
 Good news: you already experience the core skills needed for this. Every time you support your own or someone else's freedom to make choices, express empathy, ask open-ended questions, or help make sense of messiness, you use these muscles.
 
-The bad news: it's hard!
+The bad news: this can be challenging! 
 
-It can feel awkward, overwhelming, and mechanical to notice and, perhaps, consider shifting the ways in which we communicate.
+It can feel awkward, overwhelming, and mechanical to notice and shift the ways in which we communicate. We might suck at first; at least I felt that way and often do. And, to be transparent with someone else about your practice is vulnerable.
 
-We might suck at first. And, it can feel vulnerable to be transparent with someone else.
+When interacting with people we care about, we might take on habitual roles, and becoming aware of such patterns of behavior takes practice, curious and intention. Similarly, learning to be attentive to our own emotions in addition to someone else's can be intense – especially when giving someone space to lead a conversation when things get emotional.
 
-It can also take practice to get curious and intentional about the roles we play in interacting with people we care about. Similarly, learning to be attentive to our own emotions in addition to someone else's can be intense – especially when giving someone space to lead a conversation.
+## Transparency
 
-So please proceed with caution: this material is designed to be used with intention, care, and responsibility.
+As an interpersonal tool, these skills are collaborative: if only one person holds the keys to a tool or bestows its use, it doesn't count. The intention in using these methods is to help foster the growth and well-being of the person being listened to, not for another purpose that benefits the listener or manipulates.
 
-**Transparency.** As an interpersonal tool, Once Upon is collaborative: if only one person holds the keys to the tool or bestows its use, it doesn't count. The intention in its use is to help foster the growth and well-being of the person being listened to, not for another purpose that benefits the listener.
+Use it *for* another person, not *on* another person. (All it can take is a simple "Hey, I learned about this approach to conversation—mind if we try it? Let me know if you don't feel like continuing at any point.")
 
-Use it *for* another person, not *on* another person. (All it can take is a simple "Hey, I learned about this approach to conversation – mind if we try it? Let me know if you don't feel like continuing at any point.")
+Proceed with caution. This material is designed to be used with care and responsibility.
 
-# Foundations
+## Foundations
 
-Once Upon is a tool that draws on the science of behavior change and motivation. Specifically, it's built on a clinical approach to enhancing motivation, called motivational interviewing, and a theory of motivation called self-determination theory. Motivational interviewing has been shown to be effective in eliciting behavior change in various settings, from hostage negotiation to smoking cessation, while self-determination theory is backed by 40 years of psychological studies on the driving forces behind human behavior across domains, from finance to health.
+Once Upon draws on the science of behavior change and motivation. Specifically, it's built on a clinical approach to enhancing motivation, called motivational interviewing, and a theory of motivation called self-determination theory. Motivational interviewing has been shown to be effective in eliciting behavior change in various settings, from hostage negotiation to chaplaincy work and smoking cessation, while self-determination theory is backed by 40 years of psychological studies on the driving forces behind human behavior across domains, from finance to health.
 
 > [!cite]
 > On the compatibility of motivational interviewing and self-determination theory:
@@ -107,42 +107,42 @@ Once Upon is a tool that draws on the science of behavior change and motivation.
 
 # Guiding Principles
 
-We identify three commitments to guide the practice of Once Upon: to support autonomy, to express empathy, and to make sense of messiness. These principles—rooted in self-determination theory and motivational interviewing—serve as a foundation from which to develop the skills essential to enable communication and behavior change, described in the following section.
+We identify three commitments to guide this practice: support autonomy, express empathy, and make sense of messiness. These principles—rooted in self-determination theory and motivational interviewing—serve as a foundation from which to develop the skills essential to enable communication and behavior change.
 
 ## 1. Support Autonomy
 
 Autonomy is the ability to be the main character of one's own life and to make decisions freely based on what one cares about.
 
-Supporting autonomy in Once Upon is allowing the other person to take the lead, trusting their expertise in designing an ending that serves them best, and helping them discover their *own* reasons and solutions.
+Supporting autonomy means allowing the other person to take the lead, trusting their expertise in designing an ending that serves them best, and helping them discover their *own* reasons and solutions. If their hands are on the steering wheel, they're deciding where to go, with you being in the passenger seat seeing how you might help orient.
 
-The result is psychological empowerment: when a person believes they have control over their lives, can successfully make changes, and envision different possibilities for themselves. In other words, supporting autonomy creates possibilities for change. Extensive research on autonomy-supportive communication backs this as a key behavior change: when people are autonomous, behavior change is more effective and lasting. Supporting autonomy isn't just stepping back and acting as a sounding board. You'll need to listen and empathize too.
+The result of experiencing autonomy is psychological empowerment: when a person believes they have control over their lives, they can successfully make changes and envision different possibilities for themselves. In other words, supporting autonomy creates possibilities for change. Extensive research on autonomy-supportive communication backs this as key to behavior change. When people are autonomous, behavior change is more effective and lasting. But supporting autonomy isn't just stepping back and acting as a sounding board. You'll need to listen and empathize too.
 
 ## 2. Express Empathy
 
-*As the ER doors swung open, the nurse was immediately hit with a wave of chaos. The smell of antiseptic mixed with the sounds of moaning patients and pacing family members, all vying for her attention.*
+> As the ER doors swung open, the nurse was immediately hit with a wave of chaos. The smell of antiseptic mixed with the sounds of moaning patients and pacing family members, all vying for her attention.
+>
+> It was a typical day in the ER, with life and death hanging in the balance. But the nurse had a secret weapon—empathy.
+>
+> She assessed each patient's condition, listening carefully to their complaints, taking note of the urgency of their symptoms, and assigned each a priority level.
 
-*It was a typical day in the ER, with life and death hanging in the balance. But the nurse had a secret weapon - empathy.*
+The goal is to get the story right, not to _be right_. Empathy can help with this. Defined as both understanding and being able to show you understand, empathy unlocks possibilities for change.
 
-*She assessed each patient's condition, listening carefully to their complaints, taking note of the urgency of their symptoms, and assigned each a priority level.*
+In the case of the triage nurse, her empathy allowed her to get the patients' stories right, which in turn led to informed decisions about how and when to assign time and energy to help each of them. In the same way, a parent's empathy gives them extraordinary ability to understand the degree of distress of their infant and to respond accordingly. Empathy isn't just used for specific situations, though. You can empathize with people in your everyday life. Feeling heard and understood endows a sense of psychological empowerment that is foundational for positive change.
 
-**The goal in Once Upon is to get the story right, not to be right. Empathy can help with this. Defined as understanding and being able to *show* you understand, empathy unlocks possibilities.**
-
-In the case of the triage nurse, her empathy allowed her to get the patients' stories right, which in turn led to informed decisions about how and when to assign time and energy to help each of them. In the same way, a parent's empathy gives the extraordinary ability to understand the degree of distress of their infant and to respond accordingly. Empathy isn't just used for specific situations, though. You can empathize with people in your everyday life. Feeling heard and understood endows the sense of psychological empowerment that is foundational for positive change.
-
-Practicing empathy starts with an intention to listen, completely and attentively.
+Practicing empathy starts with an intention to listen, completely and attentively, the practice of which is described below.
 
 > [!cite]
-> On Empathy in Therapeutic Change:
+> On Empathy in therapeutic change:
 >
 > Rogers, C. R. (1957). [The necessary and sufficient conditions of therapeutic personality change](https://psycnet.apa.org/doi/10.1037/0022-006X.60.6.827). *Journal of consulting psychology*, *21*(2), 95. [🏴‍☠️ PDF](https://sci-hub.st/https://psycnet.apa.org/doi/10.1037/0022-006X.60.6.827)
 >
-> Empathy as a key ingredient in Motivational Interviewing:
+> Empathy as a key ingredient in motivational interviewing:
 >
 > Lundahl, B., & Burke, B. L. (2009). [The effectiveness and applicability of motivational interviewing: A practice‐friendly review of four meta‐analyses](https://doi.org/10.1002/jclp.20638). *Journal of clinical psychology*, *65*(11), 1232-1245. [🏴‍☠️ PDF](https://sci-hub.st/10.1002/jclp.20638)
 
 ## 3. Make Sense of Messiness
 
-Humans are driven to move towards our aspirations and act on hunches about what would bring us joy or fulfillment, whether it be as simple as getting a soda at the nearby store, or aiming to become a partner at the firm. Yet we often face obstacles that prevent us from achieving our goals, one of which is ambivalence: the uncertainty or indecision stemming from a simultaneous experience of conflicting feelings. Ambivalence can be a considerable problem, to the point that it can lead us to abandon a goal altogether.
+Humans are driven to move towards our aspirations and act on hunches about what would bring us survival, joy, or fulfillment, whether it be as simple as getting a soda at the nearby store, or aiming to become a better friend, partner, or parent. Yet we often face obstacles that prevent us from achieving our goals, one of which is ambivalence: the uncertainty or indecision stemming from a simultaneous experience of conflicting feelings. Ambivalence can be a considerable problem, to the point that it can lead us to abandon a goal altogether.
 
 <figure>
   <img
@@ -157,9 +157,9 @@ Humans are driven to move towards our aspirations and act on hunches about what 
   />
 </figure>
 
-This is where making sense of messiness comes into play. Making sense of messiness serves to help individuals identify goals, overcome obstacles, and move forward with greater purpose and alignment. Not surprisingly then, sense-making has been shown as key in healing from life's tragedies. Those who tell their story, make sense of past tragedies, and see the benefit of them tend to cope better, close chapters and write new ones.
+This is where making sense of messiness shines. Identifying meaning in a complex situation serves to help individuals identify goals, overcome obstacles, and move forward with greater purpose and alignment. Not surprisingly, sense-making has been shown as key in healing from life's tragedies. Those who tell their story, make sense of past tragedies, and see the benefit of them tend to cope better, close chapters, and write new ones.
 
-As a listener, you can make this happen by providing a space in which another person can organize, articulate their thoughts, and seek help in navigating the obstacles that arise.
+As a listener, you can make this happen by providing a space in which another person can organize narratives, articulate their thoughts, and seek help in navigating obstacles to taking an initial step in a direction they desire.
 
 > [!cite]
 > On sense-making:
@@ -173,27 +173,27 @@ As a listener, you can make this happen by providing a space in which another pe
 > [https://drive.google.com/file/d/1aGpfAcJASHaZJVvk8Yb5oqenbjroHnO7/view?usp=sharing](https://drive.google.com/file/d/1aGpfAcJASHaZJVvk8Yb5oqenbjroHnO7/view?usp=sharing)
 > Summers-Effler, E., Van Ness, J., & Hausmann, C. (2015). [Peeking in the Black Box: Studying, Theorizing, and Representing the Micro-Foundations of Day-to-Day Interactions: Studying, Theorizing, and Representing the Micro-Foundations of Day-to-Day Interactions](https://doi.org/10.1177/0891241614545880). Journal of Contemporary Ethnography, 44(4), 450-479. [🏴‍☠️ PDF](https://sci-hub.st/10.1177/0891241614545880)
 
-# Core skills
+# Core Skills
 
-## Give space by listening
 
-A legendary listener:
+> Ornette Coleman broke the rules of jazz, and made a name for himself as the developer of 'free jazz'. Ornette's free jazz was all about listening to the collective others, not simply call-and-response, but evolving the musical work as a unit in real time. 
+—John Z Sadler, [Psychiatry at the Margins](https://www.psychiatrymargins.com/i/111711086/person-ornette-coleman)
 
-*Ornette Coleman broke the rules of jazz, and made a name for himself as the developer of 'free jazz'. His trick? Listening. Ornette's free jazz was all about listening to the collective others, not simply call-and-response, but evolving the musical work as a unit in real time. He was attuned, empathic, and responsive to his fellow musicians. That attunement to interactivity is a profound constraint. It opens up possibilities.*
+Coleman was attuned, empathic, and responsive to his fellow musicians. That attunement to interactivity is a profound constraint and opens up possibilities. 
 
-Using Once Upon starts with an intentional decision to give up autonomy and give space to the other person by listening. Taking this stance is like free jazz; we constrain ourselves momentarily to allow for possibilities.
+## Give Space by Listening
+Using the skills in Once Upon starts with an intentional decision to give up autonomy and give space to the other person by listening. Taking this stance is like free jazz; we constrain ourselves momentarily to allow for possibilities.
 
-This constraint might look like silence–even just a few seconds to give our listening partner autonomy in the conversation.
+This constraint can look like silence—even just a few seconds—to give our listening partner autonomy in the conversation.
 
-Saying little–minimal words of encouragement like "right" and "ok" and "um".
+Things we have found helpful in pursuit of this practice include:
+* Saying minimal words of encouragement like "right," "ok," and "mm" in affirmation.
+* Counting the number of words we say.
+* Saying nothing at all, and listening with body language.
+* Undivided attention, usually with eye contact or an open posture
+* Leaning, nodding, and mirroring facial expressions and body language.
 
-Saying nothing at all, and listening with body language.
-
-Undivided attention, usually with eye contact or an open posture
-
-Leaning, nodding, and mirroring facial expressions and body language.
-
-Noticing the non-verbal behavior of someone we are talking to can help us understand the qualities of the conversation. These can be subtle or overt, and unless we are neurodivergent we can tune into our innate ability to notice non-verbals with a bit of practice.
+Noticing the non-verbal behaviors of someone we are talking to can help us understand the qualities of the conversation. These can be subtle or overt, and unless we are neurodivergent we can tune into our innate ability to notice non-verbals with a bit of practice.
 
 In this video, Bowie holds eye contact, laughs, smiles, and nods his head up and down, yet… his eye contact is nearly frozen, his facial muscles are tense, his smile constrained, he blushes while laughing, and his response is minimal ("Interesting"). <https://www.youtube.com/watch?v=XZGiVzIr8Qg>
 
@@ -417,9 +417,9 @@ Training opportunities:
 
 Jaan Altosaar & the One Fact Foundation [team](https://web.archive.org/web/20240816180424/https://www.onefact.org/team) in 2022--2023. Specifically, Katherine Gibb provided input on earlier versions of this work.
 
-### Copyright 
+### Copyright License
 
-> This was released under the <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA 4.0 License<img src="/images/cc/cc.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"><img src="/images/cc/by.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"><img src="/images/cc/sa.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"></a> by One Fact Foundation, a nonprofit I started. I am republishing it here under the same license.
+This was released under the <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA 4.0 License<img src="/images/cc/cc.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"><img src="/images/cc/by.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"><img src="/images/cc/sa.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"></a> by One Fact Foundation, a nonprofit I started that ended after grant funding ended. It is republished here under the same license.
 
 ### References
 > [!cite]  _
