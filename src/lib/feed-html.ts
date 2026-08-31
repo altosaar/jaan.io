@@ -134,3 +134,55 @@ export function katexToTex(html: string): string {
 export function cdata(text: string): string {
   return `<![CDATA[${text.split("]]>").join("]]]]><![CDATA[>")}]]>`;
 }
+
+/**
+ * Turn each `<lite-youtube>` facade into the poster frame it stands for,
+ * wrapped in the link it already carries.
+ *
+ * On the page the element is a custom element that upgrades: its poster is an
+ * inline `background-image`, its play button is an anchor, and a click swaps in
+ * the real iframe (src/components/YouTubeRuntime.astro). A feed reader runs
+ * none of that. It sees an unknown tag with no styling, so the poster — which
+ * lives in a `style` attribute most readers strip anyway, and points at a
+ * ROOT-RELATIVE path that would resolve against the reader's own host — never
+ * appears, and the figure arrives as the bare text of the button's
+ * visually-hidden label. Two of this site's figures were reaching subscribers
+ * as the words "Play: …" and nothing else.
+ *
+ * So for the feed the facade is flattened back to what it depicts: an <img> of
+ * the poster inside an <a> to the video. Both survive any reader's sanitizer,
+ * and the href is the one already in the markup, so the "start at 21:19" cue on
+ * the Stanton talk still rides along.
+ *
+ * Run BEFORE absolutize(), which is what turns the extracted poster path into a
+ * URL a reader can fetch. A facade whose poster cannot be found is left exactly
+ * as it is — the label-only rendering is poor, not broken.
+ */
+export function youtubeFacadeToImage(html: string): string {
+  return html.replace(
+    /<lite-youtube\b([^>]*)>([\s\S]*?)<\/lite-youtube>/g,
+    (whole, attrs: string, inner: string) => {
+      // The poster, out of `style="background-image: url('…')"`. The quotes
+      // arrive HTML-escaped (&#x27;) because Astro escaped the attribute, so
+      // the quote character is stripped after the fact rather than matched.
+      const poster = /background-image:\s*url\(([^)]*)\)/.exec(attrs)?.[1];
+      const src = poster?.replace(
+        /^(?:&#x27;|&#39;|&quot;|['"])|(?:&#x27;|&#39;|&quot;|['"])$/g,
+        "",
+      );
+      const href = /<a\b[^>]*\bhref="([^"]*)"/.exec(inner)?.[1];
+      if (!src || !href) return whole;
+
+      // The button's own label ("Play: …", "Play from 21:19: …") describes both
+      // the still and what the link does, which is what alt text on a linked
+      // poster should say. The element's `title` — the video's own title — is
+      // the fallback.
+      const label =
+        /<span\b[^>]*>([\s\S]*?)<\/span>/.exec(inner)?.[1].trim() ??
+        /\btitle="([^"]*)"/.exec(attrs)?.[1] ??
+        "";
+
+      return `<a href="${href}"><img src="${src}" alt="${label}" /></a>`;
+    },
+  );
+}

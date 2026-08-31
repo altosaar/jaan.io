@@ -62,7 +62,14 @@ description: "How to use active listening and stories to facilitate communicatio
 thumb: ../../assets/thumbs/fork-in-the-road.svg
 # The doc's own stated release date, not the day it was ported.
 date: 2023-08-01
-updated: 2026-08-31
+# CARRIES A TIME, and that is the point. This is the field that becomes
+# <updated> in the Atom feed, and it is the only signal a subscriber's reader
+# has that a piece it already holds has changed. A bare `2026-08-31` is midnight
+# UTC, which is the exact string the feed had already served earlier today —
+# a second revision on the same day would have been invisible to every reader.
+# The time makes the stamp distinct. Nothing on the page shows it: [slug].astro
+# formats this as month and year.
+updated: 2026-08-31T13:20:00Z
 ---
 
 Say you're helping someone tell their story of how they might change their life for the better. A story that shows where they are now, and where they want to go.

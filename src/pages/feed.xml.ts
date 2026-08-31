@@ -26,7 +26,7 @@
 import type { APIContext } from "astro";
 import { getCollection } from "astro:content";
 import { SITE } from "../site.config";
-import { absolutize, cdata, katexToTex } from "../lib/feed-html";
+import { absolutize, cdata, katexToTex, youtubeFacadeToImage } from "../lib/feed-html";
 
 // What the Jekyll feed carried, and what a reader will show without scrolling
 // forever. The site has nine posts, so this is headroom rather than a limit.
@@ -53,8 +53,10 @@ export async function GET(context: APIContext) {
     const updated = post.data.updated ?? post.data.date;
     // rendered.html is the same HTML the page ships, so the feed cannot drift
     // from the post. It is then put back into a shape a reader can use: math
-    // returned to its LaTeX source, and every root-relative URL absolutized.
-    const html = absolutize(katexToTex(post.rendered?.html ?? ""), origin);
+    // returned to its LaTeX source, video facades flattened to their poster
+    // frames, and every root-relative URL absolutized — absolutize LAST, since
+    // the poster it rewrites is one the step before it just uncovered.
+    const html = absolutize(youtubeFacadeToImage(katexToTex(post.rendered?.html ?? "")), origin);
 
     return `<entry>
   <title type="html">${cdata(post.data.title)}</title>
