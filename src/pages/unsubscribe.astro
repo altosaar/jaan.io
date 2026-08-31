@@ -1,0 +1,183 @@
+---
+// /unsubscribe?t=<token> — the page the newsletter's Unsubscribe button opens.
+//
+// WHY A PAGE AND NOT JUST THE ENDPOINT. Mail gateways and link scanners fetch
+// every URL in a message before the recipient sees it, so the address in an
+// email must be safe to GET. This page is that safe address: it renders, it
+// asks, and nothing happens until a button is pressed. The POST it then makes
+// to /api/unsubscribe is the part that acts, and that route answers nothing but
+// POST — see the header of functions/api/unsubscribe.ts.
+//
+// STATIC, like every other page here. The token never touches the build: it is
+// read from location.search in the browser and sent straight to the endpoint.
+// That also keeps it out of the HTML, out of any cache, and out of the Referer
+// header of a later navigation.
+//
+// One click, not two. The reader already decided in their mail client; this
+// page exists for the scanners, not to talk anybody out of leaving.
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+---
+
+{
+  /* THE TOKEN IN THE QUERY STRING IS A SECRET, and this page is the only route
+     that ever holds one. Two things follow, and both are easy to leave out:
+
+     analytics={false} — GA4's `config` call reports `page_location`, the full
+       URL with its query string. Left on, this route would hand every
+       subscriber's unsubscribe token to Google, one page view at a time.
+     no-referrer — every navigation away from here, and every subresource
+       request, would otherwise carry this URL in the Referer header.
+
+     The third defence is in the script below, which strips the token out of the
+     address bar as soon as it has been read. */
+}
+<Base
+  title="Unsubscribe"
+  description="Leave the jaan.io newsletter."
+  navMode="static"
+  analytics={false}
+>
+  <meta name="referrer" content="no-referrer" slot="head" />
+  <Section as="div" top="section" bottom="block">
+    <h1>Unsubscribe</h1>
+
+    {
+      /* THE FOUR STATES, all present in the DOM from the start and switched by
+         the `hidden` property. Building each one after the fetch would mean
+         inserting it silently: role="status" only announces a region that was
+         already there and empty. */
+    }
+    <div class="unsub" data-unsub>
+      <p data-state="ask">
+        This removes your address from the newsletter. Nothing else on the site changes, and you can
+        sign up again whenever you like.
+      </p>
+
+      <button class="cta-primary unsub__button" type="button" data-confirm> Unsubscribe </button>
+
+      <p class="unsub__status" role="status" aria-live="polite" data-status></p>
+
+      <noscript>
+        <p class="unsub__note">
+          This button needs JavaScript. Email
+          <a href="mailto:j@jaan.io?subject=unsubscribe">j@jaan.io</a> and I will take you off the list
+          by hand.
+        </p>
+      </noscript>
+    </div>
+  </Section>
+</Base>
+
+<script>
+  const COPY = {
+    done: "Done — you're off the list. Nothing further will be sent.",
+    // A token that matches no row. Said plainly rather than as an error: the
+    // overwhelmingly likely cause is that this link was already used, and the
+    // person reading it wants to know they are off the list, not to debug.
+    unknown: "This link is no longer valid. If you already unsubscribed, you're off the list.",
+    // A missing token means the page was opened without one — someone typed the
+    // URL, or a client mangled the link.
+    missing: "This link is missing its code. Use the button in the email, or write to j@jaan.io.",
+    failed: "Something went wrong. Email j@jaan.io and I'll take you off the list by hand.",
+    working: "One moment…",
+  };
+
+  const root = document.querySelector<HTMLElement>("[data-unsub]");
+  const button = root?.querySelector<HTMLButtonElement>("[data-confirm]");
+  const status = root?.querySelector<HTMLElement>("[data-status]");
+  const ask = root?.querySelector<HTMLElement>('[data-state="ask"]');
+  if (!root || !button || !status || !ask) throw new Error("unsubscribe: markup missing");
+
+  const token = new URLSearchParams(location.search).get("t") ?? "";
+
+  // READ ONCE, THEN SCRUB. The token stays in the closure; the address bar goes
+  // back to a bare /unsubscribe. It is a per-recipient secret and the only
+  // thing authenticating this request, so every place the URL comes to rest is
+  // a place it leaks from: browser history, a screenshot of the tab, a URL
+  // pasted into a bug report, the Referer of any later navigation.
+  //
+  // replaceState rather than pushState — pushState would leave the tokened URL
+  // one Back press away, which is the opposite of the point.
+  //
+  // This is the third of three defences, and the weakest: it runs after the
+  // page has loaded, so it cannot help anything that reads the URL earlier.
+  // analytics={false} and no-referrer, above, are what handle that.
+  if (token) history.replaceState(null, "", location.pathname);
+
+  /** Retires the control and says why — the one place this page reaches an end. */
+  const settle = (message: string) => {
+    ask.hidden = true;
+    button.hidden = true;
+    status.textContent = message;
+  };
+
+  if (!token) settle(COPY.missing);
+
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    status.textContent = COPY.working;
+    try {
+      // The token rides in the query string, not the body, because that is the
+      // shape RFC 8058's one-click POST uses — so the endpoint has exactly one
+      // input to read whether the caller is Gmail or this page.
+      const response = await fetch(`/api/unsubscribe?t=${encodeURIComponent(token)}`, {
+        method: "POST",
+      });
+      if (response.ok) return settle(COPY.done);
+      if (response.status === 404) return settle(COPY.unknown);
+      throw new Error(String(response.status));
+    } catch {
+      status.textContent = COPY.failed;
+      button.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .unsub {
+    max-width: var(--reading-w-tight);
+  }
+
+  .unsub p {
+    font-size: var(--fs-body);
+    line-height: 1.55;
+    margin-top: 1rem;
+  }
+
+  /* Sized like the signup card's submit button rather than a nav CTA — the two
+     are the same control at opposite ends of the same relationship, and they
+     should look it. The values are restated for the same reason they are in
+     NewsletterSignup.astro: .nav-btn is inseparable from the bar it lives in. */
+  .unsub__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1.5rem;
+    padding: 0.413rem 0.963rem;
+    font-family: var(--font-chrome);
+    font-size: var(--fs-md);
+    font-weight: 350;
+    letter-spacing: calc(0em + var(--track-sans));
+    line-height: 1;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .unsub__button:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  /* Empty until something has happened, so it must not reserve space while
+     blank — the same rule as .newsletter__status. */
+  .unsub__status:not(:empty) {
+    margin-top: 1.5rem;
+    color: var(--text);
+  }
+
+  .unsub__note {
+    color: var(--text-muted);
+    font-size: var(--fs-base);
+  }
+</style>

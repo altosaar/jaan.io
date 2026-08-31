@@ -89,6 +89,21 @@ interface Props {
    * .nav--links-only in that case; chrome.css has the one rule that answers it.
    */
   navHome?: boolean;
+  /**
+   * Load the analytics tag. On by default; off on exactly one route.
+   *
+   * /unsubscribe carries a per-recipient secret in its query string
+   * (?t=<unsubscribe_token>), and GA4's `config` call reports `page_location` —
+   * the FULL URL, query string included. Left on, that route would hand every
+   * subscriber's unsubscribe token to Google, one page view at a time. The
+   * token is the only thing authenticating an unsubscribe request, so this is
+   * not a general privacy preference; it is the difference between a secret and
+   * a secret somebody else also has.
+   *
+   * A prop rather than a hostname test inside analytics.ts, because the fact
+   * that matters here is about the ROUTE, and the route is what knows it.
+   */
+  analytics?: boolean;
 }
 // Browser-tab title template, defined once. Pages pass only their own short
 // title (e.g. "FAQ") and the layout appends " | {SITE.name}", so the separator
@@ -108,6 +123,7 @@ const {
   fullscreen = false,
   centered = true,
   navHome = true,
+  analytics = true,
   share,
   ogType = "website",
   publishedTime,
@@ -318,7 +334,7 @@ const orgSchema = {
          the weeks either side of the cutover are spent reading this property to
          judge whether the port held its traffic, and hand-testing a preview
          deployment would write into the same reports. */
-      SITE.analytics.ga4 && (
+      analytics && SITE.analytics.ga4 && (
         <script is:inline set:html={ga4Snippet(SITE.analytics.ga4, SITE.analytics.hosts)} />
       )
     }
