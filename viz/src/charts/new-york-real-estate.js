@@ -38,10 +38,40 @@ export function PropertyMap({ height = 720 } = {}) {
     center: CENTER,
     // Protomaps' dark basemap, to match the original. The key is Jaan's and is
     // already public in the jaanli/jaan.li repo this was ported from.
+    //
+    // It is ORIGIN-LOCKED, and that list is held in the Protomaps dashboard —
+    // nothing in this repo. For an origin that is not on it the API answers
+    // 200 with no `access-control-allow-origin`, so the browser blocks the
+    // response and MapLibre reports only `TypeError: Failed to fetch`. The
+    // style never loads, `map.on("load")` below never fires, and NEITHER layer
+    // is ever added: the reader gets an empty box rather than a broken map.
+    //
+    // That is exactly what jaan.io served after the port, because the list had
+    // been written for jaan.li and localhost. https://jaan.io, the two pages.dev
+    // origins and http://localhost:4321 are all on it now. Add any new origin
+    // there BEFORE pointing it at this page; the same lock covers the tile
+    // endpoint the style refers to, not just the style JSON.
     style: "https://api.protomaps.com/styles/v2/black.json?key=7c0c24912bd59a0f",
   });
 
   map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+  // MapLibre measures its container once, at construction. This node is still
+  // DETACHED at that point — VizEmbed hands the module's return value to the
+  // page loader, which appends it a tick later (see src/layouts/Viz.astro) — and
+  // a detached div has no layout, so the canvas is sized at MapLibre's 400x300
+  // fallback and stays there. The symptom is a small map drawn into the top-left
+  // corner of the reserved 720px box, with the zoom control stranded at the far
+  // right edge of the empty remainder.
+  //
+  // `trackResize` (on by default) does not cover this: it listens for *window*
+  // resizes, and no window resize happens when a node is appended.
+  //
+  // A ResizeObserver does. It fires as soon as the node lands in the document
+  // and has a size, and again on every later reflow of the column — so the same
+  // line also makes the map responsive, which it previously was not below the
+  // breakpoint where the figure changes width.
+  new ResizeObserver(() => map.resize()).observe(div);
 
   map.on("load", () => {
     map.addSource(LAYER, { type: "vector", url: `pmtiles://${TILES}` });

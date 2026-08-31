@@ -124,7 +124,12 @@ wants:
   "rules": [
     {
       "allowed": {
-        "origins": ["https://jaan.io", "https://jaan-io.pages.dev", "https://*.jaan-io.pages.dev"],
+        "origins": [
+          "https://jaan.io",
+          "https://jaan-io.pages.dev",
+          "https://*.jaan-io.pages.dev",
+          "http://localhost:4321"
+        ],
         "methods": ["GET", "HEAD"],
         "headers": ["range", "if-match"]
       },
@@ -147,6 +152,35 @@ allowed. The wildcard covers per-branch previews (`test.jaan-io.pages.dev`),
 which is the form `wrangler pages deploy --branch=…` produces. R2 accepts a
 wildcard in the subdomain position; an origin not on the list gets no
 `access-control-allow-origin` back at all, which is the intended answer.
+
+`http://localhost:4321` is on the list for the same reason, and it was missing
+for a while. Without it `npm run dev` cannot read a single one of these three
+files: the dev origin gets no `access-control-allow-origin`, the browser blocks
+the response, and the New York map draws its basemap with **no parcels on it**
+while DuckDB's two charts fail outright. Nothing in the page says so — the
+failure is a console `TypeError: Failed to fetch` from inside the pmtiles or
+duckdb worker. Dev and production are meant to serve identical files from
+identical URLs (see _Building_ above); the origin list is the one place that
+was not true. Note the scheme and port are part of an origin, so a dev server
+on a different port needs its own entry.
+
+### The basemap key is origin-locked too, and separately
+
+The New York map's basemap comes from `api.protomaps.com`, not from R2, and it
+carries its **own** allow-list in the Protomaps dashboard — nothing in this repo
+records it. The two lists drifted apart in opposite directions after the port,
+which is why the page failed in two different ways at once:
+
+|                  | basemap (`api.protomaps.com`) | parcels (`data.jaan.io`)              |
+| ---------------- | ----------------------------- | ------------------------------------- |
+| `localhost:4321` | allowed                       | **was missing** → basemap, no parcels |
+| `jaan.io`        | **was missing**               | allowed → empty box, no map at all    |
+
+The production case is the nastier of the two: when the _style_ is blocked,
+`map.on("load")` never fires, so neither parcel layer is ever added and the
+reader gets a blank 720px box with nothing in the page to explain it. Both lists
+now carry `https://jaan.io`, the two `pages.dev` origins and
+`http://localhost:4321`. **Adding an origin means adding it in both places.**
 
 ### Uploading the data
 
