@@ -95,23 +95,50 @@ export function PropertyMap({ height = 720 } = {}) {
       paint: { "line-color": "cyan", "line-width": 0.2 },
     });
 
-    // Hovering a lot shows every MapPLUTO column it carries — which is the
-    // point of the map, so the popup is a dump of the feature's properties
-    // rather than a curated few.
+    // A lot's popup is every MapPLUTO column it carries — which is the point of
+    // the map, so it is a dump of the feature's properties rather than a
+    // curated few.
+    //
+    // There are two of them, and the reason is that the panel has two jobs that
+    // want opposite behaviour. Sweeping the pointer around to see what the city
+    // holds on each lot wants a panel that follows and disappears. Actually
+    // READING one of those records does not: there are ~70 fields, so the panel
+    // caps its height and scrolls (.maplibregl-popup-content in viz.css), and a
+    // panel that follows the pointer can never be scrolled — reaching for its
+    // scrollbar means leaving the lot that is keeping it open, so it vanishes on
+    // the way.
+    //
+    // So: hover browses, click pins. Pinning wins while it is up, and hover goes
+    // quiet so a stray pointer cannot cover the record being read.
+    //
+    // Two Popup instances rather than one plus an `isPinned` flag. `isOpen()`
+    // already IS that flag, so it cannot drift out of sync with what is on
+    // screen — including the dismissal nothing here drives, the close button.
     let hoveredId = null;
-    const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false });
+
+    // Follows the pointer. No close button and no close-on-click: it is not
+    // something the reader dismisses, it is something they move away from.
+    const hoverPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false });
+    // Pinned by a click. Keeps its close button, but `closeOnClick` is OFF and
+    // the click handler below does that job by hand.
+    //
+    // Not a style preference — leaving it on silently breaks re-pinning, and
+    // the reason is version-specific. In maplibre-gl 4.0.2 `closeOnClick`
+    // registers the popup's own `_onClose` on **"click"** (later versions moved
+    // it to "preclick", which would have been ordered safely). Our handler is
+    // registered first, at load, so clicking lot B while lot A is pinned runs
+    // ours first — it re-pins to B — and THEN A's `_onClose`, still in the
+    // listener list this dispatch snapshotted, closes the popup we just opened.
+    // The reader clicks a lot and everything vanishes.
+    const pinnedPopup = new maplibregl.Popup({ closeOnClick: false });
 
     const setHover = (id, hover) =>
       id != null && map.setFeatureState({ source: LAYER, sourceLayer: LAYER, id }, { hover });
 
-    map.on("mousemove", LAYER, (e) => {
-      if (!e.features.length) return;
-      map.getCanvas().style.cursor = "pointer";
-
-      const props = e.features[0].properties;
-      // textContent per row, not an HTML string: these are values out of a
-      // city data file, and building markup by concatenation would let any
-      // stray angle bracket in them render as markup.
+    // textContent per row, not an HTML string: these are values out of a city
+    // data file, and building markup by concatenation would let any stray angle
+    // bracket in them render as markup.
+    const record = (props) => {
       const table = document.createElement("table");
       table.className = "viz-popup";
       for (const [key, value] of Object.entries(props)) {
@@ -119,18 +146,52 @@ export function PropertyMap({ height = 720 } = {}) {
         tr.insertCell().textContent = key;
         tr.insertCell().textContent = value;
       }
-      popup.setLngLat(e.lngLat).setDOMContent(table).addTo(map);
+      return table;
+    };
 
+    // One map-wide click handler rather than a layer-scoped one plus something
+    // else for the misses, so that "clicked a lot" and "clicked the background"
+    // are decided in one place, in one order, every time. `queryRenderedFeatures`
+    // is what the layer-scoped form does internally anyway.
+    map.on("click", (e) => {
+      const [lot] = map.queryRenderedFeatures(e.point, { layers: [LAYER] });
+
+      // Clicked the basemap: unpin, which hands the map back to hover browsing.
+      if (!lot) {
+        pinnedPopup.remove();
+        return;
+      }
+
+      // Clicked a lot: pin it. Clicking a second lot re-pins to it rather than
+      // opening a second panel — `addTo` removes the popup first if it is
+      // already up.
+      hoverPopup.remove();
+      pinnedPopup.setLngLat(e.lngLat).setDOMContent(record(lot.properties)).addTo(map);
+    });
+
+    map.on("mousemove", LAYER, (e) => {
+      if (!e.features.length) return;
+      map.getCanvas().style.cursor = "pointer";
+
+      // The highlight tracks the pointer either way — it is what says the lot
+      // under the cursor is the one a click would pin.
       setHover(hoveredId, false);
       hoveredId = e.features[0].id;
       setHover(hoveredId, true);
+
+      if (pinnedPopup.isOpen()) return;
+      hoverPopup.setLngLat(e.lngLat).setDOMContent(record(e.features[0].properties)).addTo(map);
     });
 
     map.on("mouseleave", LAYER, () => {
       map.getCanvas().style.cursor = "";
-      popup.remove();
       setHover(hoveredId, false);
       hoveredId = null;
+      // Only the browsing panel. A pinned one is dismissed by the reader, not
+      // by the pointer wandering off the lot it was opened from — which is the
+      // whole point of pinning it. `remove()` on a closed popup is a no-op, so
+      // this needs no guard.
+      hoverPopup.remove();
     });
   });
 

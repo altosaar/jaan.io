@@ -280,6 +280,13 @@
   max-height: 22rem;
   overflow-y: auto;
   font-family: var(--font-body);
+  /* The scroller is the point of the pinned panel, so its bar has to belong to
+     the panel. Left alone the UA paints a light track and thumb, which on
+     --surface reads as a white gutter down the right edge. Tokens rather than
+     `color-scheme: dark`, since the site has light palettes too (palettes.css)
+     and that would pin this one element to the wrong one of them. */
+  scrollbar-color: var(--text-muted) transparent;
+  scrollbar-width: thin;
 }
 
 /* All four sides. MapLibre points the arrow by giving one border a colour and
@@ -293,10 +300,10 @@
   border-right-color: var(--surface);
 }
 
-/* Unused today — the map builds its popup with `closeButton: false` — but a
-   <button> does not inherit `color` from its parent, so this one computes to
-   the UA's black and would be invisible on --surface the moment anyone turns
-   it on. One line now beats finding it later. */
+/* Load-bearing since the New York map's popup became click-pinned: the close
+   button is now the way a reader dismisses it. A <button> does not inherit
+   `color` from its parent, so without this it computes to the UA's black and
+   is invisible against --surface. */
 .viz-embed .maplibregl-popup-close-button {
   color: var(--text-muted);
 }

@@ -58,7 +58,7 @@ export const VISUALIZATIONS: Visualization[] = [
     slug: "new-york-real-estate",
     title: "New York real estate",
     blurb:
-      "Every tax lot in New York City, drawn from the Department of City Planning's MapPLUTO extract. Hover any parcel for the full record the city holds on it.",
+      "Every tax lot in New York City, drawn from the Department of City Planning's MapPLUTO extract. Hover any parcel for the full record the city holds on it, or click to pin it open.",
     scale: "850,000 properties",
     thumb: "new-york-real-estate",
   },
