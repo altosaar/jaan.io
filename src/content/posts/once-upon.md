@@ -1,6 +1,6 @@
 ---
 title: "Once Upon"
-description: "How to use stories to facilitate communication and behavior change."
+description: "How to use active listening and stories to facilitate communication and behavior change."
 # PORTED VERBATIM from the Google Doc "once upon - edit" (One Fact Foundation),
 # via its HTML export — text from the Markdown export, pictures from the HTML
 # one, which is the only place the full-resolution originals survive.
@@ -29,13 +29,17 @@ description: "How to use stories to facilitate communication and behavior change
 #     as a hole. See the .ink note in Prose.astro. It is also 32KB against 48,
 #     and it is now resolution-independent, which for a line drawing on a
 #     retina screen is the whole point.
-#   - The bare YouTube link under the Bowie paragraph is now the video itself,
-#     as a `<lite-youtube>` facade rather than an <iframe> — see
-#     src/components/YouTubeRuntime.astro for what that is and what it saves.
-#     The poster frame is this origin's own file (maxresdefault.jpg as WebP,
-#     34KB), so nothing is requested from Google until the play button is
-#     pressed, and the doc's link survives as that button's href: with no
-#     script, the figure is the still with a link to YouTube over it.
+#   - The two bare YouTube links in the body — Bowie on MTV, and the Brandon
+#     Stanton talk — are now the videos themselves, as `<lite-youtube>` facades
+#     rather than <iframe>s. See src/components/YouTubeRuntime.astro for what
+#     that is and what it saves. Each poster frame is this origin's own file
+#     (the video's maxresdefault.jpg as WebP, 34KB and 19KB), so nothing is
+#     requested from Google until the play button is pressed, and each link the
+#     doc had survives as that button's href: with no script, the figure is the
+#     still with a link to YouTube over it. The doc's "(21:19)" on the Stanton
+#     link was a cue to skip ahead, so it is `params="start=1279"` on the
+#     element and `&t=1279s` on the href — the player and the fallback link
+#     both open where the doc pointed — and the caption still says so in words.
 #   - EVERY HEADING PROMOTED ONE LEVEL, and nothing else about them: the text
 #     is untouched, so every slug — and the two in-document links above, which
 #     point at slugs — is the same. The doc opened with one `#` and then set
@@ -58,6 +62,7 @@ description: "How to use stories to facilitate communication and behavior change
 thumb: ../../assets/thumbs/fork-in-the-road.svg
 # The doc's own stated release date, not the day it was ported.
 date: 2023-08-01
+updated: 2026-08-31
 ---
 
 Say you're helping someone tell their story of how they might change their life for the better. A story that shows where they are now, and where they want to go.
@@ -132,7 +137,7 @@ The result of experiencing autonomy is psychological empowerment: when a person 
 >
 > She assessed each patient's condition, listening carefully to their complaints, taking note of the urgency of their symptoms, and assigned each a priority level.
 
-The goal is to get the story right, not to _be right_. Empathy can help with this. Defined as both understanding and being able to show you understand, empathy unlocks possibilities for change.
+The goal is to get the story right, not to _be right_. It's not you versus them, it's both of you versus the topic, or both of you versus a misunderstanding; you're on the same team. Empathy can help with this. Defined as both understanding and being able to show you understand, empathy unlocks possibilities for change.
 
 In the case of the triage nurse, her empathy allowed her to get the patients' stories right, which in turn led to informed decisions about how and when to assign time and energy to help each of them. In the same way, a parent's empathy gives them extraordinary ability to understand the degree of distress of their infant and to respond accordingly. Empathy isn't just used for specific situations, though. You can empathize with people in your everyday life. Feeling heard and understood endows a sense of psychological empowerment that is foundational for positive change.
 
@@ -219,7 +224,7 @@ In this video, Bowie holds eye contact, laughs, smiles, and nods his head up and
   </lite-youtube>
 </figure>
 
-Non-verbal communication patterns vary across cultures, and we address this in the [Appendix](#consider-how-culture-shapes-stories). We also note that being an attentive listener is essential for personal growth, yet hard to perfect. It requires mindfulness to engage with the other. See "[Prioritize your needs](#prioritize-your-needs-empower-yourself-to-empower-someone-else)".
+Non-verbal communication patterns vary across cultures, and we address this in the [Resources section](#consider-how-culture-shapes-stories). We also note that being an attentive listener is essential for personal growth, yet hard to perfect. It requires mindfulness to engage with the other. See "[Prioritize your needs](#prioritize-your-needs-empower-yourself-to-empower-someone-else)".
 
 ## Storyboard: notice and develop arcs in stories
 
@@ -250,29 +255,44 @@ Open-ended questions can be used to:
 - To make sense of messiness: "You're telling me you wish things were different, but for now you'll keep things how they are. What's going on with that?"
 - To make desired endings a reality, "How do you know that you'd be able to do it if you tried?"
 
-In Humans of New York, Brandon Stanton, a street photographer uses open-ended questions to collect compelling stories of NYers.
+In Humans of New York, Brandon Stanton (a street photographer) uses open-ended questions to collect compelling stories of New Yorkers.
 
-[https://www.youtube.com/watch?v=2IGep_7OOgQ](https://www.youtube.com/watch?v=2IGep_7OOgQ) (21:19)
+<figure>
+  <lite-youtube
+    videoid="2IGep_7OOgQ"
+    params="start=1279"
+    title="Tell a Different Story: Brandon Stanton"
+    data-title="Tell a Different Story: Brandon Stanton"
+    style="background-image: url('/images/once-upon/humans-of-new-york-poster.webp')"
+  >
+    <a class="lyt-playbtn" href="https://www.youtube.com/watch?v=2IGep_7OOgQ&t=1279s">
+      <span class="lyt-visually-hidden"
+        >Play from 21:19: Brandon Stanton on the questions he asks strangers</span
+      >
+    </a>
+  </lite-youtube>
+  <figcaption>Starts at 21:19.</figcaption>
+</figure>
 
-Closed-ended questions may also be helpful in supporting the development of one's narrative until the end (commitment to change). Examples of such questions include, "When do you plan on taking up (new habit)?"
+Close-ended questions have their place too. They may be helpful in supporting the development of one's narrative until the end (committing to a change). Examples of such questions include, "When do you plan on taking up [taking the first step toward a new habit]?"
 
-Questions are helpful, yet tend to be overused. If it feels like the other person is bombarded with all the questions, try changing a question to a reflection by removing the intonation at the end.
+Questions are helpful, yet tend to be overused. If you sense the someone may feel bombarded with all the questions, try changing a question to a reflection by removing the upward inflection at the end.
 
 ### Advise
 
-Advising involves sharing information to help develop the story. In the case of a person aiming to take better care of their health, this might mean identifying resources ("There's a help center nearby that offers free consults" or sharing knowledge ("This hospital has a cheaper option for the treatment you're looking for").
+Advising involves sharing information to help develop a narrative. In the case of a person aiming to take better care of their health, this might mean identifying resources ("there's a help center nearby that offers free consults" or sharing knowledge ("this hospital has a cheaper option for the treatment you're looking for").
 
-Advising can be done in an empathic, autonomy-supportive way. Listen to understand which facts, resources, or insights might be relevant to the person's story. Consider asking for permission to ensure the person is open to receiving the information: You might say, for example: "Mind if I share something that helped me with this? Feel free to discard it if it's not helpful to you"). Follow-up to ask them for their response to or understanding of the information you provided helps support autonomy.
+Advising can be done in an empathic, autonomy-supportive way. Listen to understand which facts, resources, or insights might be relevant to the person's story. Consider asking for permission to ensure the person is open to receiving the information. You might say, for example: "Mind if I share something that helped me with this? Feel free to discard it if it's not helpful to you". Following up to for their response to new information or confirming their understanding of can help support autonomy.
 
-Avoid imposing acceptance of the solutions you provided. Instead, focus on accepting where the person is in their journey and empower them to make their own choices.
+Avoid imposing acceptance of any information or solutions you provide. Instead, focus on accepting where the person is in their journey and empowering them to make their own choices.
 
 ### Reflect
 
-Reflections are thought to be the most useful tools of Once Upon. They are stand-alone statements, not questions, and contain hypotheses about what you may have noticed (sensed, heard, or seen). They are typically used to continue personal exploration and help people understand their motivations more clearly.
+Reflections are thought to be the most useful tools in this field kit. They are stand-alone statements, not questions, and contain hypotheses about what you may have noticed (sensed, heard, or seen). They are typically used to continue personal exploration and help people understand their motivations more clearly.
 
-The simplest reflection involves repeating what you hear or see. As an example, try repeating the last couple words of what the person just said. Let it echo. What does it tell you? This will likely prompt the other to continue to share their thoughts and feelings.
+The simplest reflection involves repeating what you hear or see. As an example, try repeating the last couple words of what the person just said. Let it echo. This will likely prompt the other to continue to share their thoughts and feelings.
 
-More complex reflections involve finding a deeper meaning in what you hear or see. This might include paraphrasing what you noticed, or creating metaphors to describe what you notice ("It's as you're in the passenger seat and don't get to decide where you want to go"). These are guesses about what a person might be feeling ("That really got you down") or thinking ("It's not your fault").
+More complex reflections involve finding a deeper meaning in what you hear or see. This might include paraphrasing what you noticed, or creating metaphors to describe what you notice ("it's as if you're in the passenger seat and don't get to decide where you want to go"). These are guesses about what a person might be feeling ("that really got you down") or thinking ("it's not your fault").
 
 <figure>
   <img
@@ -285,7 +305,7 @@ More complex reflections involve finding a deeper meaning in what you hear or se
   />
 </figure>
 
-### Convey Affirmations
+### Convey affirmations
 
 Affirmations are positive statements about a person's strengths, efforts, and resources that foster a mindset of empowerment. They are particularly helpful when building rapport and when supporting a person during the process of change.
 
@@ -294,113 +314,93 @@ Noticing easy-to-miss positive qualities calls for a listening mindset. The more
 1. Name the specific strengths, efforts, and resources you noticed.
 2. Name an example of a time when the person showed these positive qualities and resources.
 
-The [Mother's Affirmation](https://www.tiktok.com/@wallstreetwizards/video/7206692364662869253) is another brilliant example of the use of affirmation in the context of a close relationship.
-
 ### Summarize
 
-Summaries are essentially reflections that recap what the person has conveyed so far. They serve to ensure understanding, transition to new topics, highlight important statements, and connect different pieces of information.
+Summaries are reflections that recap what the person has conveyed so far. They serve to ensure you are understanding, transition to new topics, highlight important statements, and connect different pieces of information.
 
-Here's a summary embracing the Once Upon principles of empathizing, helping make sense, and autonomy-supportive communication:
+Here's an example summary embracing these principles of empathizing, helping make sense, and autonomy-supportive communication:
 
-*Let me see if I'm following you so far. You're worried about whether you'll enjoy the degree program and if you'll be able to handle the stress of working and studying at the same time. You feel overwhelmed and unsure about whether or not to go for it. At the same time, you know you want to find a job more fulfilling than the one you have now. We talked about a few steps you could take, like creating a budget. Did I get that right?*
+> Let me see if I'm following you so far. You're worried about whether you'll enjoy the degree program and if you'll be able to handle the stress of working and studying at the same time. You feel overwhelmed and unsure about whether or not to go for it. At the same time, you know you want to find a job more fulfilling than the one you have now. We talked about a few steps you could take, like creating a budget. Did I get that right?
 
-Paying attention is essential to craft well-crafted summaries that capture the essential elements accurately and concisely. In this summary, the listener checked their understanding of the story so far, allowing the other person to provide feedback, if necessary.
+Paying attention is essential for well-crafted summaries that capture the essential elements accurately and concisely. In this summary, the listener checked their understanding of the story so far, allowing the other person to provide feedback if necessary.
 
-## Accept awkwardness
+## In practice
 
-There is no one "right way" to learn or practice this set of skills. Initially, it might look and feel awkward and mechanical and we might feel we aren't doing it "correctly". Your interlocutor might be surprised or taken aback, and you might be as well. This is normal. Find your own path while honoring the essentials of supporting autonomy, expressing empathy, and making sense of messiness.
+There is no singular way to learn or practice this set of skills. Initially, it might look and feel awkward and mechanical and we might feel we aren't doing it correctly. Your interlocutor might be surprised or taken aback, and you might be as well. This is normal. Find your own path while honoring the essentials of supporting autonomy, expressing empathy, and making sense of messiness.
 
-Simply noticing that this is normal – at how much we all suck at difficult things like communication and Once Upon – can help empower ourselves to continue practicing.
+Rather than push ourselves down by being hard on ourselves or apologizing for errors or awkwardness, we might try to pull back at how intensely we are practicing or how well we expect this to go. Notice what sticks, and discard what doesn't, finding our own voice as you practice this set of skills.
 
-Rather than push ourselves down by being hard on ourselves or apologizing for errors or awkwardness, we might try to pull back at how intensely we are practicing or how well we expect this to go.
+We conclude this section on Core Skills by highlighting three opportunities for tiny changes in how we might practice being bad at these difficult skills and noticing gradual improvement:
 
-With time, we might start noticing when we are sucking on metal versus the teet of life, and suck less. So notice what sticks, and discard what doesn't.
-
-In this way, we might find our own voice as we practice this set of skills.
-
-Practicing this type of awareness can be a matter of noticing how we use basic communication skills. That being said, here are essential tips for its skillful use. And remember, Once Upon is not used *on* people, but *for* people, in the spirit of fostering empowerment.
-
-We conclude Once Upon by highlighting three opportunities for tiny changes in how we might practice sucking at these difficult skills:
-
-(1) Pay attention to the appropriate timing of the Once Upon skills
+1. Pay attention to appropriate timing.
 
 This refers to attunement and empathy to best understand how to support another person in your conversation with them.
 
-You can do so by listening to and observing the person with you, and even ask for direct feedback if the other person is comfortable to provide it. Practices like paying attention to moment-to-moment bodily and mental awareness can help notice thoughts and perspectives that can advance a story during conversation. Just like paying attention to films, plays, folklore, or novels can reveal patterns we can tune into (such as a three-act structure in a film, play, or novel), noticing the ebbs and flows of our emotional responses, behavior, and speech in conversation can all be made more accessible with practice and reveal story arcs.
+You can do so by listening to and observing the person with you, and even ask for direct feedback if the other person is comfortable to provide it. Practices like paying attention to moment-to-moment bodily and mental awareness can help notice thoughts and perspectives that can advance a story during conversation. Just like paying attention to media can reveal patterns we can tune into (such as a three-act structure in a film, play, or novel), the ebbs and flows of our emotional responses, behavior, and speech in conversation can all become more accessible with practice and reveal story arcs.
 
-This clip shows an interviewer rushing to advise someone who doesn't seem ready or interested for this advice. Perhaps he could have tried reflections instead! <https://www.facebook.com/reel/976831416696128>
+[This clip](https://www.facebook.com/reel/976831416696128) shows an interviewer rushing to advise someone who doesn't seem ready or interested for this advice. Perhaps he could have tried reflections instead.
 
-(2) Pay attention to the order in which the Once Upon Skills are used;
+2. Pay attention to the order in which these skills are used.
 
-The Once Upon skills can be used in a string (reflect-affirm-reflect) or on their own, it really depends on the purpose of your communication. You can also use them in repetition, as is evident in this [Mother's Affirmation](https://www.tiktok.com/@wallstreetwizards/video/7206692364662869253), in which the boy and his mother are increasingly attuned as the mother recites the affirmation.
+We use these dyadic skills in a string (reflect-affirm-reflect) or on their own, depending on the purpose of communication. You can also use them by repeating which skill is being used, for example by continuing to affirm someone as you become more attuned.
 
-(3) Stay focused on potentials versus setbacks.
+3. Stay focused on potentials versus setbacks.
 
-This means shifting attention as a listener to channel the character's strengths and to turn setbacks into stepping stones along the journey toward personal growth.
+Shifting your attention as a listener can help channel your partner's strengths and reappraise setbacks as stepping stones along their journey toward taking a first step toward change.
 
-Now you're ready to start navigating through stories with Once Upon… time to try them out!
+We leave the *ever after* part of this story for you and your interlocutors to co-create. Who gets to choose the ending?
 
-# Yes, and… the end?
+This framework for the curious can assist others and themselves to practice engaging with the stories we tell and identifying pathways to meaningful change. By adopting a listening mindset and drawing on tools—asking open-ended questions, advising/informing, reflective listening, affirming and summarizing—we can make subtle adjustments in our stories that can spark growth and positively shape life trajectories.
 
-We leave the *ever after* part of the story to you and your interlocutors to co-create. Who gets to choose the ending?
-
-Once Upon provides a framework for the curious reader to assist others and themselves by practicing engaging with the stories we tell and identifying pathways to meaningful change. By adopting a listening mindset and drawing on tools—asking open-ended questions, advising/informing, reflective listening, affirming and summarizing—we can make subtle adjustments in our stories that can spark growth and positively shape life trajectories.
-
-Whether you are interested in learning new skills in conversation or stewarding behavior change through storytelling with people close to you, we leave the sequel as an exercise for the reader.
-
-> This was the initial prototype of this tool; next we had hoped to raise money to integrate technology such as open source heart rate variability monitoring and build practice modules using large language models. If you know of anyone who has done this [I would love to hear about it](mailto:j@jaan.io)!
-
-# Appendix
+# Resources
 
 ## When in doubt, get help
 
-Self-assessment and judgment is vital in helping you decide whether or not you are the best person to help another, how you can help, and if you have the right skills to do so.
+Self-assessment and judgment is vital in helping you decide whether or not you are the best person to be supportive, how you can help, and if you have the right skills to do so.
 
-Remember, it is always better to err on the side of caution and seek professional help if you are unsure about your ability to help someone in need. Additionally, it can be helpful to regularly reflect on your own skills and limitations and ideally seek training and education. For formal training in foundational skills like motivational interviewing, consult the MINT network: <https://motivationalinterviewing.org/>
+It is better to err on the side of caution and seek professional help if you are unsure about your ability to help someone in need. Additionally, it can be helpful to regularly reflect on your own skills and limitations and seek training and education. For formal training in foundational skills like motivational interviewing, consult the [MINT network](https://motivationalinterviewing.org/).
 
-By engaging in training, you can ensure the best support possible and avoid potential harm to others. Once Upon is available to those who would like to explore their own positive development and help others who might not be able to access formal training.
+By engaging in training, you can ensure the best support possible and avoid potential harm to yourself or others. The intent of making this material available is for those who would like to explore their own positive development and help others who might not be able to access formal training.
 
-## Prioritize Your Needs: Empower yourself to empower someone else
+## Prioritize your needs: empower yourself to empower someone else
 
-Once Upon puts an enormous burden on you as a listener to manage and attend to responses of the self and of the other. And on top of that – you're practicing a new skill! The following strategies are known to reduce the overwhelm and increase mindfulness. Experiment with different tools to find what works best for you. Think about strategies that you know have helped you in the past.
+Practicing these skills, especially when things get heated, can puts an enormous burden on you as a listener to manage and attend to responses of the self and those of the other. And on top of that, you're practicing a new skill! The following strategies are known to reduce the overwhelm and increase mindfulness during interactions. Experiment with different tools to find what works best for you.
 
 ### Using mindfulness when practicing other skills
 
-Mindfulness comes down to awareness–which a leading mindfulness trainer, Jon Kabat Zinn, defines as the state which "arises when we pay attention on purpose in the present moment, non-judgmentally". This awareness is essential during a Once Upon conversation to take care of yourself first.
+Mindfulness comes down to awareness–which a leading mindfulness trainer, Jon Kabat Zinn, defines as the state which "arises when we pay attention on purpose in the present moment, non-judgmentally". This awareness is essential during a conversation to take care of yourself first.
 
-A World Health Organization handbook, [*Doing what matters in times of stress: An illustrated guide*](https://www.who.int/publications/i/item/9789240003927), covers different mindfulness-based tools, namely grounding, unhooking, engaging, being kind, and making room. It is based on an evidence-based therapy approach called Acceptance and Commitment Therapy and available in several languages.
+As one toolkit, A World Health Organization handbook, [*Doing what matters in times of stress: An illustrated guide*](https://www.who.int/publications/i/item/9789240003927), covers different mindfulness-based tools, such as grounding, unhooking, engaging, being kind, and making room. It is based on an evidence-based approach called Acceptance and Commitment Therapy and is available in several languages.
 
 ### Breathe to recenter in a conversation
 
-Paying attention to your breath during a conversation can help us develop awareness of patterns in ourselves and others. Practicing outside of a conversation can make it easier to practice on the spot when it feels accessible to do so. For in-the-moment practice, you can try deep, slow breathing that engages the diaphragm, the breathing muscle located under your lungs. There are open source apps like this one: [https://oneminch.github.io/breathe/](https://oneminch.github.io/breathe/), and plenty of other resources, apps, and tools to learn skills like heart rate variability biofeedback. For a simple approach at home, a simple hand on the belly to notice how it expands and contracts on every breath can help, as can another hand on your neck, to see whether you can feel your heart rate vary, with more variability being easier to notice the deeper you breathe.
+Paying attention to your breath during a conversation can help us develop awareness of patterns in ourselves and others. This is also connected to mindfulness; practicing outside of a conversation can make it easier to practice on the spot when it feels accessible to do so. For in-the-moment practice, you can try deep, slow breathing that engages the diaphragm, the breathing muscle located under your lungs. There are free apps like this [Breathly](https://breathly.app/), and plenty of other resources, apps, and tools to learn skills like heart rate variability biofeedback. For a simple approach at home, a simple hand on the belly to notice how it expands and contracts on every breath can help, as can another hand on your carotid artery, to feel your pulse. After focusing on minute changes in your pulse, and with deep, slow breaths, you can feel your heart rate vary with each breath (with variability being easier to notice the deeper you breathe).
 
 > [!cite]
-> The science behind this: your heart rate varies as you breathe thanks to your autonomous nervous system and the "intrathoracic" pressure that increases and decreases as your lungs and other organs around your heart move closer and further away from it on every breath!
+> The science behind this: breathing changes intrathoracic pressure and blood pressure; the brainstem and baroreflex respond by withdrawing vagal tone on the inhale (heart speeds up) and restoring it on the exhale (heart slows) — respiratory sinus arrhythmia. Breathing around six breaths per minute (4 or 5 seconds inhale and 6 or 5 seconds exhale respectively) drives this loop at its resonant frequency, maximizing heart rate variability. 
+>
+> Lehrer PM, Gevirtz R (2014). [Heart rate variability biofeedback: how and why does it work?](https://pmc.ncbi.nlm.nih.gov/articles/PMC4104929/) Frontiers in Psychology, 5:756.
 
 ### Scripts
 
-The more you practice Once Upon, the more you may begin to get a sense of the moments in which you have difficulty supporting another person the way you would like to.
+The more you practice these skills, the more you may begin to get a sense of the moments in which you have difficulty supporting another person the way you would like to.
 
-Writing scripts for predictable situations may help. For example, if you tend to feel overwhelmed when the other speaks too quickly for you to process, your script might be, "Do you mind if we pause for a moment? What you just said is really important to me and I want to make sure I'm getting it". If you need help generating a script, large language models like ChatGPT can help generate different responses, or can act as a role play partner.
-
-### Technology aids
-
-Digital mental health apps and resources may assist in providing convenient and accessible mental health care, particularly for those who cannot otherwise access a healthcare professional in times of need. [One Mind PsyberGuide | A Mental Health App Guide](https://onemindpsyberguide.org/) features mental health resources and a guide to finding mental health apps that are right for you.
+Writing scripts for predictable situations may help. For example, if you tend to feel overwhelmed when the other speaks too quickly for you to process, your script might be, "Do you mind if we pause for a moment? What you just said is really important to me and I want to make sure I'm getting it". If you need help generating a script, large language models like ChatGPT or Claude can help generate different responses, or can act as a role play partner. (Just be mindful of [vulnerability amplifying feedback loops](https://www.nature.com/articles/s41591-026-04577-2).)
 
 ## Consider how culture shapes stories
 
-Becoming aware of the cultures, countries, and other aspects of ourselves and those we talk to is crucial when practicing Once Upon. For example, in an informal culture like the United States, people from other countries might be aware of how "hello, how is it going?" might seem disingenuous, while in the United States it is a routine part of daily life.
+Becoming aware of the cultures, countries, and other aspects of ourselves and those we talk to is crucial when practicing using these tools. For example, in an informal culture like the United States, people from other countries might be aware of how "hello, how is it going?" might seem disingenuous, while in the United States it is a routine part of daily life.
 
-To respect and align with the values and contexts of diverse cultures, we need to learn to notice and approach differences in culture with openness and curiosity when it is feasible and accessible.
+To respect and align with the values and contexts of diverse cultures, notice and approach differences in culture with openness and curiosity to be more effective.
 
 > [!cite]
 > Tools from ethnography can provide context on how researchers in the social sciences, user experience research, and other domains learn about different cultures. Jan Chipchase's [Field Study Handbook](https://studiodradiodurans.com/products/the-field-study-handbook-field-edition) has a chapter on [calibrating to various cultures](https://drive.google.com/file/d/1F9zr1pHesGPSOTtXLQu4hTxOGu7zoIRx/view?usp=sharing).
 > 
 > The [Culture Map](https://www.amazon.ca/Culture-Map-Breaking-Invisible-Boundaries/dp/1610392760) includes insights on cultural differences around the world, particularly applied to a business context. [🏴‍☠️ Digital Copy](https://libgen.li/index.php?req=Culture+Map+Meyer&curtab=f&order=year&ordermode=desc)
 >
-> The [Hofstede's tool offers](https://www.hofstede-insights.com/country-comparison-tool) a cross-country comparison of values on different cultural dimensions (e.x., uncertainty avoidance, power distance, individualism), but this research comes with many caveats.
+> The [Hofstede's tool offers](https://geerthofstede.com/country-comparison-bar-charts/) a cross-country comparison of values on different cultural dimensions (e.x., uncertainty avoidance, power distance, individualism), but this research comes with many caveats.
 
-As an example of how cultural sensitivity is often an ideal that is hard to reach, consider how difficult translation can be. For example, Mandarin speakers we interviewed for this had difficulty translating the concepts of "consent" and "autonomy", and translations differed between interviewees. Here are translations for some of the guiding principles of Once Upon: consent, autonomy, and empathy in other world languages. [Email me](mailto:j@jaan.io) if you find better translations!
+As an example of how cultural sensitivity is often an ideal that is hard to reach, consider how difficult translation can be. For example, Mandarin speakers we talked to for this had difficulty translating the concepts of "consent" and "autonomy", and translations differed between interviewees. Here are translations for some of the guiding principles of Once Upon: consent, autonomy, and empathy in other world languages. [Email me](mailto:j@jaan.io) if you find better translations!
 
 | Language | Consent | Autonomy |
 | :---: | :---: | :---: |
@@ -412,38 +412,29 @@ As an example of how cultural sensitivity is often an ideal that is hard to reac
 
 ## The dark side of tools from psychology and behavior change
 
-Not being transparent and intending to change someone's behavior without their consent is an intense thing to do.
+Not being transparent and intending to change someone's behavior without their consent is manipulative.
 
-The stories we tell have a profound impact on our lives, and imposing a narrative onto someone else holds the potential to manipulate, persuade or distort their very understanding of the world. This is why Once Upon ships with guiding principles such as supporting autonomy, expressing empathy, and making sense of messiness. Manipulation, deception, or any number of other harmful social engineering practices have been flagged and examined in a variety of settings. For example, see [Motivational and Psychological Triggers in Social Engineering](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3750474) and Amy Bucher's Engaged, Design for Behaviour Change or any number of behavioral economic studies on behavior change on "priming". Commonly-referenced anecdotes include the design of grocery stores to have unhealthy stuff near the end where our decision-making capacity might be depleted.
+The stories we tell have a profound impact on our lives, and imposing a narrative onto someone else holds the potential to manipulate, persuade or distort their very understanding of the world. This is why we focus on guiding principles such as supporting autonomy, expressing empathy, and making sense of messiness. Manipulation, deception, or any number of other harmful social engineering practices have been flagged and examined in a variety of settings. For example, see [Motivational and Psychological Triggers in Social Engineering](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3750474) and any number of behavioral economic studies on behavior change to learn about phenomena such as "priming".
 
-Anyone can do anything with information they glean from the internet – such as this article.
+Anyone can do anything with information they glean from the internet, yet we would rather ensure that there is a resource such as this available to anyone, anywhere, to help them notice these methods in use across a variety of situations, sectors, and experiences they might encounter.
 
-We would much rather ensure that there is a resource such as Once Upon available to anyone, anywhere, to help them notice these methods in use across a variety of situations, sectors, and experiences they might encounter.
+In fact, there are many sets of psychological tools already in use (e.g. [Cialdini's Influence: The Psychology of Persuasion](https://dn710600.ca.archive.org/0/items/ThePsychologyOfPersuasion/The%20Psychology%20of%20Persuasion.pdf)). Being transparent with you about the misuses of these tools hopefully gives you more autonomy. Similar to the act of documenting deceptive design patterns ([https://www.deceptive.design/types](https://www.deceptive.design/types)) to make them easier to spot — and, easier to try out on unwitting subjects and running the risk of a lawsuit – we hope that maintaining this guide can highlight when someone is adept at these skills, and whether they remain supportive of autonomy, expressive of empathy, or help in sense making. And if they're not, then you might be able to tell even faster when they may be faking it or out of practice.
 
-In fact, there are many sets of psychological tools already in use (Influence: The Psychology of Persuasion - Cialdini, Hooked: How to Build Habit-Forming Products - Nir Eyal). We would much rather swallow our own medicine and be up-front about how these tools are used in everyday life. Being transparent with you hopefully gives you more autonomy, rather than being left in the dark.
-
-Similar to the act of documenting deceptive design patterns ([https://www.deceptive.design/types](https://www.deceptive.design/types)) to make them easier to spot — and, easier to try out on unwitting subjects and running the risk of a lawsuit – we hope that maintaining this guide can highlight when someone is truly supportive of autonomy, expressive of empathy, or helping in sense making. And if they're not, then you can tell even faster that they're faking it.
-
-Safeguards are built into professions such as therapy, psychiatry, and social work where research into these skills is advanced and disseminated.
-
-Training opportunities:
-
-[Motivational Interviewing Network of Trainers (MINT)](https://motivationalinterviewing.org/motivational-interviewing-training)
-
+> This was the initial prototype of this tool; next we had hoped to raise money to integrate technology such as open source heart rate variability monitoring and build practice modules using large language models. If you know of anyone who has done this [I would love to hear about it](mailto:j@jaan.io)!
 
 ### Authors
 
-Jaan Altosaar & the One Fact Foundation [team](https://web.archive.org/web/20240816180424/https://www.onefact.org/team) in 2022--2023. Specifically, Katherine Gibb provided input on earlier versions of this work.
+Jaan Altosaar & the One Fact Foundation [team](https://web.archive.org/web/20240816180424/https://www.onefact.org/team) in 2022--2023. Specifically, Katherine Gibb contributed to the development of an earlier version of this resource.
 
 ### Copyright License
 
 This was released under the <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA 4.0 License<img src="/images/cc/cc.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"><img src="/images/cc/by.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"><img src="/images/cc/sa.svg" alt="" style="height:1.1em;display:inline;margin-left:0.2em;margin-bottom:0.08em;vertical-align:text-bottom"></a> by One Fact Foundation, a nonprofit I started that ended after grant funding ended. It is republished here under the same license.
 
-### References
-> [!cite]  _
+# References
+> [!cite]+
 > The [Story-Telling Animal: How Stories Make us Human](https://www.amazon.com/Storytelling-Animal-Stories-Make-Human/dp/B08XLJ8XC9) is a book about our make-believe nature, traversing storytelling's evolution as a fundamental human instinct
 > 
-> Pixar's 12 rules for storytelling
+> [Pixar's \[Abridged\] Rules for storytelling](https://www.aerogrammestudio.com/2013/03/07/pixars-22-rules-of-storytelling/)
 > 
 > A library on all-things empathy, which may inspire you to practice it in different ways: [https://empathylibrary.com/](https://empathylibrary.com/)
 > 
@@ -470,4 +461,4 @@ This was released under the <a rel="license" href="https://creativecommons.org/l
 > 
 > [Nonviolent Communication: A Language of Life](https://bookshop.org/p/books/nonviolent-communication-a-language-of-life-life-changing-tools-for-healthy-relationships-marshall-b-rosenberg/10180253): Life-Changing Tools for Healthy Relationships
 > 
-> Flow chart for a technique called [Brief Action Planning](https://www.kidneywi.org/wp-content/uploads/2019/10/BAP_flow_Chart_2014-03-01.pdf) (Center for Collaboration, Motivation, and Innovation) based on principles of motivational interviewing and behavior change & [training](https://centrecmi.ca/brief-action-planning/) for the use of this tool. Ed. Note: Diagrams like these, viewed in 2026, remind me more and more of agentic skills development for large language models.
+> Flow chart for a technique called [Brief Action Planning](https://www.kidneywi.org/wp-content/uploads/2019/10/BAP_flow_Chart_2014-03-01.pdf) (Center for Collaboration, Motivation, and Innovation) based on principles of motivational interviewing and behavior change & [training](https://centrecmi.ca/brief-action-planning/) for the use of this tool. Ed. Note: Diagrams like these, viewed in 2026, remind us more and more of agentic skills development for large language models.

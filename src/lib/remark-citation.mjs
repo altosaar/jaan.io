@@ -35,6 +35,20 @@
 //   > [!cite] Reading
 //   > [The Storytelling Animal](https://example.org/)
 //
+// A `+` on the marker starts the tile OPEN — Obsidian's spelling for the same
+// thing on its callouts, and the closest to a convention there is. It also
+// drops the default label, and that pairing is the rule rather than a special
+// case: a CLOSED tile has to say what it is hiding, an OPEN one is already
+// showing you. So `[!cite]+` is a bare caret over an unfolded list, which is
+// what the References section at the foot of the Once Upon guide wants — the
+// `# References` heading directly above it has already said the word.
+//
+//   > [!cite]+
+//   > [The Storytelling Animal](https://example.org/)
+//
+// Write a label after the `+` and it is kept and shown, so an open tile can
+// still carry one. Only the DEFAULT is conditional.
+//
 // A blockquote WITHOUT the marker is left completely alone, which is what keeps
 // the pull quote at the top of the sauna post a pull quote.
 //
@@ -56,15 +70,30 @@
 // change to a Markdown plugin does not touch. The build is unaffected (it keeps
 // its own store under node_modules/.astro), so the two can silently disagree.
 // Delete .astro/data-store.json, or start the dev server with `--force`.
+//
+// AND THE WORSE HALF OF THE SAME PROBLEM: a running dev server holds the plugin
+// it BOOTED with. astro.config.mjs imports this file into a `unified()` call
+// that is evaluated once at startup; editing the config restarts the server,
+// editing a module the config imports does not. So change the syntax here and
+// the marker in a post together — as `+` was — and the digest change re-renders
+// the post through the OLD plugin. The page does not go stale, which is what
+// makes this one nasty: it updates, and updates WRONGLY. `[!cite]+` came out as
+// a shut tile labelled "+", which looks like this file being broken rather than
+// like this file not being loaded. Restart the dev server after touching it.
 
 /**
- * The marker, at the very start of the blockquote's first paragraph. Whatever
- * follows it on that line is the tile's label; the capture is deliberately
+ * The marker, at the very start of the blockquote's first paragraph. An
+ * optional `+` right after the bracket starts the tile open; whatever follows
+ * on that line is the tile's label. The label capture is deliberately
  * `[^\n]*` and not `.*` so a label can only ever be the first LINE.
  */
-const MARKER = /^\[!cite\][ \t]*([^\n]*)\n?/i;
+const MARKER = /^\[!cite\](\+?)[ \t]*([^\n]*)\n?/i;
 
-/** What the label says when the marker carries none. */
+/**
+ * What the label says when the marker carries none — and only when the tile is
+ * CLOSED. See the note on `+` at the top: a shut tile needs a word on its lid,
+ * an open one does not, so this is the one thing `+` takes away.
+ */
 const DEFAULT_LABEL = "Background";
 
 /**
@@ -108,7 +137,8 @@ export default function remarkCitation() {
       const marker = MARKER.exec(first.value);
       if (!marker) return;
 
-      const label = marker[1].trim() || DEFAULT_LABEL;
+      const open = marker[1] === "+";
+      const label = marker[2].trim() || (open ? "" : DEFAULT_LABEL);
       first.value = first.value.slice(marker[0].length);
 
       // A marker on its own line leaves an empty text node, and then possibly
@@ -130,17 +160,36 @@ export default function remarkCitation() {
       // the semantic label: <aside> is not a landmark this deep in an article
       // anyway (it only becomes one as a direct child of <body>), so nothing
       // that was announced before has stopped being announced.
-      node.data = { ...node.data, hName: "details", hProperties: { class: "citation" } };
+      //
+      // `citation--open` is not styling of its own: it is how the stylesheet
+      // tells a tile that WAS open at first paint from one the reader opened.
+      // Both match `[open]`, but only the second should fade its contents in —
+      // see the @starting-style note in Prose.astro. `open: false` serialises
+      // to no attribute at all, so it is safe to set either way.
+      node.data = {
+        ...node.data,
+        hName: "details",
+        hProperties: { class: open ? "citation citation--open" : "citation", open },
+      };
 
       // The summary goes in as raw HTML, which is what a remark plugin has to
       // hand: an mdast node carrying an hName could produce the <summary> and
       // the <span>, but not the caret, which is nine SVG attributes and no
       // Markdown at all. Raw HTML already flows through this pipeline — the
       // post's own <figure> blocks are written that way.
+      //
+      // THE LABEL SPAN IS EMITTED EVEN WHEN IT IS EMPTY, and the summary takes
+      // an aria-label in its place. The empty span is what keeps the caret on
+      // the right: the summary is `justify-content: space-between`, and one
+      // flex item alone would sit at the START of the line. The aria-label is
+      // what keeps the control from being a button with no name — a <summary>
+      // with nothing in it but an aria-hidden caret is announced as "expanded"
+      // and nothing else, which is a real gap however quiet it looks.
+      const named = label ? "" : ` aria-label="${escapeHtml(DEFAULT_LABEL)}"`;
       node.children.unshift({
         type: "html",
         value:
-          '<summary class="citation__summary">' +
+          `<summary class="citation__summary"${named}>` +
           `<span class="citation__label">${escapeHtml(label)}</span>` +
           CARET +
           "</summary>",

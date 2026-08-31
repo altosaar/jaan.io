@@ -532,8 +532,15 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
       opacity: 1;
     }
 
+    /* `:not(.citation--open)` EXEMPTS A TILE THAT WAS ALREADY OPEN AT FIRST
+       PAINT. @starting-style fires on an element's first render as well as on a
+       state change, so without this the References list at the foot of the
+       guide — the one tile that ships with the `open` attribute, see the `+`
+       marker in remark-citation.mjs — would fade itself up over 0.4s on load,
+       for no reason and with nothing having been clicked. The fade belongs to
+       the ACT of opening; a tile that starts open never performed it. */
     @starting-style {
-      .prose :global(.citation[open] > :not(summary)) {
+      .prose :global(.citation[open]:not(.citation--open) > :not(summary)) {
         opacity: 0;
       }
     }
