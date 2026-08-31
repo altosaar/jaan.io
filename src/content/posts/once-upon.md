@@ -29,6 +29,13 @@ description: "How to use stories to facilitate communication and behavior change
 #     as a hole. See the .ink note in Prose.astro. It is also 32KB against 48,
 #     and it is now resolution-independent, which for a line drawing on a
 #     retina screen is the whole point.
+#   - The bare YouTube link under the Bowie paragraph is now the video itself,
+#     as a `<lite-youtube>` facade rather than an <iframe> — see
+#     src/components/YouTubeRuntime.astro for what that is and what it saves.
+#     The poster frame is this origin's own file (maxresdefault.jpg as WebP,
+#     34KB), so nothing is requested from Google until the play button is
+#     pressed, and the doc's link survives as that button's href: with no
+#     script, the figure is the still with a link to YouTube over it.
 #   - EVERY HEADING PROMOTED ONE LEVEL, and nothing else about them: the text
 #     is untouched, so every slug — and the two in-document links above, which
 #     point at slugs — is the same. The doc opened with one `#` and then set
@@ -181,7 +188,7 @@ As a listener, you can make this happen by providing a space in which another pe
 
 Coleman was attuned, empathic, and responsive to his fellow musicians. That attunement to interactivity is a profound constraint and opens up possibilities. 
 
-## Give Space by Listening
+## Give space by listening
 Using the skills in Once Upon starts with an intentional decision to give up autonomy and give space to the other person by listening. Taking this stance is like free jazz; we constrain ourselves momentarily to allow for possibilities.
 
 This constraint can look like silence—even just a few seconds—to give our listening partner autonomy in the conversation.
@@ -195,15 +202,28 @@ Things we have found helpful in pursuit of this practice include:
 
 Noticing the non-verbal behaviors of someone we are talking to can help us understand the qualities of the conversation. These can be subtle or overt, and unless we are neurodivergent we can tune into our innate ability to notice non-verbals with a bit of practice.
 
-In this video, Bowie holds eye contact, laughs, smiles, and nods his head up and down, yet… his eye contact is nearly frozen, his facial muscles are tense, his smile constrained, he blushes while laughing, and his response is minimal ("Interesting"). <https://www.youtube.com/watch?v=XZGiVzIr8Qg>
+In this video, Bowie holds eye contact, laughs, smiles, and nods his head up and down, yet… his eye contact is nearly frozen, his facial muscles are tense, his smile constrained, he blushes while laughing, and his response is minimal ("Interesting"). 
 
-Non-verbal communication patterns can vary across cultures. Read more about cultural considerations while using Once Upon [here](#consider-how-culture-shapes-stories).
+<figure>
+  <lite-youtube
+    videoid="XZGiVzIr8Qg"
+    title="David Bowie Criticizes MTV for Not Playing Videos by Black Artists | MTV News"
+    data-title="David Bowie Criticizes MTV for Not Playing Videos by Black Artists | MTV News"
+    style="background-image: url('/images/once-upon/bowie-mtv-poster.webp')"
+  >
+    <a class="lyt-playbtn" href="https://www.youtube.com/watch?v=XZGiVzIr8Qg">
+      <span class="lyt-visually-hidden"
+        >Play: David Bowie asks MTV why it does not play videos by Black artists</span
+      >
+    </a>
+  </lite-youtube>
+</figure>
 
-Being an attentive listener is essential for personal growth, yet hard to perfect. It requires mindfulness to engage with the other. See "[Put yourself first](#put-yourself-first-empower-yourself-to-empower-someone-else)".
+Non-verbal communication patterns vary across cultures, and we address this in the [Appendix](#consider-how-culture-shapes-stories). We also note that being an attentive listener is essential for personal growth, yet hard to perfect. It requires mindfulness to engage with the other. See "[Prioritize your needs](#prioritize-your-needs-empower-yourself-to-empower-someone-else)".
 
 ## Storyboard: notice and develop arcs in stories
 
-The Once Upon tools help another person develop their story, guiding its flow and development:
+These tools help another person develop their story, guiding its flow and development:
 
 **A**sk open-ended questions
 
@@ -213,17 +233,15 @@ The Once Upon tools help another person develop their story, guiding its flow an
 
 **C**onvey affirmations
 
-**S**ummaries.
+**S**ummarize.
 
-We know these all, you might say! Consider this: In a story, one seemingly insignificant, tiny shift can have a ripple effect, spurring character development and advancement of the protagonist towards desired trajectory.
+We know these all instinctively, you might say! In a story, one seemingly insignificant, tiny shift can have a ripple effect, spurring character development and advancement of the protagonist towards desired trajectory.
 
-The same goes for communication. **One tiny shift in how we communicate has the potential to spur personal development and transform a trajectory.**
+The same goes for communication. One tiny shift in how we communicate has the potential to spur personal development and transform a trajectory. Let's go over each component of this core skill and discuss how it informs active listening and helping someone develop their narrative arcs.
 
-So let's learn the skills first:
+### Ask 
 
-### Ask
-
-Open-ended questions are questions that open up different pathways of discussions and help uncover new insights and perspectives. This type of question contrasts with close-ended questions, which elicit specific information that can usually be offered with a short answer ("yes" or "no").
+Open-ended questions are questions that open up different pathways of discussions and can help uncover new insights and perspectives. This type of question contrasts with close-ended questions, which elicit specific information that can usually be offered with a short answer ("yes" or "no").
 
 Open-ended questions can be used to:
 
@@ -342,7 +360,7 @@ Remember, it is always better to err on the side of caution and seek professiona
 
 By engaging in training, you can ensure the best support possible and avoid potential harm to others. Once Upon is available to those who would like to explore their own positive development and help others who might not be able to access formal training.
 
-## Put yourself first: Empower yourself to empower someone else
+## Prioritize Your Needs: Empower yourself to empower someone else
 
 Once Upon puts an enormous burden on you as a listener to manage and attend to responses of the self and of the other. And on top of that – you're practicing a new skill! The following strategies are known to reduce the overwhelm and increase mindfulness. Experiment with different tools to find what works best for you. Think about strategies that you know have helped you in the past.
 

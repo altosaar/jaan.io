@@ -16,6 +16,7 @@ import Base from "../layouts/Base.astro";
 import Prose from "../components/Prose.astro";
 import Toc from "../components/Toc.astro";
 import MermaidRuntime from "../components/MermaidRuntime.astro";
+import YouTubeRuntime from "../components/YouTubeRuntime.astro";
 import NewsletterSignup from "../components/NewsletterSignup.astro";
 import { getCollection, render } from "astro:content";
 import { getImage } from "astro:assets";
@@ -44,6 +45,13 @@ const { Content, headings } = await render(post);
 // mermaid is ~700 KB of JavaScript over the wire, and one post has a diagram.
 // See src/components/MermaidRuntime.astro for what it buys.
 const hasMermaid = /^\s*```mermaid\s*$/m.test(post.body ?? "");
+
+// Same question, same answer, for the video facade: does this post write a
+// <lite-youtube> element by hand? Read off the SOURCE, since the element is
+// raw HTML in the Markdown and passes through the pipeline untouched. See
+// src/components/YouTubeRuntime.astro for what it loads and why the embed is
+// a facade rather than an iframe.
+const hasYouTube = /<lite-youtube[\s>]/.test(post.body ?? "");
 
 // WHAT A LINK TO THIS POST PREVIEWS AS, in three steps — see src/lib/og.ts.
 //
@@ -163,6 +171,7 @@ if (post.data.ogImage) {
   </Prose>
 
   {hasMermaid && <MermaidRuntime />}
+  {hasYouTube && <YouTubeRuntime />}
 
   {
     /* After the article, never before it — the same reasoning as on /writing:
