@@ -129,11 +129,34 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     if (!(await verifyTurnstile(env.TURNSTILE_SECRET, body.token))) return BAD();
 
-    // OR IGNORE, not upsert: a repeat signup must leave the existing row alone,
-    // so created_at stays the real consent timestamp and unsubscribe_token stays
-    // the one already minted (a rotated token would break any link already sent).
+    // UPSERT THAT TOUCHES ONE COLUMN. The row is left alone in every respect
+    // except `status`, which goes back to 'active'.
+    //
+    // WHY IT MUST REACTIVATE: /unsubscribe tells the reader "you can sign up
+    // again whenever you like". Under a plain INSERT OR IGNORE that sentence
+    // was false — the row stayed 'unsubscribed', the form said "thanks", and
+    // the person never heard from the newsletter again. A signup form that
+    // silently does nothing is worse than one that errors, because nobody finds
+    // out. This is the one path back onto the list, and it is the same trust
+    // level as a first-time signup: a human, behind Turnstile, typing an
+    // address. It does mean somebody could re-add an address that is not
+    // theirs, which is equally true of the original signup and is what the
+    // unsubscribe link exists to answer.
+    //
+    // WHY NOTHING ELSE MOVES: created_at stays the FIRST consent timestamp
+    // rather than being bumped — it is the evidence that this address opted in,
+    // and overwriting it would destroy the older, stronger record. And
+    // unsubscribe_token stays the one already minted: rotating it would break
+    // the unsubscribe link in every issue already sitting in that person's
+    // inbox, which is the opposite of what a resubscribe should cost them.
+    //
+    // KNOWN GAP: a reactivation is therefore not timestamped anywhere. Recording
+    // it needs a column and a migration; at this list's size the first-consent
+    // record is the one that matters, and a half-truth in confirmed_at — which
+    // is reserved for double opt-in — would be worse than the gap.
     await env.DB.prepare(
-      "INSERT OR IGNORE INTO subscribers (email, created_at, unsubscribe_token) VALUES (?1, ?2, ?3)",
+      `INSERT INTO subscribers (email, created_at, unsubscribe_token) VALUES (?1, ?2, ?3)
+       ON CONFLICT(email) DO UPDATE SET status = 'active'`,
     )
       .bind(email, new Date().toISOString(), crypto.randomUUID())
       .run();
