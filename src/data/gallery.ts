@@ -39,8 +39,6 @@ const ALT: Record<string, string> = {
     "A very cool man adjusting his glasses in a very cool neighborhood in Brooklyn, New York",
   "portrait-02.jpg":
     "A woman with long grey-blonde hair smiles broadly on a city street at dusk, out-of-focus traffic lights blooming red and green behind her.",
-  "portrait-03.jpg":
-    "A woman with windblown platinum hair on a rooftop, the Manhattan skyline soft and blue behind her.",
   "portrait-04.jpg":
     "A close portrait of a young woman with long fair hair and a gold hoop earring, looking just past the camera with a level, unsmiling expression, summer foliage blurred to green behind her.",
   "portrait-05.jpg":
