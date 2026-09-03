@@ -30,9 +30,9 @@
     "test:clickable": "node scripts/clickable-check.mjs"
   },
   "dependencies": {
-    "astro": "^7.2.2",
+    "astro": "^7.2.10",
     "embla-carousel": "^8.6.0",
-    "katex": "0.16.47",
+    "katex": "0.18.5",
     "lite-youtube-embed": "^0.3.4",
     "mermaid": "^11.17.2",
     "rehype-katex": "^7.0.1",
@@ -41,17 +41,17 @@
   },
   "overrides": {
     "esbuild": "^0.28.1",
-    "katex": "0.16.47"
+    "katex": "0.18.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@astrojs/markdown-remark": "^7.2.2",
-    "@astrojs/sitemap": "^3.7.3",
-    "@cloudflare/workers-types": "^5.20260820.1",
+    "@astrojs/sitemap": "^3.7.4",
+    "@cloudflare/workers-types": "^5.20260831.1",
     "playwright": "^1.58.0",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
     "typescript": "^5.9.3",
-    "wrangler": "^4.123.0"
+    "wrangler": "^4.127.1"
   }
 }
