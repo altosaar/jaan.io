@@ -37,7 +37,7 @@ export function PropertyMap({ height = 720 } = {}) {
     zoom: ZOOM,
     center: CENTER,
     // Protomaps' dark basemap, to match the original. The key is Jaan's and is
-    // already public in the jaanli/jaan.li repo this was ported from.
+    // already public in the altosaar/jaan.li repo this was ported from.
     //
     // It is ORIGIN-LOCKED, and that list is held in the Protomaps dashboard —
     // nothing in this repo. For an origin that is not on it the API answers
