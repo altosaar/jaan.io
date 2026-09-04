@@ -77,6 +77,15 @@ const CASES = [
   { from: "/articles/", to: "/writing" },
   { from: "/articles", to: "/writing" },
 
+  // The guide that shipped as "Once Upon" and is "The Gab Lab" now. The old
+  // slug was live and indexed before the rename, so both forms must reach the
+  // new one in a SINGLE hop — the slashed one must not go via its unslashed
+  // twin — and the new URL must itself be canonical rather than another hop.
+  { from: "/once-upon/", to: "/the-gab-lab" },
+  { from: "/once-upon", to: "/the-gab-lab" },
+  { from: "/the-gab-lab", to: null },
+  { from: "/the-gab-lab/", to: "/the-gab-lab" },
+
   // Index pages, including the two ported from the Jekyll tree.
   { from: "/papers/", to: "/papers" },
   { from: "/talks/", to: "/talks" },

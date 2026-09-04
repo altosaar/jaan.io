@@ -1,5 +1,5 @@
 ---
-title: "Once Upon"
+title: "The Gab Lab"
 description: "How to use active listening and stories to facilitate communication and behavior change."
 # PORTED VERBATIM from the Google Doc "once upon - edit" (One Fact Foundation),
 # via its HTML export — text from the Markdown export, pictures from the HTML
@@ -50,6 +50,22 @@ description: "How to use active listening and stories to facilitate communicatio
 #     six `#`s and the rail lists them; sub-sections that were `###` are `##`
 #     and stay out of it. Body `#`s are styled as section headings rather than
 #     at title size — see `h1:not(.post-title)` in Prose.astro.
+#   - THE TOOL IS RENAMED. The doc called it "Once Upon" throughout, and this
+#     file shipped under that name at /once-upon; it is "The Gab Lab" now, in
+#     the title and in the five places the body named it. Everything the old
+#     name is attached to moved with it: the slug (public/_redirects sends
+#     /once-upon here in one hop — the post is live and indexed, so that rule
+#     is load-bearing, and scripts/redirect-check.mjs asserts it), and the
+#     pictures, from public/images/once-upon/ to public/images/the-gab-lab/.
+#     The Google Doc's own title and the Dropbox path above are left alone:
+#     they name files that still exist under the old name.
+#
+#     ONE THING THIS COSTS, and it cannot be avoided: <id> in the Atom feed is
+#     `https://jaan.io/<slug>` (see src/pages/feed.xml.ts), and an id is the
+#     only thing a reader uses to decide whether it has seen an entry. A new
+#     slug is a new id, so every subscriber gets this delivered a second time,
+#     under its new name. That is the correct outcome of a rename and the
+#     reason not to make a habit of one.
 #
 # STILL TO DECIDE BEFORE THIS SHIPS (see the branch it lives on):
 #   - The "[visual: story spine …]" note and the "Owner:" line at the top are
@@ -69,7 +85,12 @@ date: 2023-08-01
 # a second revision on the same day would have been invisible to every reader.
 # The time makes the stamp distinct. Nothing on the page shows it: [slug].astro
 # formats this as month and year.
-updated: 2026-08-31T13:20:00Z
+#
+# Bumped for the rename. It changes nothing for existing subscribers — the new
+# slug already gives this a new <id>, so it arrives as a new entry rather than
+# as a revision — but it is what the feed's own <updated> is computed from, and
+# leaving it in August would date the feed to before its newest entry changed.
+updated: 2026-09-01T00:00:00Z
 ---
 
 Say you're helping someone tell their story of how they might change their life for the better. A story that shows where they are now, and where they want to go.
@@ -83,7 +104,7 @@ Connecting communication with behavior requires using narrative: learning what m
 
 <!--**Change is hard for all of us.**-->
 
-*Once Upon* is a communication and behavior change tool to empower yourself—and, perhaps, someone around you—to take actions aligned with values and make meaningful change.
+*The Gab Lab* is a communication and behavior change tool to empower yourself—and, perhaps, someone around you—to take actions aligned with values and make meaningful change.
 
 This requires combining tried-and-tested interpersonal skills such as active listening and motivational interviewing with the power of storytelling to enable caring and productive dialogue.
 
@@ -105,7 +126,7 @@ Proceed with caution. This material is designed to be used with care and respons
 
 ## Foundations
 
-Once Upon draws on the science of behavior change and motivation. Specifically, it's built on a clinical approach to enhancing motivation, called motivational interviewing, and a theory of motivation called self-determination theory. Motivational interviewing has been shown to be effective in eliciting behavior change in various settings, from hostage negotiation to chaplaincy work and smoking cessation, while self-determination theory is backed by 40 years of psychological studies on the driving forces behind human behavior across domains, from finance to health.
+The Gab Lab draws on the science of behavior change and motivation. Specifically, it's built on a clinical approach to enhancing motivation, called motivational interviewing, and a theory of motivation called self-determination theory. Motivational interviewing has been shown to be effective in eliciting behavior change in various settings, from hostage negotiation to chaplaincy work and smoking cessation, while self-determination theory is backed by 40 years of psychological studies on the driving forces behind human behavior across domains, from finance to health.
 
 > [!cite]
 > On the compatibility of motivational interviewing and self-determination theory:
@@ -166,7 +187,7 @@ Humans are driven to move towards our aspirations and act on hunches about what 
 <figure>
   <img
     class="ink"
-    src="/images/once-upon/fork-in-the-road.svg"
+    src="/images/the-gab-lab/fork-in-the-road.svg"
     alt="A line drawing of a road forking in two. One person sits beside it scratching their head over an open book; a signpost points both ways with blank signs; another person runs off to the right."
     width="1270"
     height="1135"
@@ -201,7 +222,7 @@ As a listener, you can make this happen by providing a space in which another pe
 Coleman was attuned, empathic, and responsive to his fellow musicians. That attunement to interactivity is a profound constraint and opens up possibilities. 
 
 ## Give space by listening
-Using the skills in Once Upon starts with an intentional decision to give up autonomy and give space to the other person by listening. Taking this stance is like free jazz; we constrain ourselves momentarily to allow for possibilities.
+Using the skills in The Gab Lab starts with an intentional decision to give up autonomy and give space to the other person by listening. Taking this stance is like free jazz; we constrain ourselves momentarily to allow for possibilities.
 
 This constraint can look like silence—even just a few seconds—to give our listening partner autonomy in the conversation.
 
@@ -221,7 +242,7 @@ In this video, Bowie holds eye contact, laughs, smiles, and nods his head up and
     videoid="XZGiVzIr8Qg"
     title="David Bowie Criticizes MTV for Not Playing Videos by Black Artists | MTV News"
     data-title="David Bowie Criticizes MTV for Not Playing Videos by Black Artists | MTV News"
-    style="background-image: url('/images/once-upon/bowie-mtv-poster.webp')"
+    style="background-image: url('/images/the-gab-lab/bowie-mtv-poster.webp')"
   >
     <a class="lyt-playbtn" href="https://www.youtube.com/watch?v=XZGiVzIr8Qg">
       <span class="lyt-visually-hidden"
@@ -270,7 +291,7 @@ In Humans of New York, Brandon Stanton (a street photographer) uses open-ended q
     params="start=1279"
     title="Tell a Different Story: Brandon Stanton"
     data-title="Tell a Different Story: Brandon Stanton"
-    style="background-image: url('/images/once-upon/humans-of-new-york-poster.webp')"
+    style="background-image: url('/images/the-gab-lab/humans-of-new-york-poster.webp')"
   >
     <a class="lyt-playbtn" href="https://www.youtube.com/watch?v=2IGep_7OOgQ&t=1279s">
       <span class="lyt-visually-hidden"
@@ -303,7 +324,7 @@ More complex reflections involve finding a deeper meaning in what you hear or se
 
 <figure>
   <img
-    src="/images/once-upon/its-not-your-fault.webp"
+    src="/images/the-gab-lab/its-not-your-fault.webp"
     alt="A looping clip of the therapist in Good Will Hunting facing his young patient and repeating the line captioned on screen: “It's not your fault.”"
     width="245"
     height="140"
@@ -407,7 +428,7 @@ To respect and align with the values and contexts of diverse cultures, notice an
 >
 > The [Hofstede's tool offers](https://geerthofstede.com/country-comparison-bar-charts/) a cross-country comparison of values on different cultural dimensions (e.x., uncertainty avoidance, power distance, individualism), but this research comes with many caveats.
 
-As an example of how cultural sensitivity is often an ideal that is hard to reach, consider how difficult translation can be. For example, Mandarin speakers we talked to for this had difficulty translating the concepts of "consent" and "autonomy", and translations differed between interviewees. Here are translations for some of the guiding principles of Once Upon: consent, autonomy, and empathy in other world languages. [Email me](mailto:j@jaan.io) if you find better translations!
+As an example of how cultural sensitivity is often an ideal that is hard to reach, consider how difficult translation can be. For example, Mandarin speakers we talked to for this had difficulty translating the concepts of "consent" and "autonomy", and translations differed between interviewees. Here are translations for some of the guiding principles of The Gab Lab: consent, autonomy, and empathy in other world languages. [Email me](mailto:j@jaan.io) if you find better translations!
 
 | Language | Consent | Autonomy |
 | :---: | :---: | :---: |

@@ -49,6 +49,27 @@
 /articles/ /writing 301
 /articles /writing 301
 
+# ── /once-upon → /the-gab-lab ───────────────────────────────────────────────
+# The guide shipped as "Once Upon", the name it carried at One Fact Foundation
+# and in the Google Doc it was ported from. It is "The Gab Lab" now, in the
+# title, in the body, and therefore in the slug — Astro takes a post's URL from
+# its filename, so renaming the file renames the page.
+#
+# THE OLD URL IS LIVE AND INDEXED. /once-upon has been served since the port
+# and is in the sitemap Google already fetched, so without this line the rename
+# turns a 200 into a 404 — the one outcome that cannot be repaired later.
+#
+# 301, and both forms, for the reasons the sections above and below give: a
+# permanent move passes its ranking signal on, and listing the slashed form
+# keeps it one hop rather than two through the catch-all at the bottom.
+#
+# What this CANNOT fix is the feed. <id> in feed.xml is https://jaan.io/<slug>
+# and that string is how a reader knows an entry it already holds; the new slug
+# is a new id, so subscribers receive the piece a second time under its new
+# name. See the rename note in src/content/posts/the-gab-lab.md.
+/once-upon/ /the-gab-lab 301
+/once-upon /the-gab-lab 301
+
 # ── notonspotify ────────────────────────────────────────────────────────────
 # A clock that tells track time, for music that isn't on Spotify. It lives in
 # its own repo on its own subdomain; this is the memorable address people are

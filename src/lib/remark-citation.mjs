@@ -1,6 +1,6 @@
 // Turn `> [!cite]` into a collapsible citation tile.
 //
-// WHAT IT IS FOR. The Once Upon guide carries about thirty references — a
+// WHAT IT IS FOR. The Gab Lab guide carries about thirty references — a
 // "Background" block under most of its sections, plus the reading list at the
 // end — and as plain numbered lists they read as more article. They are not:
 // they are the apparatus under it, the thing you skip on the way down and come
@@ -40,7 +40,7 @@
 // drops the default label, and that pairing is the rule rather than a special
 // case: a CLOSED tile has to say what it is hiding, an OPEN one is already
 // showing you. So `[!cite]+` is a bare caret over an unfolded list, which is
-// what the References section at the foot of the Once Upon guide wants — the
+// what the References section at the foot of The Gab Lab wants — the
 // `# References` heading directly above it has already said the word.
 //
 //   > [!cite]+
