@@ -31,9 +31,9 @@ import { CARD, cardPath, PORTRAIT_PATH, PORTRAIT_SIZE } from "./og-card.mjs";
 // written out in full beside it in og-card.mjs.
 export const featured = {
   src: PORTRAIT_PATH,
-  title: "Jaan Altosaar Li",
+  title: "Jaan Altosaar",
   // Used verbatim as <meta property="og:image:alt">.
-  alt: "Jaan Altosaar Li, smiling in a floral shirt against blurred greenery.",
+  alt: "Jaan Altosaar, smiling in a floral shirt against blurred greenery.",
 };
 
 /**

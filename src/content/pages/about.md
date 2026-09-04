@@ -1,6 +1,6 @@
 ---
 title: About
-description: Jaan Altosaar Li - machine learning for high-stakes decisions.
+description: Jaan Altosaar - machine learning for high-stakes decisions.
 ---
 
 I love designing interfaces that remain faithful to the technical nuances of a system, while delivering value to the humans who need to make decisions based on its outputs. This leverages the skills from my PhD in machine learning, my work across health systems and startups, and teaching experience.

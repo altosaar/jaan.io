@@ -36,7 +36,7 @@ export const SITE = {
    * and does that in CSS (`text-transform` on .nav-wordmark in
    * src/styles/chrome.css) rather than here.
    */
-  name: "Jaan Altosaar Li",
+  name: "Jaan Altosaar",
   /** Fallback <meta name="description"> for pages that don't set their own. */
   description:
     "Machine learning for health and science, variational inference, and interactive views of large public datasets.",
@@ -162,7 +162,7 @@ export const SITE = {
     /** Legal/terms links, shown above the copyright. */
     legal: [] as SiteLink[],
     /** Rendered as "© {copyright} {current year}". */
-    copyright: "Jaan Altosaar Li",
+    copyright: "Jaan Altosaar",
     /** Optional sign-off line. Set to "" to omit. */
     madeWith: "Brooklyn, New York",
     /**
