@@ -49,6 +49,10 @@
 // marked lines in Base.astro. The stylesheet is imported HERE rather than in
 // Base or in tokens.css, so deleting this component takes the CSS with it.
 import "../styles/palettes.css";
+// Each palette's chart colours (--series-*), generated beside palettes.css and
+// keyed on the same attribute. Here for the same reason: they mean nothing
+// without the palettes, and the site's own set lives in tokens.css regardless.
+import "../styles/series.css";
 
 interface Props {
   /**

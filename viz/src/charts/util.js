@@ -76,3 +76,48 @@ export const rows = (table) => table.toArray();
 
 /** The distinct values of one column, in the order the query returned them. */
 export const column = (table, name) => rows(table).map((d) => d[name]);
+
+/**
+ * The page's chart colours, in order of use: --series-1, --series-2, … as the
+ * palette on screen defines them (src/styles/tokens.css for the site's own,
+ * src/styles/series.css per palette). Hand it to a scale as the range:
+ *
+ *   Plot.plot({ color: { domain, range: seriesColors() }, … })
+ *   vg.colorRange(seriesColors())
+ *
+ * Read off <html> at call time, so the answer is whichever palette is applied
+ * right now. Every one is a legal mark on that palette's background and every
+ * pair stays distinct under simulated colour-vision deficiencies — the first
+ * six more so, which is why a chart should take them from the front.
+ *
+ * Plot and Mosaic bake the colours into the SVG they draw, so a chart that
+ * should follow the palette switcher has to draw again: see onPaletteChange.
+ */
+export function seriesColors() {
+  const style = getComputedStyle(document.documentElement);
+  const out = [];
+  for (let i = 1; ; i++) {
+    const value = style.getPropertyValue(`--series-${i}`).trim();
+    if (!value) return out;
+    out.push(value);
+  }
+}
+
+/**
+ * Call `fn(seriesColors())` whenever the palette switcher changes the page's
+ * palette (src/lib/palette.client.ts sets `data-palette` on <html>, and that is
+ * the whole mechanism). Returns a function that stops listening.
+ *
+ * No settle delay, unlike MermaidRuntime.astro: the tokens THAT component reads
+ * are registered with @property and crossfade, so mid-transition it would read
+ * a colour between two palettes. The --series-* tokens are deliberately left
+ * unregistered, so they have their new values as soon as the attribute does.
+ */
+export function onPaletteChange(fn) {
+  const observer = new MutationObserver(() => fn(seriesColors()));
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-palette"],
+  });
+  return () => observer.disconnect();
+}

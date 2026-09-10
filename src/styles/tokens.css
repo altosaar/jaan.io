@@ -53,6 +53,37 @@
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
 
+  /* SERIES — the colours a chart draws its data in, --series-1 … --series-12,
+     in ORDER OF USE: a chart with three series takes the first three. Read by
+     the chart modules in viz/ through seriesColors() (viz/src/charts/util.js),
+     which is the use site this file's first rule asks for; nothing in CSS
+     reaches for them.
+
+     MARK colours, not text colours: each clears 3:1 on --bg (WCAG 1.4.11), and
+     every pair stays at least 0.06 apart in OKLab for normal vision and under
+     simulated protanopia, deuteranopia and tritanopia — the first six at least
+     0.08 — so a legend is still a legend for a colour-blind reader. --series-1
+     is --accent exactly. `npm run a11y` re-measures all of it.
+
+     GENERATED, like the palettes: `chromaphony-series --site <this repo>`
+     rewrites the lines between the markers below from the rest of this block,
+     and writes src/styles/series.css — the same twelve, solved per palette in
+     palettes.css. Change a colour here by changing what it is solved from. */
+  /* series:generated:start — rewritten by chromaphony-series */
+  --series-1: #24cb71; /* 9.86:1 on --bg · --accent */
+  --series-2: #8a2cb7; /* 3.12:1 on --bg */
+  --series-3: #e67aff; /* 8.59:1 on --bg */
+  --series-4: #c91304; /* 3.58:1 on --bg */
+  --series-5: #8bff70; /* 16.64:1 on --bg */
+  --series-6: #008685; /* 4.75:1 on --bg */
+  --series-7: #f2b9ff; /* 13.16:1 on --bg */
+  --series-8: #a958e5; /* 5.21:1 on --bg */
+  --series-9: #ca7400; /* 6.01:1 on --bg */
+  --series-10: #006854; /* 3.11:1 on --bg */
+  --series-11: #00aa6a; /* 6.96:1 on --bg */
+  --series-12: #8cdb2d; /* 12.29:1 on --bg */
+  /* series:generated:end */
+
   /* ── Type ──────────────────────────────────────────────────────────────── */
   /* Typefaces, by ROLE. These three lines are the only place in the codebase
      that names a typeface: everything else asks for a role. Repointing a role

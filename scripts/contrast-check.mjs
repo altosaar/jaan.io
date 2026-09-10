@@ -69,6 +69,19 @@ const PAIRS = [
   },
 ];
 
+// Chart series colours (--series-1 … --series-N, see tokens.css). Each is a
+// MARK on the page — a line, a bar, a legend swatch — so 1.4.11's 3:1 applies,
+// not text's 4.5:1. How many there are is read from tokens.css below rather
+// than restated here. Their other promise, that every PAIR stays distinct for a
+// colour-blind reader, is not a contrast ratio and has its own check further
+// down (SERIES DISTINCTNESS).
+const SERIES_PAIR = (fg) => ({
+  fg,
+  bg: "--bg",
+  min: 3,
+  what: "Chart series colour — a mark, not text (1.4.11)",
+});
+
 // Tokens that must NEVER be used as a foreground colour. Listing one here says
 // "this is a background/hairline, and here is the number that proves it" — so a
 // future edit that reaches for it as text has a documented reason not to.
@@ -98,6 +111,12 @@ if (!rootBlock) {
 }
 const tokens = new Map();
 for (const m of rootBlock[1].matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) tokens.set(m[1], m[2].trim());
+
+// In order: --series-1, --series-2, … as tokens.css defines them.
+const SERIES = [...tokens.keys()]
+  .filter((t) => /^--series-\d+$/.test(t))
+  .sort((a, b) => parseInt(a.slice(9), 10) - parseInt(b.slice(9), 10));
+PAIRS.push(...SERIES.map(SERIES_PAIR));
 
 // Follow `--a: var(--b)` chains to the literal colour. Depth-capped so a
 // self-referential token reports instead of hanging.
@@ -194,16 +213,30 @@ for (const { token, note } of BACKGROUND_ONLY) {
 // checked is the site's own: delete palettes.css and this section goes quiet,
 // which is what makes the test revertible in one step.
 const PALETTES_FILE = "src/styles/palettes.css";
+// Each palette's --series-* live in a file of their own, generated beside
+// palettes.css and keyed on the same names, so they are layered in here the
+// way the cascade layers them. A palette with no block there inherits the
+// site's own series from tokens.css — and then gets measured against its own
+// --bg, which is exactly the failure a missing block should be.
+const SERIES_FILE = "src/styles/series.css";
+const blocksOf = (path) => {
+  const out = new Map();
+  if (!existsSync(path)) return out;
+  const css = readFileSync(path, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const [, name, body] of css.matchAll(/\[data-palette="([^"]+)"\]\s*\{([\s\S]*?)\}/g))
+    out.set(name, body);
+  return out;
+};
 const paletteRows = [];
 if (file === "src/styles/tokens.css" && existsSync(PALETTES_FILE)) {
-  const palettesCss = readFileSync(PALETTES_FILE, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-  for (const block of palettesCss.matchAll(/\[data-palette="([^"]+)"\]\s*\{([\s\S]*?)\}/g)) {
-    const [, name, body] = block;
+  const seriesBlocks = blocksOf(SERIES_FILE);
+  for (const [name, body] of blocksOf(PALETTES_FILE)) {
     // Layered over the defaults, not replacing them: a palette that redefines
     // eight tokens still inherits --btn-light (`var(--text)`, and so its own
     // text colour) and everything else from :root, exactly as the cascade does.
     const map = new Map(tokens);
-    for (const m of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) map.set(m[1], m[2].trim());
+    for (const layer of [body, seriesBlocks.get(name) ?? ""])
+      for (const m of layer.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) map.set(m[1], m[2].trim());
 
     let worst = null;
     for (const { fg, bg, min, what } of PAIRS) {
@@ -222,8 +255,130 @@ if (file === "src/styles/tokens.css" && existsSync(PALETTES_FILE)) {
       // one number says how much headroom the whole palette has.
       if (!worst || r / min < worst.r / worst.min) worst = { r, min, label: `${fg} on ${bg}` };
     }
-    paletteRows.push({ name, worst, accent: resolve("--accent", map), bg: resolve("--bg", map) });
+    paletteRows.push({
+      name,
+      map,
+      worst,
+      accent: resolve("--accent", map),
+      bg: resolve("--bg", map),
+    });
   }
+  // A series block for a palette that palettes.css does not define is not
+  // harmless: src/lib/palette.client.ts reads palette NAMES off every
+  // [data-palette] rule in the bundle, so it would deal a palette that sets
+  // twelve chart colours and nothing else.
+  for (const name of seriesBlocks.keys())
+    if (!paletteRows.some((p) => p.name === name))
+      failures.push(`${SERIES_FILE}: block for "${name}", which ${PALETTES_FILE} does not define`);
+}
+
+// -------------------------------------------------- SERIES DISTINCTNESS ---
+// The series' second promise: every pair is still two colours to a reader with
+// a colour-vision deficiency. Measured as the distance between the two colours
+// in OKLab — how different they LOOK, not how different their hex is — for
+// normal vision and after simulating protanopia, deuteranopia and tritanopia
+// (Machado, Oliveira & Fernandes 2009, full severity), and the pair scores the
+// worst of the four. The first six are held to more, because six is about as
+// many series as a chart here draws; the whole set to less, because twelve
+// colours that clear 0.08 under all three simulations do not exist inside the
+// band 3:1 leaves on a page. For scale on this metric: Okabe–Ito's seven
+// chromatic colours, the usual reference set, score 0.076; Observable Plot's
+// default scheme 0.020.
+//
+// And every series is kept clear of --text and --text-muted, the colours a
+// chart draws its axes, ticks and labels in: a line that turns into the axis
+// grey under a simulation has not been drawn at all.
+const SERIES_GATE = { all: 0.06, first: 0.08, firstN: 6, neutral: 0.04 };
+const CVD = {
+  protan: [
+    [0.152286, 1.052583, -0.204868],
+    [0.114503, 0.786281, 0.099216],
+    [-0.003882, -0.048116, 1.051998],
+  ],
+  deutan: [
+    [0.367322, 0.860646, -0.227968],
+    [0.280085, 0.672501, 0.047413],
+    [-0.01182, 0.04294, 0.968881],
+  ],
+  tritan: [
+    [1.255528, -0.076749, -0.178779],
+    [-0.078411, 0.930809, 0.147602],
+    [0.004733, 0.691367, 0.3039],
+  ],
+};
+const VISIONS = ["normal", ...Object.keys(CVD)];
+const clamp01 = (x) => Math.min(1, Math.max(0, x));
+const mul = (m, v) => m.map((row) => clamp01(row[0] * v[0] + row[1] * v[1] + row[2] * v[2]));
+// Linear RGB → OKLab (Björn Ottosson's matrices, as in scripts/gen-light-palettes.mjs).
+function oklab([r, g, b]) {
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+  ];
+}
+const seen = (rgb) => {
+  const linear = rgb.map(channel);
+  return [oklab(linear), ...Object.values(CVD).map((m) => oklab(mul(m, linear)))];
+};
+/** Worst-vision distance between two colours, and which vision it was. */
+function apart(a, b) {
+  const va = seen(a);
+  const vb = seen(b);
+  let best = { d: Infinity, vision: "" };
+  va.forEach((x, i) => {
+    const d = Math.hypot(x[0] - vb[i][0], x[1] - vb[i][1], x[2] - vb[i][2]);
+    if (d < best.d) best = { d, vision: VISIONS[i] };
+  });
+  return best;
+}
+
+const seriesRows = [];
+function checkSeries(name, map) {
+  const colours = SERIES.map((t) => ({ t, rgb: toRgb(resolve(t, map) ?? "") }));
+  const bad = colours.find((c) => !c.rgb);
+  if (bad) {
+    failures.push(`${name}: cannot measure ${bad.t} for series distinctness`);
+    return;
+  }
+  const worst = { all: { d: Infinity }, first: { d: Infinity } };
+  for (let i = 0; i < colours.length; i++) {
+    for (let j = i + 1; j < colours.length; j++) {
+      const p = {
+        ...apart(colours[i].rgb, colours[j].rgb),
+        pair: `${colours[i].t} / ${colours[j].t}`,
+      };
+      if (p.d < worst.all.d) worst.all = p;
+      if (j < SERIES_GATE.firstN && p.d < worst.first.d) worst.first = p;
+    }
+  }
+  let neutral = { d: Infinity };
+  for (const text of ["--text", "--text-muted"]) {
+    const n = toRgb(resolve(text, map) ?? "");
+    if (!n) continue;
+    for (const c of colours) {
+      const p = { ...apart(c.rgb, n), pair: `${c.t} / ${text}` };
+      if (p.d < neutral.d) neutral = p;
+    }
+  }
+  const verdicts = [
+    [worst.all, SERIES_GATE.all, "any two series"],
+    [worst.first, SERIES_GATE.first, `two of the first ${SERIES_GATE.firstN} series`],
+    [neutral, SERIES_GATE.neutral, "a series and the text colours"],
+  ];
+  for (const [p, min, what] of verdicts)
+    if (p.d < min)
+      failures.push(
+        `${name}: ${p.pair} are ${p.d.toFixed(3)} apart for ${p.vision} vision — ${what} need ${min}`,
+      );
+  seriesRows.push({ name, ok: verdicts.every(([p, min]) => p.d >= min), worst, neutral });
+}
+if (SERIES.length) {
+  checkSeries("(site palette)", tokens);
+  for (const { name, map } of paletteRows) checkSeries(name, map);
 }
 
 // The corner marks are the one place a colour from one palette is drawn on top
@@ -286,6 +441,20 @@ if (paletteRows.length) {
     );
   }
   console.log(`\n${paletteRows.length} palettes checked`);
+}
+if (seriesRows.length) {
+  const sw = Math.max(...seriesRows.map((s) => s.name.length));
+  console.log(
+    `\nSeries distinctness — ${SERIES.length} colours, worst pair under normal/protan/deutan/tritan ` +
+      `(ΔE OKLab; need ≥${SERIES_GATE.all} all, ≥${SERIES_GATE.first} first ${SERIES_GATE.firstN}, ` +
+      `≥${SERIES_GATE.neutral} vs text):`,
+  );
+  for (const { name, ok, worst, neutral } of seriesRows) {
+    console.log(
+      `${ok ? "✔" : "✖"} ${name.padEnd(sw)}  all ${worst.all.d.toFixed(3)} (${worst.all.vision.padEnd(6)})  ` +
+        `first ${worst.first.d.toFixed(3)}  vs text ${neutral.d.toFixed(3)}`,
+    );
+  }
 }
 if (failures.length) {
   console.error("\nFix the token values in " + file + ", or the pairing in the stylesheet:");
