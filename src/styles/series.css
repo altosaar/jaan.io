@@ -7,16 +7,24 @@
    palette and one per `-light` counterpart, in the same selector form so the two
    files agree on specificity and on names.
 
-   --series-1 … --series-12, in ORDER OF USE: a chart with three series takes the
+   --series-1 … --series-N, in ORDER OF USE: a chart with three series takes the
    first three. --series-1 is the palette's own --accent, exactly; --series-2 is
-   its --select when that is far enough from the accent to be a separate series
-   for a colour-blind reader, and a solved colour otherwise.
+   its --select when that names a different colour and is far enough from the
+   accent for a colour-blind reader, and a solved colour otherwise.
+
+   TWO TIERS. --series-1 … 8 are one per HUE FAMILY — red, orange, yellow, green,
+   teal, blue, purple, pink — so every one has its own name in a legend. (On a
+   light palette, orange and yellow dark enough for 3:1 are brown and olive.)
+   --series-9 and up are a second SHADE of one of those, named in the comment
+   beside it: use them for paired data, or as overflow drawn with a second
+   encoding too (a dash, a symbol) — seriesDashes() in viz/src/charts/util.js.
 
    Every value is a MARK colour, not a text colour: 3:1 against its palette's
-   --bg (WCAG 1.4.11), measured in the comment beside it. Every PAIR is at least
-   0.06 apart in OKLab for normal vision AND under simulated protanopia,
-   deuteranopia and tritanopia, and the first six at least 0.08 — so a legend
-   stays a legend for a colour-blind reader. `npm run a11y` re-measures both.
+   --bg (WCAG 1.4.11), measured in the comment beside it. Every pair among 1–8 is
+   at least 0.05 apart in OKLab for normal vision AND under simulated protanopia,
+   deuteranopia and tritanopia, the first five at least 0.08; a shade clears its
+   parent by 0.06 and every other series by 0.055. `npm run a11y` re-measures
+   all of it, families included.
 
    NOT REGISTERED with @property, unlike the tokens palettes.css crossfades. A
    chart reads these with getComputedStyle and bakes them into its SVG; a
@@ -26,704 +34,660 @@
 
 /* ghibli-master */
 :root[data-palette="ghibli-master"] {
-  --series-1: #ef890f; /* 7.00:1 on --bg · --accent */
-  --series-2: #49c2f4; /* 8.74:1 on --bg · --select */
-  --series-3: #896100; /* 3.20:1 on --bg · film */
-  --series-4: #0078c7; /* 3.83:1 on --bg · film */
-  --series-5: #ffc392; /* 11.43:1 on --bg */
-  --series-6: #00a0d0; /* 5.89:1 on --bg */
-  --series-7: #c22182; /* 3.25:1 on --bg */
-  --series-8: #9078ff; /* 5.36:1 on --bg */
-  --series-9: #ea4182; /* 4.73:1 on --bg */
-  --series-10: #d2d3ff; /* 12.30:1 on --bg */
-  --series-11: #ac7800; /* 4.62:1 on --bg */
-  --series-12: #ff9eaa; /* 9.10:1 on --bg */
+  --series-1: #ef890f; /* 7.00:1 · orange · --accent */
+  --series-2: #49c2f4; /* 8.74:1 · blue · --select */
+  --series-3: #a82fae; /* 3.12:1 · pink */
+  --series-4: #9e6bfe; /* 5.08:1 · purple */
+  --series-5: #ffcc5f; /* 11.92:1 · yellow */
+  --series-6: #00e8fc; /* 11.83:1 · teal */
+  --series-7: #ea3d35; /* 4.43:1 · red */
+  --series-8: #008f4e; /* 4.27:1 · green */
+  --series-9: #834dde; /* 3.46:1 · shade of --series-4 */
+  --series-10: #cd56d2; /* 4.97:1 · shade of --series-3 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* ghibli-master-light */
 :root[data-palette="ghibli-master-light"] {
-  --series-1: #a65c00; /* 4.83:1 on --bg · --accent */
-  --series-2: #00779e; /* 4.85:1 on --bg · --select */
-  --series-3: #5b3f00; /* 9.31:1 on --bg · film */
-  --series-4: #004a7e; /* 8.80:1 on --bg · film */
-  --series-5: #d57700; /* 3.10:1 on --bg */
-  --series-6: #009ac7; /* 3.11:1 on --bg */
-  --series-7: #820054; /* 9.66:1 on --bg */
-  --series-8: #886afe; /* 3.62:1 on --bg */
-  --series-9: #d82d73; /* 4.42:1 on --bg */
-  --series-10: #5c43d3; /* 6.27:1 on --bg */
-  --series-11: #755000; /* 6.91:1 on --bg */
-  --series-12: #bd0046; /* 6.17:1 on --bg */
+  --series-1: #a65c00; /* 4.83:1 · orange · --accent */
+  --series-2: #00779e; /* 4.85:1 · blue · --select */
+  --series-3: #65006a; /* 11.39:1 · pink */
+  --series-4: #9864f7; /* 3.65:1 · purple */
+  --series-5: #b58700; /* 3.12:1 · yellow */
+  --series-6: #009ba9; /* 3.20:1 · teal */
+  --series-7: #a80009; /* 7.52:1 · red */
+  --series-8: #005a2f; /* 8.01:1 · green */
+  --series-9: #6d31c3; /* 6.97:1 · shade of --series-4 */
+  --series-10: #8b0091; /* 8.00:1 · shade of --series-3 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* arrietty-2010 */
 :root[data-palette="arrietty-2010"] {
-  --series-1: #6eb447; /* 7.03:1 on --bg · --accent */
-  --series-2: #b643c2; /* 3.88:1 on --bg */
-  --series-3: #377500; /* 3.14:1 on --bg · film */
-  --series-4: #5ad5ff; /* 10.52:1 on --bg · film */
-  --series-5: #dc3176; /* 4.02:1 on --bg */
-  --series-6: #cd72fe; /* 6.31:1 on --bg */
-  --series-7: #cdda00; /* 11.56:1 on --bg */
-  --series-8: #ff86bf; /* 7.99:1 on --bg */
-  --series-9: #eb56b8; /* 5.56:1 on --bg */
-  --series-10: #519500; /* 4.79:1 on --bg */
-  --series-11: #835ff2; /* 4.14:1 on --bg */
-  --series-12: #ffb1c8; /* 10.50:1 on --bg */
+  --series-1: #6eb447; /* 7.03:1 · green · --accent */
+  --series-2: #fb86ff; /* 8.45:1 · pink */
+  --series-3: #006abe; /* 3.23:1 · blue · film */
+  --series-4: #b26bfc; /* 5.43:1 · purple */
+  --series-5: #c23500; /* 3.23:1 · red */
+  --series-6: #00d1b8; /* 9.17:1 · teal */
+  --series-7: #ffd24b; /* 12.36:1 · yellow */
+  --series-8: #d45e00; /* 4.58:1 · orange */
+  --series-9: #a82fae; /* 3.12:1 · shade of --series-2 */
+  --series-10: #9d54e3; /* 4.08:1 · shade of --series-4 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* arrietty-2010-light */
 :root[data-palette="arrietty-2010-light"] {
-  --series-1: #3c7e00; /* 4.80:1 on --bg · --accent */
-  --series-2: #850090; /* 8.36:1 on --bg */
-  --series-3: #245200; /* 8.79:1 on --bg · film */
-  --series-4: #009bc2; /* 3.10:1 on --bg · film */
-  --series-5: #f24888; /* 3.31:1 on --bg */
-  --series-6: #993ec8; /* 5.17:1 on --bg */
-  --series-7: #8c9500; /* 3.13:1 on --bg */
-  --series-8: #c4207e; /* 5.20:1 on --bg */
-  --series-9: #6e0050; /* 11.28:1 on --bg */
-  --series-10: #366700; /* 6.48:1 on --bg */
-  --series-11: #8966f9; /* 3.76:1 on --bg */
-  --series-12: #9d0051; /* 7.86:1 on --bg */
+  --series-1: #3c7e00; /* 4.80:1 · green · --accent */
+  --series-2: #65006a; /* 11.39:1 · pink */
+  --series-3: #0890ff; /* 3.11:1 · blue · film */
+  --series-4: #7323b4; /* 7.63:1 · purple */
+  --series-5: #8a2300; /* 8.64:1 · red */
+  --series-6: #009280; /* 3.70:1 · teal */
+  --series-7: #af8a00; /* 3.11:1 · yellow */
+  --series-8: #bd5400; /* 4.53:1 · orange */
+  --series-9: #c34cc8; /* 3.87:1 · shade of --series-2 */
+  --series-10: #5b0095; /* 10.68:1 · shade of --series-4 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* earwig-and-the-witch-2020 */
 :root[data-palette="earwig-and-the-witch-2020"] {
-  --series-1: #fa813a; /* 7.02:1 on --bg · --accent */
-  --series-2: #7bb3ff; /* 8.26:1 on --bg · film */
-  --series-3: #ba3900; /* 3.12:1 on --bg · film */
-  --series-4: #a058e7; /* 4.28:1 on --bg */
-  --series-5: #007a6d; /* 3.40:1 on --bg · film */
-  --series-6: #ffd0b0; /* 12.65:1 on --bg */
-  --series-7: #8ddeff; /* 11.91:1 on --bg */
-  --series-8: #bc3ab0; /* 3.71:1 on --bg */
-  --series-9: #ffa3ac; /* 9.41:1 on --bg */
-  --series-10: #da2c6a; /* 3.86:1 on --bg */
-  --series-11: #9c84ff; /* 6.08:1 on --bg */
-  --series-12: #00a4bb; /* 5.97:1 on --bg */
+  --series-1: #fa813a; /* 7.02:1 · orange · --accent */
+  --series-2: #94b1ff; /* 8.48:1 · blue · film */
+  --series-3: #a06fff; /* 5.27:1 · purple */
+  --series-4: #008a7e; /* 4.19:1 · teal · film */
+  --series-5: #ca2200; /* 3.17:1 · red · film */
+  --series-6: #a82fae; /* 3.13:1 · pink */
+  --series-7: #f7c900; /* 11.30:1 · yellow */
+  --series-8: #00f3a1; /* 12.17:1 · green */
+  --series-9: #834dde; /* 3.46:1 · shade of --series-3 */
+  --series-10: #fec4ff; /* 12.35:1 · shade of --series-6 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* earwig-and-the-witch-2020-light */
 :root[data-palette="earwig-and-the-witch-2020-light"] {
-  --series-1: #b75100; /* 4.80:1 on --bg · --accent */
-  --series-2: #00458f; /* 8.95:1 on --bg · film */
-  --series-3: #832600; /* 8.97:1 on --bg · film */
-  --series-4: #a058e7; /* 3.99:1 on --bg */
-  --series-5: #009f8e; /* 3.17:1 on --bg · film */
-  --series-6: #da7300; /* 3.13:1 on --bg */
-  --series-7: #006b89; /* 5.81:1 on --bg */
-  --series-8: #690061; /* 11.35:1 on --bg */
-  --series-9: #f34467; /* 3.45:1 on --bg */
-  --series-10: #a30048; /* 7.59:1 on --bg */
-  --series-11: #683ecf; /* 6.33:1 on --bg */
-  --series-12: #008396; /* 4.29:1 on --bg */
+  --series-1: #b75100; /* 4.80:1 · orange · --accent */
+  --series-2: #1c2ab3; /* 9.90:1 · blue · film */
+  --series-3: #9561f3; /* 3.81:1 · purple */
+  --series-4: #009f91; /* 3.16:1 · teal · film */
+  --series-5: #951600; /* 8.41:1 · red · film */
+  --series-6: #65006a; /* 11.42:1 · pink */
+  --series-7: #ac8b00; /* 3.12:1 · yellow */
+  --series-8: #008a5a; /* 4.21:1 · green */
+  --series-9: #7840d1; /* 5.83:1 · shade of --series-3 */
+  --series-10: #820088; /* 8.73:1 · shade of --series-6 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* from-up-on-poppy-hill-2011 */
 :root[data-palette="from-up-on-poppy-hill-2011"] {
-  --series-1: #c9b800; /* 8.77:1 on --bg · --accent */
-  --series-2: #39c5ec; /* 8.80:1 on --bg · --select */
-  --series-3: #a53dc2; /* 3.43:1 on --bg */
-  --series-4: #00782d; /* 3.16:1 on --bg · film */
-  --series-5: #997fff; /* 5.80:1 on --bg */
-  --series-6: #b08e00; /* 5.70:1 on --bg */
-  --series-7: #009675; /* 4.77:1 on --bg */
-  --series-8: #cadbff; /* 12.80:1 on --bg */
-  --series-9: #ff8dbe; /* 8.32:1 on --bg */
-  --series-10: #dd57c9; /* 5.33:1 on --bg */
-  --series-11: #835ff2; /* 4.14:1 on --bg */
-  --series-12: #f34883; /* 5.15:1 on --bg */
+  --series-1: #c9b800; /* 8.77:1 · yellow · --accent */
+  --series-2: #39c5ec; /* 8.80:1 · blue · --select */
+  --series-3: #8443d3; /* 3.16:1 · purple */
+  --series-4: #a8fa55; /* 13.97:1 · green · film */
+  --series-5: #008874; /* 4.05:1 · teal */
+  --series-6: #ff8dbe; /* 8.32:1 · pink */
+  --series-7: #cf8100; /* 5.76:1 · orange */
+  --series-8: #e13154; /* 4.05:1 · red */
+  --series-9: #ab6fff; /* 5.47:1 · shade of --series-3 */
+  --series-10: #467600; /* 3.27:1 · shade of --series-4 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* from-up-on-poppy-hill-2011-light */
 :root[data-palette="from-up-on-poppy-hill-2011-light"] {
-  --series-1: #7b7000; /* 4.82:1 on --bg · --accent */
-  --series-2: #007995; /* 4.81:1 on --bg · --select */
-  --series-3: #68007f; /* 10.59:1 on --bg */
-  --series-4: #00541e; /* 8.77:1 on --bg · film */
-  --series-5: #9476ff; /* 3.19:1 on --bg */
-  --series-6: #ac8b00; /* 3.11:1 on --bg */
-  --series-7: #00a17d; /* 3.14:1 on --bg */
-  --series-8: #1c3ec4; /* 7.91:1 on --bg */
-  --series-9: #960059; /* 8.22:1 on --bg */
-  --series-10: #dd57c9; /* 3.19:1 on --bg */
-  --series-11: #7b55e7; /* 4.67:1 on --bg */
-  --series-12: #c71160; /* 5.45:1 on --bg */
+  --series-1: #7b7000; /* 4.82:1 · yellow · --accent */
+  --series-2: #007995; /* 4.81:1 · blue · --select */
+  --series-3: #ab6fff; /* 3.11:1 · purple */
+  --series-4: #2a4a00; /* 9.65:1 · green · film */
+  --series-5: #00a089; /* 3.14:1 · teal */
+  --series-6: #910056; /* 8.58:1 · pink */
+  --series-7: #c37900; /* 3.31:1 · orange */
+  --series-8: #fb4c68; /* 3.17:1 · red */
+  --series-9: #6d26b8; /* 7.66:1 · shade of --series-3 */
+  --series-10: #385f00; /* 7.15:1 · shade of --series-4 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* grave-of-the-fireflies-1988 */
 :root[data-palette="grave-of-the-fireflies-1988"] {
-  --series-1: #f18913; /* 7.06:1 on --bg · --accent */
-  --series-2: #53c1f9; /* 8.79:1 on --bg · --select */
-  --series-3: #0068c4; /* 3.20:1 on --bg · film */
-  --series-4: #a25400; /* 3.23:1 on --bg · film */
-  --series-5: #8d8bff; /* 6.17:1 on --bg */
-  --series-6: #db327b; /* 4.03:1 on --bg */
-  --series-7: #cadbff; /* 12.80:1 on --bg */
-  --series-8: #ffc5ad; /* 11.74:1 on --bg */
-  --series-9: #835ff2; /* 4.14:1 on --bg */
-  --series-10: #00be4d; /* 7.19:1 on --bg */
-  --series-11: #dc5dd4; /* 5.56:1 on --bg */
-  --series-12: #ff99c3; /* 8.99:1 on --bg */
+  --series-1: #f18913; /* 7.06:1 · orange · --accent */
+  --series-2: #53c1f9; /* 8.79:1 · blue · --select */
+  --series-3: #a82fae; /* 3.12:1 · pink */
+  --series-4: #9b67fa; /* 4.85:1 · purple */
+  --series-5: #ffcc5f; /* 11.92:1 · yellow */
+  --series-6: #009bab; /* 5.32:1 · teal */
+  --series-7: #007915; /* 3.18:1 · green · film */
+  --series-8: #de2c51; /* 3.89:1 · red */
+  --series-9: #804adb; /* 3.33:1 · shade of --series-4 */
+  --series-10: #ffa4a9; /* 9.45:1 · shade of --series-8 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* grave-of-the-fireflies-1988-light */
 :root[data-palette="grave-of-the-fireflies-1988-light"] {
-  --series-1: #a75c00; /* 4.81:1 on --bg · --accent */
-  --series-2: #0077a4; /* 4.81:1 on --bg · --select */
-  --series-3: #003f7c; /* 10.02:1 on --bg · film */
-  --series-4: #723900; /* 8.72:1 on --bg · film */
-  --series-5: #837eff; /* 3.14:1 on --bg */
-  --series-6: #d42975; /* 4.59:1 on --bg */
-  --series-7: #1f41c7; /* 7.60:1 on --bg */
-  --series-8: #ed6000; /* 3.20:1 on --bg */
-  --series-9: #7e58eb; /* 4.48:1 on --bg */
-  --series-10: #00a541; /* 3.11:1 on --bg */
-  --series-11: #d95ad1; /* 3.17:1 on --bg */
-  --series-12: #910056; /* 8.58:1 on --bg */
+  --series-1: #a75c00; /* 4.81:1 · orange · --accent */
+  --series-2: #0077a4; /* 4.81:1 · blue · --select */
+  --series-3: #6d0073; /* 10.57:1 · pink */
+  --series-4: #9864f7; /* 3.65:1 · purple */
+  --series-5: #b58700; /* 3.12:1 · yellow */
+  --series-6: #009bab; /* 3.20:1 · teal */
+  --series-7: #00550c; /* 8.70:1 · green · film */
+  --series-8: #a60033; /* 7.52:1 · red */
+  --series-9: #672abc; /* 7.62:1 · shade of --series-4 */
+  --series-10: #fb4c68; /* 3.17:1 · shade of --series-8 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* howl-s-moving-castle-2004 */
 :root[data-palette="howl-s-moving-castle-2004"] {
-  --series-1: #faa300; /* 8.74:1 on --bg · --accent */
-  --series-2: #50c1f8; /* 8.76:1 on --bg · --select */
-  --series-3: #7d6700; /* 3.23:1 on --bg · film */
-  --series-4: #007bdc; /* 4.13:1 on --bg · film */
-  --series-5: #b82390; /* 3.12:1 on --bg */
-  --series-6: #ab8700; /* 5.26:1 on --bg */
-  --series-7: #c9dbff; /* 12.78:1 on --bg */
-  --series-8: #de3c8f; /* 4.37:1 on --bg */
-  --series-9: #9f88ff; /* 6.31:1 on --bg */
-  --series-10: #ffb7c1; /* 10.85:1 on --bg */
-  --series-11: #ff7587; /* 6.91:1 on --bg */
-  --series-12: #be43be; /* 4.02:1 on --bg */
+  --series-1: #faa300; /* 8.74:1 · orange · --accent */
+  --series-2: #50c1f8; /* 8.76:1 · blue · --select */
+  --series-3: #a82fae; /* 3.12:1 · pink */
+  --series-4: #9864f7; /* 4.67:1 · purple */
+  --series-5: #b08e00; /* 5.70:1 · yellow */
+  --series-6: #82ff84; /* 14.07:1 · green · film */
+  --series-7: #009bab; /* 5.32:1 · teal */
+  --series-8: #da284e; /* 3.73:1 · red */
+  --series-9: #ac87ff; /* 6.50:1 · shade of --series-4 */
+  --series-10: #ff6074; /* 6.09:1 · shade of --series-8 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* howl-s-moving-castle-2004-light */
 :root[data-palette="howl-s-moving-castle-2004-light"] {
-  --series-1: #9b6300; /* 4.80:1 on --bg · --accent */
-  --series-2: #0077a4; /* 4.81:1 on --bg · --select */
-  --series-3: #564600; /* 8.83:1 on --bg · film */
-  --series-4: #0890ff; /* 3.11:1 on --bg · film */
-  --series-5: #830064; /* 9.33:1 on --bg */
-  --series-6: #af8a00; /* 3.11:1 on --bg */
-  --series-7: #0532b6; /* 9.38:1 on --bg */
-  --series-8: #c9237d; /* 4.99:1 on --bg */
-  --series-9: #6d44d6; /* 5.82:1 on --bg */
-  --series-10: #f54874; /* 3.31:1 on --bg */
-  --series-11: #aa0039; /* 7.25:1 on --bg */
-  --series-12: #d65bd5; /* 3.18:1 on --bg */
+  --series-1: #9b6300; /* 4.80:1 · orange · --accent */
+  --series-2: #0077a4; /* 4.81:1 · blue · --select */
+  --series-3: #6d0073; /* 10.57:1 · pink */
+  --series-4: #9561f3; /* 3.80:1 · purple */
+  --series-5: #ac8b00; /* 3.11:1 · yellow */
+  --series-6: #00550c; /* 8.70:1 · green · film */
+  --series-7: #009bab; /* 3.20:1 · teal */
+  --series-8: #a60033; /* 7.52:1 · red */
+  --series-9: #672abc; /* 7.62:1 · shade of --series-4 */
+  --series-10: #fb4c68; /* 3.17:1 · shade of --series-8 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* kiki-s-delivery-service-1989 */
 :root[data-palette="kiki-s-delivery-service-1989"] {
-  --series-1: #00bffc; /* 8.36:1 on --bg · --accent */
-  --series-2: #ff9b90; /* 8.77:1 on --bg · --select */
-  --series-3: #006e9f; /* 3.16:1 on --bg · film */
-  --series-4: #c23500; /* 3.22:1 on --bg · film */
-  --series-5: #9561f3; /* 4.48:1 on --bg */
-  --series-6: #0096b3; /* 5.10:1 on --bg */
-  --series-7: #ff7e20; /* 7.00:1 on --bg */
-  --series-8: #8ddeff; /* 11.89:1 on --bg */
-  --series-9: #8443d3; /* 3.16:1 on --bg */
-  --series-10: #9c84ff; /* 6.07:1 on --bg */
-  --series-11: #ffbdc4; /* 11.30:1 on --bg */
-  --series-12: #e25500; /* 4.69:1 on --bg */
+  --series-1: #00bffc; /* 8.36:1 · blue · --accent */
+  --series-2: #ff9b90; /* 8.77:1 · red · --select */
+  --series-3: #ab4b00; /* 3.17:1 · orange · film */
+  --series-4: #7e46d8; /* 3.18:1 · purple */
+  --series-5: #ffd661; /* 12.76:1 · yellow */
+  --series-6: #0094a4; /* 4.89:1 · teal */
+  --series-7: #ec468f; /* 4.95:1 · pink */
+  --series-8: #5dbd05; /* 7.42:1 · green */
+  --series-9: #a06fff; /* 5.27:1 · shade of --series-4 */
+  --series-10: #cf2677; /* 3.56:1 · shade of --series-7 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* kiki-s-delivery-service-1989-light */
 :root[data-palette="kiki-s-delivery-service-1989-light"] {
-  --series-1: #00779f; /* 4.85:1 on --bg · --accent */
-  --series-2: #af534b; /* 4.82:1 on --bg · --select */
-  --series-3: #00486a; /* 9.40:1 on --bg · film */
-  --series-4: #8a2300; /* 8.65:1 on --bg · film */
-  --series-5: #a06fff; /* 3.23:1 on --bg */
-  --series-6: #009cba; /* 3.11:1 on --bg */
-  --series-7: #e36b00; /* 3.15:1 on --bg */
-  --series-8: #00617d; /* 6.68:1 on --bg */
-  --series-9: #6d26b8; /* 7.66:1 on --bg */
-  --series-10: #734bdd; /* 5.31:1 on --bg */
-  --series-11: #af0040; /* 6.93:1 on --bg */
-  --series-12: #cf4d00; /* 4.26:1 on --bg */
+  --series-1: #00779f; /* 4.85:1 · blue · --accent */
+  --series-2: #af534b; /* 4.82:1 · red · --select */
+  --series-3: #682b00; /* 10.38:1 · orange · film */
+  --series-4: #580ca8; /* 9.87:1 · purple */
+  --series-5: #af8a00; /* 3.11:1 · yellow */
+  --series-6: #009bab; /* 3.20:1 · teal */
+  --series-7: #9c0055; /* 7.89:1 · pink */
+  --series-8: #357200; /* 5.64:1 · green */
+  --series-9: #9561f3; /* 3.80:1 · shade of --series-4 */
+  --series-10: #da3380; /* 4.21:1 · shade of --series-7 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* laputa-castle-in-the-sky-1986 */
 :root[data-palette="laputa-castle-in-the-sky-1986"] {
-  --series-1: #f6842c; /* 7.01:1 on --bg · --accent */
-  --series-2: #51c1f8; /* 8.78:1 on --bg · --select */
-  --series-3: #9c5300; /* 3.10:1 on --bg · film */
-  --series-4: #9e66f8; /* 4.85:1 on --bg */
-  --series-5: #0095b5; /* 5.07:1 on --bg */
-  --series-6: #ffd5b3; /* 13.10:1 on --bg */
-  --series-7: #ffaa75; /* 9.56:1 on --bg */
-  --series-8: #89dfff; /* 11.95:1 on --bg */
-  --series-9: #8145d6; /* 3.19:1 on --bg */
-  --series-10: #e43461; /* 4.22:1 on --bg */
-  --series-11: #008476; /* 3.88:1 on --bg · film */
-  --series-12: #9b90ff; /* 6.65:1 on --bg */
+  --series-1: #f6842c; /* 7.01:1 · orange · --accent */
+  --series-2: #51c1f8; /* 8.78:1 · blue · --select */
+  --series-3: #a82fae; /* 3.13:1 · pink */
+  --series-4: #a46cff; /* 5.24:1 · purple */
+  --series-5: #d42515; /* 3.46:1 · red · film */
+  --series-6: #ffc334; /* 11.13:1 · yellow */
+  --series-7: #0098a5; /* 5.13:1 · teal */
+  --series-8: #007c57; /* 3.42:1 · green */
+  --series-9: #874cdc; /* 3.48:1 · shade of --series-4 */
+  --series-10: #ff9c8c; /* 8.82:1 · shade of --series-5 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* laputa-castle-in-the-sky-1986-light */
 :root[data-palette="laputa-castle-in-the-sky-1986-light"] {
-  --series-1: #b05600; /* 4.83:1 on --bg · --accent */
-  --series-2: #0077a4; /* 4.83:1 on --bg · --select */
-  --series-3: #5e2f00; /* 10.71:1 on --bg · film */
-  --series-4: #a46cff; /* 3.27:1 on --bg */
-  --series-5: #009cbd; /* 3.11:1 on --bg */
-  --series-6: #cc7200; /* 3.37:1 on --bg */
-  --series-7: #894100; /* 7.15:1 on --bg */
-  --series-8: #00627c; /* 6.64:1 on --bg */
-  --series-9: #6d2cbe; /* 7.32:1 on --bg */
-  --series-10: #fa4c72; /* 3.18:1 on --bg */
-  --series-11: #005148; /* 8.88:1 on --bg · film */
-  --series-12: #3f00a2; /* 11.63:1 on --bg */
+  --series-1: #b05600; /* 4.83:1 · orange · --accent */
+  --series-2: #0077a4; /* 4.83:1 · blue · --select */
+  --series-3: #65006a; /* 11.45:1 · pink */
+  --series-4: #985ff1; /* 3.85:1 · purple */
+  --series-5: #800500; /* 10.39:1 · red · film */
+  --series-6: #b58700; /* 3.14:1 · yellow */
+  --series-7: #009ead; /* 3.10:1 · teal */
+  --series-8: #006c4b; /* 6.21:1 · green */
+  --series-9: #6520b4; /* 8.33:1 · shade of --series-4 */
+  --series-10: #ac0a00; /* 7.21:1 · shade of --series-5 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* lupin-iii-the-castle-of-cagliostro-1979 */
 :root[data-palette="lupin-iii-the-castle-of-cagliostro-1979"] {
-  --series-1: #00b2fc; /* 7.43:1 on --bg · --accent */
-  --series-2: #915b00; /* 3.13:1 on --bg */
-  --series-3: #ef8600; /* 6.84:1 on --bg */
-  --series-4: #0068c4; /* 3.20:1 on --bg · film */
-  --series-5: #009cba; /* 5.47:1 on --bg */
-  --series-6: #8f6cff; /* 4.87:1 on --bg */
-  --series-7: #c16f00; /* 4.69:1 on --bg · film */
-  --series-8: #d0c9ff; /* 11.41:1 on --bg */
-  --series-9: #f94b77; /* 5.33:1 on --bg */
-  --series-10: #e8c100; /* 10.21:1 on --bg · film */
-  --series-11: #bd1e84; /* 3.12:1 on --bg */
-  --series-12: #00f9b3; /* 12.87:1 on --bg */
+  --series-1: #00b2fc; /* 7.43:1 · blue · --accent */
+  --series-2: #ffa838; /* 9.23:1 · orange · film */
+  --series-3: #007e44; /* 3.44:1 · green · film */
+  --series-4: #a243cb; /* 3.56:1 · purple */
+  --series-5: #de367e; /* 4.18:1 · pink */
+  --series-6: #00ddf3; /* 10.70:1 · teal */
+  --series-7: #ffda74; /* 13.15:1 · yellow */
+  --series-8: #ff796b; /* 6.94:1 · red */
+  --series-9: #b95ae3; /* 4.77:1 · shade of --series-4 */
+  --series-10: #cd1819; /* 3.17:1 · shade of --series-8 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* lupin-iii-the-castle-of-cagliostro-1979-light */
 :root[data-palette="lupin-iii-the-castle-of-cagliostro-1979-light"] {
-  --series-1: #0076aa; /* 4.82:1 on --bg · --accent */
-  --series-2: #573400; /* 10.60:1 on --bg */
-  --series-3: #af6100; /* 4.44:1 on --bg */
-  --series-4: #004180; /* 9.72:1 on --bg · film */
-  --series-5: #009cba; /* 3.11:1 on --bg */
-  --series-6: #653acc; /* 6.64:1 on --bg */
-  --series-7: #d27900; /* 3.11:1 on --bg · film */
-  --series-8: #9476ff; /* 3.19:1 on --bg */
-  --series-9: #f94b77; /* 3.19:1 on --bg */
-  --series-10: #635100; /* 7.43:1 on --bg · film */
-  --series-11: #780051; /* 10.49:1 on --bg */
-  --series-12: #006c4b; /* 6.19:1 on --bg */
+  --series-1: #0076aa; /* 4.82:1 · blue · --accent */
+  --series-2: #c77c00; /* 3.19:1 · orange · film */
+  --series-3: #00572d; /* 8.37:1 · green · film */
+  --series-4: #5d007c; /* 11.45:1 · purple */
+  --series-5: #c91a6d; /* 5.22:1 · pink */
+  --series-6: #009bab; /* 3.20:1 · teal */
+  --series-7: #886b00; /* 4.85:1 · yellow */
+  --series-8: #a30008; /* 7.85:1 · red */
+  --series-9: #8018a7; /* 7.72:1 · shade of --series-4 */
+  --series-10: #df312b; /* 4.36:1 · shade of --series-8 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* my-neighbor-totoro-1988 */
 :root[data-palette="my-neighbor-totoro-1988"] {
-  --series-1: #f49600; /* 7.81:1 on --bg · --accent */
-  --series-2: #6fadff; /* 7.72:1 on --bg · film */
-  --series-3: #ffd7a2; /* 13.14:1 on --bg · film */
-  --series-4: #9a51e0; /* 3.93:1 on --bg */
-  --series-5: #007369; /* 3.10:1 on --bg · film */
-  --series-6: #9ed5ff; /* 11.38:1 on --bg */
-  --series-7: #905c00; /* 3.15:1 on --bg */
-  --series-8: #b97500; /* 4.76:1 on --bg */
-  --series-9: #d1328e; /* 3.87:1 on --bg */
-  --series-10: #ff6682; /* 6.34:1 on --bg */
-  --series-11: #ffa6bf; /* 9.72:1 on --bg */
-  --series-12: #a772ff; /* 5.51:1 on --bg */
+  --series-1: #f49600; /* 7.81:1 · orange · --accent */
+  --series-2: #3971f8; /* 4.15:1 · blue · film */
+  --series-3: #7bff94; /* 14.06:1 · green · film */
+  --series-4: #d395ff; /* 8.07:1 · purple */
+  --series-5: #866200; /* 3.19:1 · yellow */
+  --series-6: #b72494; /* 3.13:1 · pink */
+  --series-7: #00d5b4; /* 9.48:1 · teal */
+  --series-8: #ff6a67; /* 6.37:1 · red */
+  --series-9: #ffb1e5; /* 10.75:1 · shade of --series-6 */
+  --series-10: #973fca; /* 3.29:1 · shade of --series-4 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* my-neighbor-totoro-1988-light */
 :root[data-palette="my-neighbor-totoro-1988-light"] {
-  --series-1: #a06000; /* 4.83:1 on --bg · --accent */
-  --series-2: #004894; /* 8.55:1 on --bg · film */
-  --series-3: #543600; /* 10.57:1 on --bg · film */
-  --series-4: #b26bfc; /* 3.15:1 on --bg */
-  --series-5: #009f91; /* 3.16:1 on --bg · film */
-  --series-6: #006fa9; /* 5.24:1 on --bg */
-  --series-7: #764b00; /* 7.25:1 on --bg */
-  --series-8: #bd7800; /* 3.44:1 on --bg */
-  --series-9: #90005d; /* 8.59:1 on --bg */
-  --series-10: #fa4c72; /* 3.18:1 on --bg */
-  --series-11: #c61365; /* 5.47:1 on --bg */
-  --series-12: #8a4fe0; /* 4.71:1 on --bg */
+  --series-1: #a06000; /* 4.83:1 · orange · --accent */
+  --series-2: #2154d8; /* 6.06:1 · blue · film */
+  --series-3: #004e1b; /* 9.57:1 · green · film */
+  --series-4: #61008c; /* 10.67:1 · purple */
+  --series-5: #b58700; /* 3.13:1 · yellow */
+  --series-6: #e454bd; /* 3.20:1 · pink */
+  --series-7: #00927b; /* 3.73:1 · teal */
+  --series-8: #940018; /* 8.86:1 · red */
+  --series-9: #710059; /* 10.91:1 · shade of --series-6 */
+  --series-10: #7b1dac; /* 7.71:1 · shade of --series-4 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* my-neighbors-the-yamadas-1999 */
 :root[data-palette="my-neighbors-the-yamadas-1999"] {
-  --series-1: #f18915; /* 7.06:1 on --bg · --accent */
-  --series-2: #67bdff; /* 8.73:1 on --bg · --select */
-  --series-3: #0079b3; /* 3.72:1 on --bg · film */
-  --series-4: #8e5e00; /* 3.18:1 on --bg · film */
-  --series-5: #ffcc5f; /* 11.92:1 on --bg */
-  --series-6: #009dcb; /* 5.67:1 on --bg */
-  --series-7: #936afe; /* 4.86:1 on --bg */
-  --series-8: #e2356b; /* 4.20:1 on --bg */
-  --series-9: #badbff; /* 12.43:1 on --bg */
-  --series-10: #c01a7b; /* 3.12:1 on --bg */
-  --series-11: #ffa3ae; /* 9.41:1 on --bg */
-  --series-12: #734bdd; /* 3.20:1 on --bg */
+  --series-1: #f18915; /* 7.06:1 · orange · --accent */
+  --series-2: #67bdff; /* 8.73:1 · blue · --select */
+  --series-3: #ffd06f; /* 12.30:1 · yellow */
+  --series-4: #a06fff; /* 5.27:1 · purple */
+  --series-5: #ca48bd; /* 4.39:1 · pink */
+  --series-6: #cd1819; /* 3.17:1 · red */
+  --series-7: #008472; /* 3.85:1 · teal */
+  --series-8: #00b967; /* 6.90:1 · green */
+  --series-9: #8954e5; /* 3.78:1 · shade of --series-4 */
+  --series-10: #af2ba3; /* 3.13:1 · shade of --series-5 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* my-neighbors-the-yamadas-1999-light */
 :root[data-palette="my-neighbors-the-yamadas-1999-light"] {
-  --series-1: #a75b00; /* 4.83:1 on --bg · --accent */
-  --series-2: #1174b2; /* 4.80:1 on --bg · --select */
-  --series-3: #004a70; /* 9.04:1 on --bg · film */
-  --series-4: #5f3d00; /* 9.29:1 on --bg · film */
-  --series-5: #b58700; /* 3.11:1 on --bg */
-  --series-6: #009ac7; /* 3.10:1 on --bg */
-  --series-7: #936afe; /* 3.49:1 on --bg */
-  --series-8: #f84b7c; /* 3.18:1 on --bg */
-  --series-9: #005a9d; /* 6.78:1 on --bg */
-  --series-10: #870054; /* 9.27:1 on --bg */
-  --series-11: #b40042; /* 6.63:1 on --bg */
-  --series-12: #45009d; /* 11.50:1 on --bg */
+  --series-1: #a75b00; /* 4.83:1 · orange · --accent */
+  --series-2: #1174b2; /* 4.80:1 · blue · --select */
+  --series-3: #b58700; /* 3.11:1 · yellow */
+  --series-4: #a06fff; /* 3.22:1 · purple */
+  --series-5: #7e0075; /* 9.33:1 · pink */
+  --series-6: #a30008; /* 7.81:1 · red */
+  --series-7: #00a089; /* 3.13:1 · teal */
+  --series-8: #00572d; /* 8.33:1 · green */
+  --series-9: #6222b6; /* 8.26:1 · shade of --series-4 */
+  --series-10: #9b0c90; /* 7.02:1 · shade of --series-5 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* nausicaa-of-the-valley-of-the-wind-1984 */
 :root[data-palette="nausicaa-of-the-valley-of-the-wind-1984"] {
-  --series-1: #00cefb; /* 9.56:1 on --bg · --accent */
-  --series-2: #ff9d73; /* 8.79:1 on --bg · --select */
-  --series-3: #a25400; /* 3.24:1 on --bg · film */
-  --series-4: #9b67fa; /* 4.87:1 on --bg */
-  --series-5: #d67000; /* 5.26:1 on --bg */
-  --series-6: #0098b9; /* 5.27:1 on --bg */
-  --series-7: #7a48d9; /* 3.20:1 on --bg */
-  --series-8: #00b0ec; /* 7.17:1 on --bg */
-  --series-9: #ffd0ab; /* 12.66:1 on --bg */
-  --series-10: #c1deff; /* 12.91:1 on --bg · film */
-  --series-11: #dd2c56; /* 3.89:1 on --bg */
-  --series-12: #c21977; /* 3.15:1 on --bg */
+  --series-1: #00cefb; /* 9.56:1 · blue · --accent */
+  --series-2: #ff9d73; /* 8.79:1 · orange · --select */
+  --series-3: #8e3fcc; /* 3.18:1 · purple */
+  --series-4: #b38800; /* 5.48:1 · yellow */
+  --series-5: #00929a; /* 4.75:1 · teal */
+  --series-6: #cd1819; /* 3.19:1 · red · film */
+  --series-7: #e15bcd; /* 5.60:1 · pink */
+  --series-8: #74ffa2; /* 14.11:1 · green */
+  --series-9: #c07cff; /* 6.45:1 · shade of --series-3 */
+  --series-10: #b1299f; /* 3.14:1 · shade of --series-7 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* nausicaa-of-the-valley-of-the-wind-1984-light */
 :root[data-palette="nausicaa-of-the-valley-of-the-wind-1984-light"] {
-  --series-1: #007995; /* 4.83:1 on --bg · --accent */
-  --series-2: #b0552c; /* 4.81:1 on --bg · --select */
-  --series-3: #6e3700; /* 9.11:1 on --bg · film */
-  --series-4: #a06fff; /* 3.24:1 on --bg */
-  --series-5: #da7300; /* 3.13:1 on --bg */
-  --series-6: #009cbd; /* 3.10:1 on --bg */
-  --series-7: #7d4bdd; /* 5.13:1 on --bg */
-  --series-8: #006083; /* 6.71:1 on --bg */
-  --series-9: #864900; /* 6.78:1 on --bg */
-  --series-10: #00437c; /* 9.61:1 on --bg · film */
-  --series-11: #f7486a; /* 3.30:1 on --bg */
-  --series-12: #8d0053; /* 8.92:1 on --bg */
+  --series-1: #007995; /* 4.83:1 · blue · --accent */
+  --series-2: #b0552c; /* 4.81:1 · orange · --select */
+  --series-3: #731cae; /* 8.03:1 · purple */
+  --series-4: #b38800; /* 3.13:1 · yellow */
+  --series-5: #009ca5; /* 3.20:1 · teal */
+  --series-6: #9e0008; /* 8.19:1 · red · film */
+  --series-7: #76006a; /* 10.17:1 · pink */
+  --series-8: #005427; /* 8.76:1 · green */
+  --series-9: #9a4cda; /* 4.55:1 · shade of --series-3 */
+  --series-10: #950086; /* 7.68:1 · shade of --series-7 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* ocean-waves-1993 */
 :root[data-palette="ocean-waves-1993"] {
-  --series-1: #fbb400; /* 9.86:1 on --bg · --accent */
-  --series-2: #59c0fc; /* 8.79:1 on --bg · --select */
-  --series-3: #846300; /* 3.19:1 on --bg · film */
-  --series-4: #a568f9; /* 5.04:1 on --bg */
-  --series-5: #00869d; /* 4.15:1 on --bg · film */
-  --series-6: #c18f00; /* 6.10:1 on --bg */
-  --series-7: #00a1ca; /* 5.89:1 on --bg */
-  --series-8: #8145d6; /* 3.18:1 on --bg */
-  --series-9: #ffd896; /* 13.16:1 on --bg */
-  --series-10: #ea3c6c; /* 4.55:1 on --bg */
-  --series-11: #91ddff; /* 11.86:1 on --bg */
-  --series-12: #c4156e; /* 3.12:1 on --bg */
+  --series-1: #fbb400; /* 9.86:1 · yellow · --accent */
+  --series-2: #59c0fc; /* 8.79:1 · blue · --select */
+  --series-3: #ab4b00; /* 3.17:1 · orange · film */
+  --series-4: #8145d6; /* 3.18:1 · purple */
+  --series-5: #008d9d; /* 4.49:1 · teal */
+  --series-6: #e3397c; /* 4.36:1 · pink */
+  --series-7: #ff8386; /* 7.50:1 · red */
+  --series-8: #00ffa2; /* 13.42:1 · green */
+  --series-9: #a772ff; /* 5.51:1 · shade of --series-4 */
+  --series-10: #b68100; /* 5.20:1 · shade of --series-1 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* ocean-waves-1993-light */
 :root[data-palette="ocean-waves-1993-light"] {
-  --series-1: #936700; /* 4.80:1 on --bg · --accent */
-  --series-2: #0076aa; /* 4.81:1 on --bg · --select */
-  --series-3: #584100; /* 9.25:1 on --bg · film */
-  --series-4: #ab6fff; /* 3.11:1 on --bg */
-  --series-5: #005160; /* 8.56:1 on --bg · film */
-  --series-6: #b58700; /* 3.12:1 on --bg */
-  --series-7: #0098be; /* 3.22:1 on --bg */
-  --series-8: #6a28ba; /* 7.65:1 on --bg */
-  --series-9: #775300; /* 6.64:1 on --bg */
-  --series-10: #f94b77; /* 3.19:1 on --bg */
-  --series-11: #006483; /* 6.37:1 on --bg */
-  --series-12: #970052; /* 8.23:1 on --bg */
+  --series-1: #936700; /* 4.80:1 · yellow · --accent */
+  --series-2: #0076aa; /* 4.81:1 · blue · --select */
+  --series-3: #682b00; /* 10.38:1 · orange · film */
+  --series-4: #5a09a6; /* 9.92:1 · purple */
+  --series-5: #009bab; /* 3.20:1 · teal */
+  --series-6: #c61365; /* 5.45:1 · pink */
+  --series-7: #fc4d5d; /* 3.16:1 · red */
+  --series-8: #00633c; /* 7.04:1 · green */
+  --series-9: #a46cff; /* 3.25:1 · shade of --series-4 */
+  --series-10: #ae7c00; /* 3.53:1 · shade of --series-1 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* only-yesterday-1991 */
 :root[data-palette="only-yesterday-1991"] {
-  --series-1: #00b6fb; /* 7.74:1 on --bg · --accent */
-  --series-2: #ff9d71; /* 8.78:1 on --bg · --select */
-  --series-3: #a05000; /* 3.10:1 on --bg · film */
-  --series-4: #0071a3; /* 3.31:1 on --bg · film */
-  --series-5: #9c5eef; /* 4.48:1 on --bg */
-  --series-6: #00dffe; /* 11.06:1 on --bg */
-  --series-7: #ffd7a2; /* 13.20:1 on --bg */
-  --series-8: #d77500; /* 5.48:1 on --bg */
-  --series-9: #009bc2; /* 5.51:1 on --bg */
-  --series-10: #ffb3b9; /* 10.56:1 on --bg */
-  --series-11: #d12b7e; /* 3.71:1 on --bg */
-  --series-12: #8b40cf; /* 3.18:1 on --bg */
+  --series-1: #00b6fb; /* 7.74:1 · blue · --accent */
+  --series-2: #ff9d71; /* 8.78:1 · orange · --select */
+  --series-3: #7e46d8; /* 3.20:1 · purple */
+  --series-4: #b98a00; /* 5.70:1 · yellow */
+  --series-5: #008d9d; /* 4.51:1 · teal */
+  --series-6: #cd1819; /* 3.19:1 · red · film */
+  --series-7: #ffbefc; /* 11.94:1 · pink */
+  --series-8: #71ffa8; /* 14.11:1 · green */
+  --series-9: #9e6bfe; /* 5.10:1 · shade of --series-3 */
+  --series-10: #cf54ce; /* 4.95:1 · shade of --series-7 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* only-yesterday-1991-light */
 :root[data-palette="only-yesterday-1991-light"] {
-  --series-1: #0077a6; /* 4.80:1 on --bg · --accent */
-  --series-2: #b05529; /* 4.82:1 on --bg · --select */
-  --series-3: #602d00; /* 10.75:1 on --bg · film */
-  --series-4: #004d71; /* 8.75:1 on --bg · film */
-  --series-5: #ab6fff; /* 3.12:1 on --bg */
-  --series-6: #009db3; /* 3.11:1 on --bg */
-  --series-7: #714900; /* 7.58:1 on --bg */
-  --series-8: #ca6d00; /* 3.53:1 on --bg */
-  --series-9: #00657f; /* 6.35:1 on --bg */
-  --series-10: #f7486a; /* 3.30:1 on --bg */
-  --series-11: #920053; /* 8.57:1 on --bg */
-  --series-12: #7323b4; /* 7.66:1 on --bg */
+  --series-1: #0077a6; /* 4.80:1 · blue · --accent */
+  --series-2: #b05529; /* 4.82:1 · orange · --select */
+  --series-3: #9b67fa; /* 3.52:1 · purple */
+  --series-4: #b58700; /* 3.13:1 · yellow */
+  --series-5: #009bab; /* 3.21:1 · teal */
+  --series-6: #a30008; /* 7.86:1 · red · film */
+  --series-7: #770078; /* 9.79:1 · pink */
+  --series-8: #00572d; /* 8.38:1 · green */
+  --series-9: #672abc; /* 7.64:1 · shade of --series-3 */
+  --series-10: #930b94; /* 7.41:1 · shade of --series-7 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* pom-poko-1994 */
 :root[data-palette="pom-poko-1994"] {
-  --series-1: #00b6fc; /* 7.70:1 on --bg · --accent */
-  --series-2: #ff9f4f; /* 8.74:1 on --bg · --select */
-  --series-3: #006ca5; /* 3.12:1 on --bg · film */
-  --series-4: #9b6400; /* 3.57:1 on --bg · film */
-  --series-5: #008ae4; /* 4.87:1 on --bg */
-  --series-6: #ffd1a9; /* 12.65:1 on --bg */
-  --series-7: #91ddff; /* 11.84:1 on --bg */
-  --series-8: #c21977; /* 3.13:1 on --bg */
-  --series-9: #fd4f7a; /* 5.57:1 on --bg */
-  --series-10: #ba7f00; /* 5.18:1 on --bg */
-  --series-11: #7a48d9; /* 3.18:1 on --bg */
-  --series-12: #ffaeb7; /* 10.15:1 on --bg */
+  --series-1: #00b6fc; /* 7.70:1 · blue · --accent */
+  --series-2: #ff9f4f; /* 8.74:1 · orange · --select */
+  --series-3: #c73600; /* 3.35:1 · red · film */
+  --series-4: #8742d1; /* 3.16:1 · purple */
+  --series-5: #ffd98b; /* 13.16:1 · yellow */
+  --series-6: #00e0f7; /* 11.01:1 · teal */
+  --series-7: #ed458a; /* 4.92:1 · pink */
+  --series-8: #007a4b; /* 3.29:1 · green */
+  --series-9: #a966f7; /* 5.02:1 · shade of --series-4 */
+  --series-10: #e57c00; /* 6.11:1 · shade of --series-2 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* pom-poko-1994-light */
 :root[data-palette="pom-poko-1994-light"] {
-  --series-1: #0077a7; /* 4.80:1 on --bg · --accent */
-  --series-2: #aa5a00; /* 4.83:1 on --bg · --select */
-  --series-3: #00476e; /* 9.48:1 on --bg · film */
-  --series-4: #603c00; /* 9.40:1 on --bg · film */
-  --series-5: #0091ee; /* 3.21:1 on --bg */
-  --series-6: #d27900; /* 3.11:1 on --bg */
-  --series-7: #00617f; /* 6.68:1 on --bg */
-  --series-8: #7f004b; /* 10.06:1 on --bg */
-  --series-9: #f94b77; /* 3.20:1 on --bg */
-  --series-10: #764f00; /* 6.98:1 on --bg */
-  --series-11: #7a48d9; /* 5.37:1 on --bg */
-  --series-12: #bd0046; /* 6.20:1 on --bg */
+  --series-1: #0077a7; /* 4.80:1 · blue · --accent */
+  --series-2: #aa5a00; /* 4.83:1 · orange · --select */
+  --series-3: #6f1a00; /* 11.05:1 · red · film */
+  --series-4: #6002a2; /* 9.94:1 · purple */
+  --series-5: #b58700; /* 3.13:1 · yellow */
+  --series-6: #009bab; /* 3.21:1 · teal */
+  --series-7: #d02572; /* 4.81:1 · pink */
+  --series-8: #00603a; /* 7.37:1 · green */
+  --series-9: #9f5ced; /* 3.85:1 · shade of --series-4 */
+  --series-10: #7c4100; /* 7.71:1 · shade of --series-2 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* ponyo-2008 */
 :root[data-palette="ponyo-2008"] {
-  --series-1: #00d3f4; /* 9.86:1 on --bg · --accent */
-  --series-2: #ff8767; /* 7.56:1 on --bg · film */
-  --series-3: #9a5500; /* 3.11:1 on --bg · film */
-  --series-4: #b66af9; /* 5.44:1 on --bg */
-  --series-5: #764adb; /* 3.20:1 on --bg */
-  --series-6: #00a3c2; /* 5.95:1 on --bg */
-  --series-7: #f8495f; /* 5.18:1 on --bg */
-  --series-8: #ffb663; /* 10.28:1 on --bg */
-  --series-9: #0073aa; /* 3.42:1 on --bg */
-  --series-10: #bf1c7f; /* 3.13:1 on --bg · film */
-  --series-11: #fcdf00; /* 13.31:1 on --bg */
-  --series-12: #a79bff; /* 7.44:1 on --bg */
+  --series-1: #00d3f4; /* 9.86:1 · teal · --accent */
+  --series-2: #b48300; /* 5.25:1 · yellow · film */
+  --series-3: #8782ff; /* 5.65:1 · purple */
+  --series-4: #a82fae; /* 3.12:1 · pink */
+  --series-5: #ffc484; /* 11.43:1 · orange */
+  --series-6: #ff8577; /* 7.52:1 · red */
+  --series-7: #007653; /* 3.15:1 · green · film */
+  --series-8: #6d5ff0; /* 3.85:1 · shade of --series-3 */
+  --series-9: #bf48c5; /* 4.20:1 · shade of --series-4 */
+  --series-10: #5fffc1; /* 14.04:1 · shade of --series-7 */
+  --series-hues: 7; /* 1–7 one hue family each; the rest shades */
 }
 
 /* ponyo-2008-light */
 :root[data-palette="ponyo-2008-light"] {
-  --series-1: #007a8f; /* 4.80:1 on --bg · --accent */
-  --series-2: #6f1a00; /* 11.01:1 on --bg · film */
-  --series-3: #d57700; /* 3.10:1 on --bg · film */
-  --series-4: #731cae; /* 8.01:1 on --bg */
-  --series-5: #8d64f7; /* 3.79:1 on --bg */
-  --series-6: #009cba; /* 3.11:1 on --bg */
-  --series-7: #de2d4b; /* 4.38:1 on --bg */
-  --series-8: #784900; /* 7.29:1 on --bg */
-  --series-9: #005078; /* 8.30:1 on --bg */
-  --series-10: #90005d; /* 8.56:1 on --bg · film */
-  --series-11: #7b6c00; /* 5.03:1 on --bg */
-  --series-12: #6c49db; /* 5.55:1 on --bg */
+  --series-1: #007a8f; /* 4.80:1 · teal · --accent */
+  --series-2: #b48300; /* 3.24:1 · yellow · film */
+  --series-3: #482bbc; /* 8.55:1 · purple */
+  --series-4: #65006a; /* 11.40:1 · pink */
+  --series-5: #975d00; /* 5.17:1 · orange */
+  --series-6: #900006; /* 9.17:1 · red */
+  --series-7: #00a273; /* 3.13:1 · green · film */
+  --series-8: #786cfe; /* 3.73:1 · shade of --series-3 */
+  --series-9: #bc45c1; /* 4.22:1 · shade of --series-4 */
+  --series-10: #006c4b; /* 6.18:1 · shade of --series-7 */
+  --series-hues: 7; /* 1–7 one hue family each; the rest shades */
 }
 
 /* porco-rosso-1992 */
 :root[data-palette="porco-rosso-1992"] {
-  --series-1: #00c2fb; /* 8.58:1 on --bg · --accent */
-  --series-2: #efa836; /* 8.76:1 on --bg · --select */
-  --series-3: #975800; /* 3.15:1 on --bg · film */
-  --series-4: #006e9f; /* 3.17:1 on --bg · film */
-  --series-5: #a06fff; /* 5.27:1 on --bg · film */
-  --series-6: #ffd38f; /* 12.71:1 on --bg */
-  --series-7: #00a2c5; /* 5.92:1 on --bg */
-  --series-8: #b67c00; /* 4.98:1 on --bg */
-  --series-9: #8ae3ff; /* 12.32:1 on --bg */
-  --series-10: #8443d3; /* 3.16:1 on --bg */
-  --series-11: #c21977; /* 3.14:1 on --bg */
-  --series-12: #ff6682; /* 6.35:1 on --bg */
+  --series-1: #00c2fb; /* 8.58:1 · blue · --accent */
+  --series-2: #efa836; /* 8.76:1 · orange · --select */
+  --series-3: #c23500; /* 3.23:1 · red · film */
+  --series-4: #8443d3; /* 3.16:1 · purple */
+  --series-5: #b98a00; /* 5.69:1 · yellow */
+  --series-6: #0094a4; /* 4.90:1 · teal */
+  --series-7: #ed458a; /* 4.94:1 · pink */
+  --series-8: #00ffa2; /* 13.43:1 · green */
+  --series-9: #a86bfd; /* 5.25:1 · shade of --series-4 */
+  --series-10: #ff815f; /* 7.26:1 · shade of --series-3 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* porco-rosso-1992-light */
 :root[data-palette="porco-rosso-1992-light"] {
-  --series-1: #00789d; /* 4.85:1 on --bg · --accent */
-  --series-2: #996500; /* 4.80:1 on --bg · --select */
-  --series-3: #5a3200; /* 10.71:1 on --bg · film */
-  --series-4: #00486a; /* 9.49:1 on --bg · film */
-  --series-5: #a374ff; /* 3.12:1 on --bg · film */
-  --series-6: #bc8300; /* 3.17:1 on --bg */
-  --series-7: #009cbd; /* 3.12:1 on --bg */
-  --series-8: #734d00; /* 7.26:1 on --bg */
-  --series-9: #006278; /* 6.71:1 on --bg */
-  --series-10: #6d26b8; /* 7.73:1 on --bg */
-  --series-11: #7f004b; /* 10.11:1 on --bg */
-  --series-12: #f6486f; /* 3.33:1 on --bg */
+  --series-1: #00789d; /* 4.85:1 · blue · --accent */
+  --series-2: #996500; /* 4.80:1 · orange · --select */
+  --series-3: #6f1a00; /* 11.11:1 · red · film */
+  --series-4: #5d05a4; /* 10.01:1 · purple */
+  --series-5: #b58700; /* 3.15:1 · yellow */
+  --series-6: #009eaf; /* 3.11:1 · teal */
+  --series-7: #c91a6d; /* 5.26:1 · pink */
+  --series-8: #00603a; /* 7.41:1 · green */
+  --series-9: #995bec; /* 4.00:1 · shade of --series-4 */
+  --series-10: #9c2900; /* 7.42:1 · shade of --series-3 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* princess-mononoke-1997 */
 :root[data-palette="princess-mononoke-1997"] {
-  --series-1: #59b758; /* 7.08:1 on --bg · --accent */
-  --series-2: #ac48cf; /* 3.89:1 on --bg */
-  --series-3: #a2cfff; /* 10.96:1 on --bg · film */
-  --series-4: #d1246e; /* 3.56:1 on --bg */
-  --series-5: #679400; /* 4.94:1 on --bg */
-  --series-6: #7f6200; /* 3.10:1 on --bg · film */
-  --series-7: #6dffae; /* 14.07:1 on --bg */
-  --series-8: #ed6de5; /* 6.73:1 on --bg */
-  --series-9: #e84da8; /* 5.15:1 on --bg */
-  --series-10: #3971f8; /* 4.16:1 on --bg */
-  --series-11: #ffa5c4; /* 9.71:1 on --bg */
-  --series-12: #b1299f; /* 3.13:1 on --bg */
+  --series-1: #59b758; /* 7.08:1 · green · --accent */
+  --series-2: #de66e3; /* 6.04:1 · pink */
+  --series-3: #c23500; /* 3.23:1 · red · film */
+  --series-4: #006cb4; /* 3.23:1 · blue · film */
+  --series-5: #bdb7ff; /* 9.67:1 · purple */
+  --series-6: #00e3c4; /* 10.86:1 · teal */
+  --series-7: #e8e300; /* 13.10:1 · yellow */
+  --series-8: #ffbf86; /* 11.08:1 · orange */
+  --series-9: #7f61f3; /* 4.17:1 · shade of --series-5 */
+  --series-10: #ec460e; /* 4.63:1 · shade of --series-3 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* princess-mononoke-1997-light */
 :root[data-palette="princess-mononoke-1997-light"] {
-  --series-1: #1b8020; /* 4.85:1 on --bg · --accent */
-  --series-2: #7d099d; /* 8.41:1 on --bg */
-  --series-3: #0092f9; /* 3.11:1 on --bg · film */
-  --series-4: #f24888; /* 3.33:1 on --bg */
-  --series-5: #6c9a00; /* 3.22:1 on --bg */
-  --series-6: #4d3a00; /* 10.50:1 on --bg · film */
-  --series-7: #006338; /* 7.09:1 on --bg */
-  --series-8: #b334ad; /* 5.03:1 on --bg */
-  --series-9: #74004e; /* 10.88:1 on --bg */
-  --series-10: #3167ed; /* 4.70:1 on --bg */
-  --series-11: #cf2677; /* 4.80:1 on --bg */
-  --series-12: #d651c3; /* 3.46:1 on --bg */
+  --series-1: #1b8020; /* 4.85:1 · green · --accent */
+  --series-2: #a82fae; /* 5.47:1 · pink */
+  --series-3: #6f1a00; /* 11.06:1 · red · film */
+  --series-4: #004575; /* 9.56:1 · blue · film */
+  --series-5: #9078ff; /* 3.19:1 · purple */
+  --series-6: #009983; /* 3.43:1 · teal */
+  --series-7: #959100; /* 3.19:1 · yellow */
+  --series-8: #794300; /* 7.71:1 · orange */
+  --series-9: #7453e5; /* 4.90:1 · shade of --series-5 */
+  --series-10: #cc3800; /* 4.88:1 · shade of --series-3 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* the-red-turtle-2016 */
 :root[data-palette="the-red-turtle-2016"] {
-  --series-1: #fcaa00; /* 9.22:1 on --bg · --accent */
-  --series-2: #50c1f8; /* 8.74:1 on --bg · --select */
-  --series-3: #7b6800; /* 3.24:1 on --bg · film */
-  --series-4: #af8a00; /* 5.47:1 on --bg */
-  --series-5: #5752e1; /* 3.13:1 on --bg */
-  --series-6: #00a0d3; /* 5.90:1 on --bg */
-  --series-7: #e7e800; /* 13.50:1 on --bg */
-  --series-8: #ffbcc7; /* 11.24:1 on --bg */
-  --series-9: #c3d8ff; /* 12.35:1 on --bg */
-  --series-10: #936afe; /* 4.86:1 on --bg */
-  --series-11: #ff557e; /* 5.80:1 on --bg */
-  --series-12: #a631b1; /* 3.13:1 on --bg · film */
+  --series-1: #fcaa00; /* 9.22:1 · orange · --accent */
+  --series-2: #50c1f8; /* 8.74:1 · blue · --select */
+  --series-3: #d72824; /* 3.57:1 · red */
+  --series-4: #8e3fcc; /* 3.16:1 · purple */
+  --series-5: #ffda74; /* 13.15:1 · yellow */
+  --series-6: #00e4fb; /* 11.42:1 · teal */
+  --series-7: #dd57c9; /* 5.32:1 · pink */
+  --series-8: #00ad72; /* 6.11:1 · green */
+  --series-9: #be76ff; /* 6.12:1 · shade of --series-4 */
+  --series-10: #b1299f; /* 3.12:1 · shade of --series-7 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* the-red-turtle-2016-light */
 :root[data-palette="the-red-turtle-2016-light"] {
-  --series-1: #986500; /* 4.81:1 on --bg · --accent */
-  --series-2: #0077a4; /* 4.83:1 on --bg · --select */
-  --series-3: #493c00; /* 10.46:1 on --bg · film */
-  --series-4: #af8a00; /* 3.12:1 on --bg */
-  --series-5: #310ea6; /* 11.57:1 on --bg */
-  --series-6: #0099ca; /* 3.15:1 on --bg */
-  --series-7: #565600; /* 7.40:1 on --bg */
-  --series-8: #b7004d; /* 6.47:1 on --bg */
-  --series-9: #0045c6; /* 7.57:1 on --bg */
-  --series-10: #9067fb; /* 3.66:1 on --bg */
-  --series-11: #f94b77; /* 3.20:1 on --bg */
-  --series-12: #70007a; /* 10.24:1 on --bg · film */
+  --series-1: #986500; /* 4.81:1 · orange · --accent */
+  --series-2: #0077a4; /* 4.83:1 · blue · --select */
+  --series-3: #860005; /* 10.01:1 · red */
+  --series-4: #6d12a7; /* 8.79:1 · purple */
+  --series-5: #af8a00; /* 3.12:1 · yellow */
+  --series-6: #009bab; /* 3.21:1 · teal */
+  --series-7: #6a005f; /* 11.35:1 · pink */
+  --series-8: #006641; /* 6.78:1 · green */
+  --series-9: #a053e1; /* 4.19:1 · shade of --series-4 */
+  --series-10: #8c007e; /* 8.35:1 · shade of --series-7 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* the-tale-of-the-princess-kaguya-2013 */
 :root[data-palette="the-tale-of-the-princess-kaguya-2013"] {
-  --series-1: #57b759; /* 7.06:1 on --bg · --accent */
-  --series-2: #a333b5; /* 3.14:1 on --bg */
-  --series-3: #f769d5; /* 6.73:1 on --bg */
-  --series-4: #5e6f00; /* 3.18:1 on --bg · film */
-  --series-5: #ffa8b2; /* 9.75:1 on --bg */
-  --series-6: #679400; /* 4.93:1 on --bg */
-  --series-7: #6969f9; /* 4.23:1 on --bg */
-  --series-8: #c31773; /* 3.13:1 on --bg */
-  --series-9: #b2cfff; /* 11.25:1 on --bg · film */
-  --series-10: #e6396e; /* 4.39:1 on --bg */
-  --series-11: #15b8ff; /* 7.92:1 on --bg */
-  --series-12: #c849c1; /* 4.39:1 on --bg */
+  --series-1: #57b759; /* 7.06:1 · green · --accent */
+  --series-2: #c36dfa; /* 5.84:1 · purple */
+  --series-3: #006abe; /* 3.23:1 · blue · film */
+  --series-4: #ff8ae5; /* 8.50:1 · pink */
+  --series-5: #c23500; /* 3.23:1 · red */
+  --series-6: #dbd000; /* 11.06:1 · yellow */
+  --series-7: #00fdfc; /* 13.96:1 · teal */
+  --series-8: #d45e00; /* 4.58:1 · orange */
+  --series-9: #b3279c; /* 3.13:1 · shade of --series-4 */
+  --series-10: #79b9ff; /* 8.65:1 · shade of --series-3 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* the-tale-of-the-princess-kaguya-2013-light */
 :root[data-palette="the-tale-of-the-princess-kaguya-2013-light"] {
-  --series-1: #168021; /* 4.84:1 on --bg · --accent */
-  --series-2: #c858d9; /* 3.43:1 on --bg */
-  --series-3: #6c0059; /* 11.26:1 on --bg */
-  --series-4: #414e00; /* 8.67:1 on --bg · film */
-  --series-5: #fa4c72; /* 3.16:1 on --bg */
-  --series-6: #699700; /* 3.33:1 on --bg */
-  --series-7: #483dcc; /* 7.13:1 on --bg */
-  --series-8: #c71d75; /* 5.20:1 on --bg */
-  --series-9: #448bff; /* 3.14:1 on --bg · film */
-  --series-10: #9f0042; /* 7.86:1 on --bg */
-  --series-11: #0081b5; /* 4.17:1 on --bg */
-  --series-12: #990f94; /* 7.04:1 on --bg */
+  --series-1: #168021; /* 4.84:1 · green · --accent */
+  --series-2: #7e21b0; /* 7.34:1 · purple */
+  --series-3: #0890ff; /* 3.11:1 · blue · film */
+  --series-4: #6b005c; /* 11.27:1 · pink */
+  --series-5: #8a2300; /* 8.64:1 · red */
+  --series-6: #989000; /* 3.17:1 · yellow */
+  --series-7: #00908f; /* 3.72:1 · teal */
+  --series-8: #b95200; /* 4.70:1 · orange */
+  --series-9: #e056c5; /* 3.18:1 · shade of --series-4 */
+  --series-10: #004885; /* 8.85:1 · shade of --series-3 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* the-wind-rises-2013 */
 :root[data-palette="the-wind-rises-2013"] {
-  --series-1: #7eb33a; /* 7.12:1 on --bg · --accent */
-  --series-2: #7e46d8; /* 3.18:1 on --bg */
-  --series-3: #c71d75; /* 3.27:1 on --bg */
-  --series-4: #ffa6c1; /* 9.73:1 on --bg */
-  --series-5: #a0d700; /* 10.36:1 on --bg */
-  --series-6: #915b00; /* 3.14:1 on --bg · film */
-  --series-7: #c667f1; /* 5.61:1 on --bg */
-  --series-8: #ffd79a; /* 13.09:1 on --bg */
-  --series-9: #2bd5ff; /* 10.23:1 on --bg · film */
-  --series-10: #006ca5; /* 3.13:1 on --bg · film */
-  --series-11: #ff6ec5; /* 7.03:1 on --bg */
-  --series-12: #00a668; /* 5.64:1 on --bg */
+  --series-1: #7eb33a; /* 7.12:1 · green · --accent */
+  --series-2: #ff82cf; /* 7.92:1 · pink */
+  --series-3: #bc6bfa; /* 5.61:1 · purple */
+  --series-4: #006cb4; /* 3.23:1 · blue · film */
+  --series-5: #837100; /* 3.67:1 · yellow */
+  --series-6: #009c86; /* 5.17:1 · teal */
+  --series-7: #ffc488; /* 11.45:1 · orange */
+  --series-8: #e63745; /* 4.24:1 · red */
+  --series-9: #71bbff; /* 8.69:1 · shade of --series-4 */
+  --series-10: #a351de; /* 4.06:1 · shade of --series-3 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* the-wind-rises-2013-light */
 :root[data-palette="the-wind-rises-2013-light"] {
-  --series-1: #4f7b00; /* 4.85:1 on --bg · --accent */
-  --series-2: #4c0095; /* 11.59:1 on --bg */
-  --series-3: #ea4693; /* 3.48:1 on --bg */
-  --series-4: #93004c; /* 8.61:1 on --bg */
-  --series-5: #749c00; /* 3.11:1 on --bg */
-  --series-6: #573400; /* 10.64:1 on --bg · film */
-  --series-7: #902eb7; /* 6.19:1 on --bg */
-  --series-8: #714d00; /* 7.30:1 on --bg */
-  --series-9: #005063; /* 8.67:1 on --bg · film */
-  --series-10: #0094df; /* 3.20:1 on --bg · film */
-  --series-11: #c62d91; /* 4.82:1 on --bg */
-  --series-12: #00925a; /* 3.84:1 on --bg */
+  --series-1: #4f7b00; /* 4.85:1 · green · --accent */
+  --series-2: #e852b4; /* 3.21:1 · pink */
+  --series-3: #5c008a; /* 11.08:1 · purple */
+  --series-4: #0091ee; /* 3.21:1 · blue · film */
+  --series-5: #a28c00; /* 3.21:1 · yellow */
+  --series-6: #008e7a; /* 3.92:1 · teal */
+  --series-7: #7a4800; /* 7.33:1 · orange */
+  --series-8: #770016; /* 11.24:1 · red */
+  --series-9: #005b99; /* 6.83:1 · shade of --series-4 */
+  --series-10: #9441cd; /* 5.18:1 · shade of --series-3 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* when-marnie-was-there-2014 */
 :root[data-palette="when-marnie-was-there-2014"] {
-  --series-1: #69b54c; /* 7.05:1 on --bg · --accent */
-  --series-2: #b3279c; /* 3.13:1 on --bg */
-  --series-3: #2e7600; /* 3.14:1 on --bg · film */
-  --series-4: #ff86bf; /* 7.99:1 on --bg */
-  --series-5: #b2d100; /* 10.19:1 on --bg */
-  --series-6: #c67eff; /* 6.64:1 on --bg */
-  --series-7: #8b40cf; /* 3.17:1 on --bg */
-  --series-8: #ffb7c7; /* 10.90:1 on --bg */
-  --series-9: #e957bc; /* 5.56:1 on --bg */
-  --series-10: #94d3ff; /* 11.04:1 on --bg · film */
-  --series-11: #6b6cfd; /* 4.40:1 on --bg */
-  --series-12: #d6286c; /* 3.71:1 on --bg */
+  --series-1: #69b54c; /* 7.05:1 · green · --accent */
+  --series-2: #ff93f6; /* 9.12:1 · pink */
+  --series-3: #006abe; /* 3.23:1 · blue · film */
+  --series-4: #bc71ff; /* 5.89:1 · purple */
+  --series-5: #c23500; /* 3.23:1 · red */
+  --series-6: #ffda74; /* 13.18:1 · yellow */
+  --series-7: #00959e; /* 4.91:1 · teal */
+  --series-8: #d86100; /* 4.78:1 · orange */
+  --series-9: #ad2ca7; /* 3.13:1 · shade of --series-2 */
+  --series-10: #a659e8; /* 4.42:1 · shade of --series-4 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }
 
 /* when-marnie-was-there-2014-light */
 :root[data-palette="when-marnie-was-there-2014-light"] {
-  --series-1: #347f09; /* 4.81:1 on --bg · --accent */
-  --series-2: #e056c5; /* 3.19:1 on --bg */
-  --series-3: #1e5300; /* 8.78:1 on --bg · film */
-  --series-4: #c72481; /* 5.03:1 on --bg */
-  --series-5: #819800; /* 3.13:1 on --bg */
-  --series-6: #913dca; /* 5.40:1 on --bg */
-  --series-7: #62009f; /* 9.96:1 on --bg */
-  --series-8: #9e004a; /* 7.88:1 on --bg */
-  --series-9: #6d0053; /* 11.34:1 on --bg */
-  --series-10: #0095db; /* 3.18:1 on --bg · film */
-  --series-11: #6969f9; /* 4.03:1 on --bg */
-  --series-12: #ef4580; /* 3.45:1 on --bg */
+  --series-1: #347f09; /* 4.81:1 · green · --accent */
+  --series-2: #680064; /* 11.35:1 · pink */
+  --series-3: #0890ff; /* 3.12:1 · blue · film */
+  --series-4: #7925b5; /* 7.33:1 · purple */
+  --series-5: #8a2300; /* 8.67:1 · red */
+  --series-6: #af8a00; /* 3.12:1 · yellow */
+  --series-7: #008e97; /* 3.79:1 · teal */
+  --series-8: #bd5400; /* 4.54:1 · orange */
+  --series-9: #d556ce; /* 3.33:1 · shade of --series-2 */
+  --series-10: #5d0092; /* 10.70:1 · shade of --series-4 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
 }

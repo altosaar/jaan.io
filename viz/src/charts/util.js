@@ -88,7 +88,12 @@ export const column = (table, name) => rows(table).map((d) => d[name]);
  * Read off <html> at call time, so the answer is whichever palette is applied
  * right now. Every one is a legal mark on that palette's background and every
  * pair stays distinct under simulated colour-vision deficiencies — the first
- * six more so, which is why a chart should take them from the front.
+ * five more so, which is why a chart should take them from the front.
+ *
+ * The first eight (seven on a palette or two — --series-hues says) are one hue
+ * family each: a legend a reader can name. The rest are second shades of those,
+ * for paired data or as overflow; a chart that reaches them should give them a
+ * second encoding too — see seriesDashes.
  *
  * Plot and Mosaic bake the colours into the SVG they draw, so a chart that
  * should follow the palette switcher has to draw again: see onPaletteChange.
@@ -101,6 +106,26 @@ export function seriesColors() {
     if (!value) return out;
     out.push(value);
   }
+}
+
+/**
+ * A stroke-dasharray per series, matched to seriesColors(): "none" for the hue
+ * series, dashed for the shades that follow them. A shade differs from its
+ * parent by lightness alone — enough for a swatch, not for a 1.5px line — so
+ * where a chart draws more series than there are hues, the dash is what keeps
+ * the pair apart. Plot takes the dash as a mark option, not a channel, so draw
+ * one line per series:
+ *
+ *   const colors = seriesColors(), dashes = seriesDashes();
+ *   keys.map((k, i) => Plot.lineY(data.filter((d) => d.key === k),
+ *     { x, y, stroke: colors[i], strokeDasharray: dashes[i] }))
+ *
+ * (For dots, Plot's `symbol` channel does the same job without the split.)
+ */
+export function seriesDashes() {
+  const style = getComputedStyle(document.documentElement);
+  const hues = parseInt(style.getPropertyValue("--series-hues"), 10);
+  return seriesColors().map((_, i) => (Number.isFinite(hues) && i >= hues ? "4 3" : "none"));
 }
 
 /**

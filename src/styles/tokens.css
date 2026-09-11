@@ -53,35 +53,41 @@
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
 
-  /* SERIES — the colours a chart draws its data in, --series-1 … --series-12,
+  /* SERIES — the colours a chart draws its data in, --series-1 … --series-10,
      in ORDER OF USE: a chart with three series takes the first three. Read by
      the chart modules in viz/ through seriesColors() (viz/src/charts/util.js),
      which is the use site this file's first rule asks for; nothing in CSS
      reaches for them.
 
-     MARK colours, not text colours: each clears 3:1 on --bg (WCAG 1.4.11), and
-     every pair stays at least 0.06 apart in OKLab for normal vision and under
-     simulated protanopia, deuteranopia and tritanopia — the first six at least
-     0.08 — so a legend is still a legend for a colour-blind reader. --series-1
-     is --accent exactly. `npm run a11y` re-measures all of it.
+     TWO TIERS. --series-1 … 8 are one per hue family (red, orange, yellow,
+     green, teal, blue, purple, pink), so each has its own name in a legend.
+     --series-9 and 10 are second shades of two of them — the comment says
+     which — for paired data, or as overflow drawn with a dash as well
+     (seriesDashes() in util.js).
+
+     MARK colours, not text colours: each clears 3:1 on --bg (WCAG 1.4.11).
+     Every pair among 1–8 stays at least 0.05 apart in OKLab for normal vision
+     and under simulated protanopia, deuteranopia and tritanopia — the first
+     five at least 0.08 — and a shade clears its parent by 0.06, so a legend is
+     still a legend for a colour-blind reader. --series-1 is --accent exactly.
+     `npm run a11y` re-measures all of it, families included.
 
      GENERATED, like the palettes: `chromaphony-series --site <this repo>`
      rewrites the lines between the markers below from the rest of this block,
-     and writes src/styles/series.css — the same twelve, solved per palette in
+     and writes src/styles/series.css — the same ten, solved per palette in
      palettes.css. Change a colour here by changing what it is solved from. */
   /* series:generated:start — rewritten by chromaphony-series */
-  --series-1: #24cb71; /* 9.86:1 on --bg · --accent */
-  --series-2: #8a2cb7; /* 3.12:1 on --bg */
-  --series-3: #e67aff; /* 8.59:1 on --bg */
-  --series-4: #c91304; /* 3.58:1 on --bg */
-  --series-5: #8bff70; /* 16.64:1 on --bg */
-  --series-6: #008685; /* 4.75:1 on --bg */
-  --series-7: #f2b9ff; /* 13.16:1 on --bg */
-  --series-8: #a958e5; /* 5.21:1 on --bg */
-  --series-9: #ca7400; /* 6.01:1 on --bg */
-  --series-10: #006854; /* 3.11:1 on --bg */
-  --series-11: #00aa6a; /* 6.96:1 on --bg */
-  --series-12: #8cdb2d; /* 12.29:1 on --bg */
+  --series-1: #24cb71; /* 9.86:1 · green · --accent */
+  --series-2: #8a2cb7; /* 3.12:1 · purple */
+  --series-3: #c91304; /* 3.58:1 · red */
+  --series-4: #e870ed; /* 7.97:1 · pink */
+  --series-5: #008a7e; /* 4.94:1 · teal */
+  --series-6: #fbda00; /* 15.13:1 · yellow */
+  --series-7: #cc7200; /* 5.97:1 · orange */
+  --series-8: #79ddff; /* 13.60:1 · blue */
+  --series-9: #af55df; /* 5.19:1 · shade of --series-2 */
+  --series-10: #007137; /* 3.42:1 · shade of --series-1 */
+  --series-hues: 8; /* 1–8 one hue family each; the rest shades */
   /* series:generated:end */
 
   /* ── Type ──────────────────────────────────────────────────────────────── */

@@ -273,22 +273,49 @@ if (file === "src/styles/tokens.css" && existsSync(PALETTES_FILE)) {
 }
 
 // -------------------------------------------------- SERIES DISTINCTNESS ---
-// The series' second promise: every pair is still two colours to a reader with
-// a colour-vision deficiency. Measured as the distance between the two colours
-// in OKLab — how different they LOOK, not how different their hex is — for
-// normal vision and after simulating protanopia, deuteranopia and tritanopia
-// (Machado, Oliveira & Fernandes 2009, full severity), and the pair scores the
-// worst of the four. The first six are held to more, because six is about as
-// many series as a chart here draws; the whole set to less, because twelve
-// colours that clear 0.08 under all three simulations do not exist inside the
-// band 3:1 leaves on a page. For scale on this metric: Okabe–Ito's seven
-// chromatic colours, the usual reference set, score 0.076; Observable Plot's
-// default scheme 0.020.
+// The series' second promise: every series is still its own colour to every
+// reader. Two halves to that.
+//
+// NAMES. --series-1 … 8 are one per HUE FAMILY — red, orange, yellow, green,
+// teal, blue, purple, pink, as OKLCH hue ranges — because two series in one
+// family read as "the light blue and the dark blue", an order and not two
+// categories, however far apart they measure. The rest are SHADES: each in the
+// family of an earlier series (its parent), at most one shade per parent, all
+// after the last hue. (Seven hues and one more shade when the accent straddles
+// two families across dark and light — see checkSeries.)
+//
+// DISTANCE. How different two colours LOOK, in OKLab, for normal vision and
+// after simulating protanopia, deuteranopia and tritanopia (Machado, Oliveira &
+// Fernandes 2009, full severity); a pair scores the worst of the four. Among
+// the hues at least 0.05, the first five 0.08 — five is about as many series as a
+// chart here draws. A shade clears its parent by 0.06 and every other series by
+// 0.055. For scale on this metric: Okabe–Ito's seven chromatic colours, the usual
+// reference set, score 0.076; Tol's nine "muted" 0.052; Observable Plot's default
+// scheme 0.020.
 //
 // And every series is kept clear of --text and --text-muted, the colours a
 // chart draws its axes, ticks and labels in: a line that turns into the axis
 // grey under a simulation has not been drawn at all.
-const SERIES_GATE = { all: 0.06, first: 0.08, firstN: 6, neutral: 0.04 };
+const SERIES_GATE = {
+  hues: 0.05,
+  first: 0.08,
+  firstN: 5,
+  huesN: 8,
+  partner: 0.06,
+  pairs: 0.055,
+  neutral: 0.04,
+};
+// [name, from, to] in OKLCH hue degrees; red wraps past 360 into pink's start.
+const FAMILIES = [
+  ["red", 10, 42],
+  ["orange", 42, 75],
+  ["yellow", 75, 115],
+  ["green", 115, 170],
+  ["teal", 170, 215],
+  ["blue", 215, 275],
+  ["purple", 275, 320],
+  ["pink", 320, 370],
+];
 const CVD = {
   protan: [
     [0.152286, 1.052583, -0.204868],
@@ -324,6 +351,14 @@ const seen = (rgb) => {
   const linear = rgb.map(channel);
   return [oklab(linear), ...Object.values(CVD).map((m) => oklab(mul(m, linear)))];
 };
+/** The hue family a colour is named by, or null for one too grey to have one. */
+function family(rgb) {
+  const [, a, b] = oklab(rgb.map(channel));
+  if (Math.hypot(a, b) < 0.05) return null;
+  let deg = ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360;
+  if (deg < FAMILIES[0][1]) deg += 360;
+  return FAMILIES.find(([, lo, hi]) => deg >= lo && deg < hi)[0];
+}
 /** Worst-vision distance between two colours, and which vision it was. */
 function apart(a, b) {
   const va = seen(a);
@@ -338,21 +373,64 @@ function apart(a, b) {
 
 const seriesRows = [];
 function checkSeries(name, map) {
+  const before = failures.length;
   const colours = SERIES.map((t) => ({ t, rgb: toRgb(resolve(t, map) ?? "") }));
   const bad = colours.find((c) => !c.rgb);
   if (bad) {
     failures.push(`${name}: cannot measure ${bad.t} for series distinctness`);
     return;
   }
-  const worst = { all: { d: Infinity }, first: { d: Infinity } };
+  const pairOf = (x, y) => ({ ...apart(x.rgb, y.rgb), pair: `${x.t} / ${y.t}` });
+
+  // Names. A series is a HUE if it is the first in its family (or grey — an
+  // accent with no hue), otherwise a SHADE of the hue that family started with.
+  // All hues come first, at most one shade per hue, and at least huesN − 1 hues:
+  // one fewer than huesN only when --series-1, the exact accent, sits on a family
+  // boundary between the dark and light modes and so holds two names.
+  const firstOf = new Map();
+  for (const c of colours) {
+    c.family = family(c.rgb);
+    c.parent = c.family ? firstOf.get(c.family) : undefined;
+    if (c.family && !c.parent) firstOf.set(c.family, c);
+  }
+  const hues = colours.filter((c) => !c.parent);
+  const shades = colours.filter((c) => c.parent);
+  const want = Math.min(colours.length, SERIES_GATE.huesN - 1);
+  if (hues.length < want)
+    failures.push(
+      `${name}: only ${hues.length} hue families (${[...firstOf.keys()].join(", ")}) — ` +
+        `need ${want}; ${shades.map((s) => `${s.t} repeats ${s.parent.t}'s ${s.family}`).join(", ")}`,
+    );
+  const late = hues.find((h) => colours.indexOf(h) > colours.indexOf(shades[0] ?? h));
+  if (late) failures.push(`${name}: ${late.t}, a new hue, comes after the shade ${shades[0].t}`);
+  // --series-hues is what a chart reads to know where the shades start
+  // (seriesDashes in viz/src/charts/util.js); it has to agree with the colours.
+  const declared = parseInt(resolve("--series-hues", map) ?? "", 10);
+  if (declared !== hues.length)
+    failures.push(
+      `${name}: --series-hues is ${declared}, but the colours make ${hues.length} hues`,
+    );
+  for (const [i, s] of shades.entries()) {
+    const twin = shades.slice(0, i).find((o) => o.parent === s.parent);
+    if (twin) failures.push(`${name}: ${twin.t} and ${s.t} are both shades of ${s.parent.t}`);
+  }
+
+  const worst = {
+    hues: { d: Infinity },
+    first: { d: Infinity },
+    partner: { d: Infinity },
+    pairs: { d: Infinity },
+  };
   for (let i = 0; i < colours.length; i++) {
     for (let j = i + 1; j < colours.length; j++) {
-      const p = {
-        ...apart(colours[i].rgb, colours[j].rgb),
-        pair: `${colours[i].t} / ${colours[j].t}`,
-      };
-      if (p.d < worst.all.d) worst.all = p;
-      if (j < SERIES_GATE.firstN && p.d < worst.first.d) worst.first = p;
+      const [x, y] = [colours[i], colours[j]];
+      const p = pairOf(x, y);
+      if (!x.parent && !y.parent) {
+        if (p.d < worst.hues.d) worst.hues = p;
+        if (j < SERIES_GATE.firstN && p.d < worst.first.d) worst.first = p;
+      } else if (y.parent === x || x.parent === y) {
+        if (p.d < worst.partner.d) worst.partner = p;
+      } else if (p.d < worst.pairs.d) worst.pairs = p;
     }
   }
   let neutral = { d: Infinity };
@@ -365,8 +443,10 @@ function checkSeries(name, map) {
     }
   }
   const verdicts = [
-    [worst.all, SERIES_GATE.all, "any two series"],
+    [worst.hues, SERIES_GATE.hues, "two hue series"],
     [worst.first, SERIES_GATE.first, `two of the first ${SERIES_GATE.firstN} series`],
+    [worst.partner, SERIES_GATE.partner, "a shade and its parent"],
+    [worst.pairs, SERIES_GATE.pairs, "a shade and any other series"],
     [neutral, SERIES_GATE.neutral, "a series and the text colours"],
   ];
   for (const [p, min, what] of verdicts)
@@ -374,7 +454,13 @@ function checkSeries(name, map) {
       failures.push(
         `${name}: ${p.pair} are ${p.d.toFixed(3)} apart for ${p.vision} vision — ${what} need ${min}`,
       );
-  seriesRows.push({ name, ok: verdicts.every(([p, min]) => p.d >= min), worst, neutral });
+  seriesRows.push({
+    name,
+    ok: failures.length === before,
+    worst,
+    neutral,
+    families: hues.map((c) => c.family ?? "grey"),
+  });
 }
 if (SERIES.length) {
   checkSeries("(site palette)", tokens);
@@ -445,14 +531,17 @@ if (paletteRows.length) {
 if (seriesRows.length) {
   const sw = Math.max(...seriesRows.map((s) => s.name.length));
   console.log(
-    `\nSeries distinctness — ${SERIES.length} colours, worst pair under normal/protan/deutan/tritan ` +
-      `(ΔE OKLab; need ≥${SERIES_GATE.all} all, ≥${SERIES_GATE.first} first ${SERIES_GATE.firstN}, ` +
+    `\nSeries distinctness — ${SERIES.length} colours: 1–${SERIES_GATE.huesN} one hue family each, ` +
+      `the rest shades. Worst pair under normal/protan/deutan/tritan (ΔE OKLab; need ` +
+      `≥${SERIES_GATE.hues} among 1–${SERIES_GATE.huesN}, ≥${SERIES_GATE.first} first ${SERIES_GATE.firstN}, ` +
+      `shade ≥${SERIES_GATE.partner} from its parent and ≥${SERIES_GATE.pairs} from the rest, ` +
       `≥${SERIES_GATE.neutral} vs text):`,
   );
+  const fmt = (p) => (Number.isFinite(p.d) ? p.d.toFixed(3) : "  —  ");
   for (const { name, ok, worst, neutral } of seriesRows) {
     console.log(
-      `${ok ? "✔" : "✖"} ${name.padEnd(sw)}  all ${worst.all.d.toFixed(3)} (${worst.all.vision.padEnd(6)})  ` +
-        `first ${worst.first.d.toFixed(3)}  vs text ${neutral.d.toFixed(3)}`,
+      `${ok ? "✔" : "✖"} ${name.padEnd(sw)}  hues ${fmt(worst.hues)} (${worst.hues.vision.padEnd(6)})  ` +
+        `first ${fmt(worst.first)}  shade ${fmt(worst.partner)}/${fmt(worst.pairs)}  vs text ${fmt(neutral)}`,
     );
   }
 }
