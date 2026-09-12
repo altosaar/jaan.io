@@ -644,6 +644,34 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     border: 0;
   }
 
+  /* A framed chart that wants more room than the measure: out to 75vw, centred
+     on the column, and never narrower than it. From 1401px, on a post that has
+     a TOC rail, the rail stands fixed in the left gutter, so there the width
+     also stops a rem short of its right edge on both sides — Toc.astro's own
+     `left` and `width`, written out again. */
+  .prose :global(iframe.wide) {
+    --wide: max(100%, 75vw);
+    width: var(--wide);
+    max-width: none;
+    margin-inline: calc((100% - var(--wide)) / 2);
+  }
+
+  @media (min-width: 1401px) {
+    .prose:has(:global(.toc)) :global(iframe.wide) {
+      --wide: max(
+        100%,
+        min(
+          75vw,
+          100vw - 2 *
+            (
+              (100vw - var(--chrome-w)) / 2 +
+                min(15rem, (100vw - var(--reading-w)) / 2 - var(--edge) - 2rem) + 1rem
+            )
+        )
+      );
+    }
+  }
+
   .prose :global(code) {
     font-size: 0.9em;
     padding: 0.15em 0.35em;
