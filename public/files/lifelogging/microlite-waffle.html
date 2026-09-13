@@ -899,9 +899,37 @@
   }
   .embedded rect.cell { fill-opacity: 0.5; }
   .embedded .legend i { opacity: 0.5 !important; }
-  .embedded .edge { stroke-width: 0; }
-  .embedded .piece:hover .edge { stroke-width: 3; }
-  .embedded .piece.on .edge { stroke-width: 4; }
+  /* Framed, the legend is drawn as Plot draws the connectome's under it: bare 15px swatches, the
+     name in the system face at 10px, capitalised, starting under the first square (alignLegend). */
+  .embedded .legend { font: 10px system-ui, sans-serif; gap: 0 10px; min-height: 33px;
+                      align-items: center; text-transform: capitalize; }
+  .embedded .legend span { gap: 5.5px; }
+  /* Framed, the controls sit over the chart on one line, the views and then the box taking the
+     rest, from the first square to the chart's right edge (alignLegend); a phone wraps the box. */
+  .embedded .controls { flex-direction: row; flex-wrap: wrap; align-items: stretch;
+                        padding: 0 0 4px; box-sizing: border-box; }
+  /* 12px, so the prompt it holds is whole beside the chips over a chart this narrow. */
+  .embedded .controls input[type=search] { flex: 1 1 220px; min-width: 0; font-size: 12px; }
+  /* The page's chips are lowercase by rule; in the post, capitalised like the legends. */
+  .embedded .chip { text-transform: capitalize; }
+  /* Framed, a hunk is drawn as the connectome's ends are (connection_waffle.py): the name and
+     day in bold, the box under. Less the caret, since this one never folds; placed by
+     alignDetail. */
+  .embedded .end { margin-top: 18px; padding-top: 16px; }
+  .embedded .end .who { display: block; font-size: 12px; font-weight: 700; margin-bottom: 3px;
+                        overflow-wrap: anywhere; }
+  .embedded .end .who > span { display: block; }
+  /* And the axes in Plot's type, as the connectome's: 11px, regular, tabular figures. */
+  .embedded .axis, .embedded .axis.week {
+    font: 11px system-ui, sans-serif; font-variant-numeric: tabular-nums;
+  }
+  .embedded .legend i { width: 15px; height: 15px; border: 0; }
+  /* The picked hunk's outline is the connectome's ring: five wide, in the gap (see outlinePath),
+     square-capped so the separate sides close their corners as the ring's rect does. */
+  .embedded .edge { stroke-width: 0; stroke-linecap: square; }
+  /* No outline under the pointer: an outline means picked, as on the connectome's squares. */
+  .embedded .piece:hover .edge { stroke-width: 0; }
+  .embedded .piece.on .edge { stroke-width: 5; }
   .embedded .seam, .embedded #unit { display: none; }
   /* And the hunk panel is the note and its diff: no label over it, no badge row under the name. */
   .embedded .panel:has(#detail) > h2, .embedded #detail .facts { display: none; }
@@ -1072,8 +1100,37 @@ let { cell } = DATA;
 // takes the geometry of the connectome under it in the post — the same width, the same margins,
 // WEEK_GAP empty columns between weeks — so the two read as one figure drawn twice.
 const embedded = document.documentElement.classList.contains("embedded");
-const WEEK_GAP = 3;   // connection_waffle.py's --week-gap default
-const chartWidth = () => Math.max(300, Math.min(900, innerWidth - (innerWidth >= 960 ? 392 : 32)));
+const WEEK_GAP = 1;   // connection_waffle.py's, framed (weekGap there)
+// A week's date as a reader says it, the way the connectome's axis prints it (`pretty` there).
+// Split rather than parsed through `Date`: a bare ISO day parses as UTC midnight, and west of
+// Greenwich that formats as the day before. A synthetic week is mm-dd, a real one yyyy-mm-dd.
+const MONTHS = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+const pretty = (iso) => {
+  const m = /^(?:[0-9]{4}-)?([0-9]{2})-([0-9]{2})$/.exec(iso ?? "");
+  return m ? `${MONTHS[+m[1] - 1]} ${+m[2]}` : (iso ?? "");
+};
+// Beside its panel, a square at 0.83 of the size it had filling that room with three empty columns
+// between weeks, and one column between them now: the chart is that much narrower (15% on its
+// last width), the panel taking the rest. Stacked, the frame's width. connection_waffle.py's
+// chartWidth is this, and must stay so.
+//
+// Sized from the frame's full width in the post (basisWidth), not the frame as it stands: where
+// the post pulls the frame's left edge in clear of its TOC rail, the panel beside the chart gives
+// up that width and the chart does not — unless the panel would drop under its 340, when the
+// chart gives way.
+const basisWidth = () => {
+  // iframe.wide in jaan.io's Prose.astro: the column's width or three quarters of the viewport,
+  // whichever is more. A page on its own has only itself to go by.
+  const host = window.frameElement;
+  return host ? Math.max(host.parentElement.clientWidth, 0.75 * parent.innerWidth) : innerWidth;
+};
+const chartWidth = () => {
+  if (innerWidth < 960) return Math.max(300, Math.min(900, innerWidth - 32));
+  const unit = 0.83 * (Math.min(900, basisWidth() - 392) - 64) / (weeks.length * (perRow + 3) - 3 + 0.8);
+  return Math.min(innerWidth - 392,
+                  Math.round(64 + unit * (weeks.length * (perRow + WEEK_GAP) - WEEK_GAP + 0.8)));
+};
 const svg = document.getElementById("waffle");
 const detailEl = document.getElementById("detail");
 const qEl = document.getElementById("q");
@@ -1173,10 +1230,17 @@ function draw() {
   const step = Math.max(2, Math.ceil(tallest / 10));
   for (let rows = 0; rows <= tallest; rows += step) {
     const y = baseY - rows * pitch;
-    svg.appendChild(el("line", { x1: padL - 8, y1: y, x2: width, y2: y,
-                                 stroke: "var(--ink)", "stroke-width": rows ? 1 : 3,
-                                 "stroke-opacity": rows ? 0.15 : 1 }));
-    const t = el("text", { class: "axis", x: padL - 14, y: y + 4, "text-anchor": "end" });
+    // Framed, a tick and no gridline or floor, as Plot draws the connectome's axis under it: six
+    // pixels out from the plot's edge, the label three clear of it and centred on it.
+    if (embedded)
+      svg.appendChild(el("line", { x1: padL - 6, y1: y, x2: padL, y2: y,
+                                   stroke: "var(--ink)", "stroke-width": 1 }));
+    else
+      svg.appendChild(el("line", { x1: padL - 8, y1: y, x2: width, y2: y,
+                                   stroke: "var(--ink)", "stroke-width": rows ? 1 : 3,
+                                   "stroke-opacity": rows ? 0.15 : 1 }));
+    const t = el("text", { class: "axis", x: embedded ? padL - 9 : padL - 14,
+                           y: y + (embedded ? 3.5 : 4), "text-anchor": "end" });
     t.textContent = V.axis(rows);
     svg.appendChild(t);
   }
@@ -1184,7 +1248,7 @@ function draw() {
   // What the axis counts, over its top-left corner with an arrow, the way Plot labels the
   // connectome's — so the one word changes with the toggle and nothing else does.
   // Clear of the top tick, whose label is centred on a gridline a gap above padT.
-  const yLabel = el("text", { class: "axis", x: 4, y: padT - 12 });
+  const yLabel = el("text", { class: "axis ylabel", x: 4, y: padT - 12 });
   yLabel.textContent = "\u2191 " + V.label;
   svg.appendChild(yLabel);
 
@@ -1194,20 +1258,26 @@ function draw() {
     // therefore no weekday anybody can derive, so the writer that dropped the year hands one
     // over in `microlite.md`'s own header and `_hunks` carries it here. The same size as the
     // date, so the two read as one label on two lines.
+    // Framed, the two lines sit where Plot sets the connectome's tick label — a baseline 19.3px
+    // under the floor, the next 1em below — and no tally under them.
+    const line1 = embedded ? 19.3 : 16, line2 = embedded ? 30.3 : 30;
     if (w.weekday) {
-      const day = el("text", { class: "axis week", x: x0 + colW / 2, y: baseY + 16,
+      const day = el("text", { class: "axis week", x: x0 + colW / 2, y: baseY + line1,
                                "text-anchor": "middle" });
       day.textContent = w.weekday;
       svg.appendChild(day);
     }
-    const label = el("text", { class: "axis week", x: x0 + colW / 2, y: baseY + (w.weekday ? 30 : 18),
+    const label = el("text", { class: "axis week", x: x0 + colW / 2,
+                               y: baseY + (w.weekday ? line2 : embedded ? line1 : 18),
                                "text-anchor": "middle" });
-    label.textContent = w.week;
+    label.textContent = pretty(w.week);
     svg.appendChild(label);
-    const sub = el("text", { class: "axis", x: x0 + colW / 2, y: baseY + (w.weekday ? 43 : 31),
-                             "text-anchor": "middle" });
-    sub.textContent = V.sub(w);
-    svg.appendChild(sub);
+    if (!embedded) {
+      const sub = el("text", { class: "axis", x: x0 + colW / 2, y: baseY + (w.weekday ? 43 : 31),
+                               "text-anchor": "middle" });
+      sub.textContent = V.sub(w);
+      svg.appendChild(sub);
+    }
 
     // Bottom-up, wrapping at perRow — the column is the quantity, the way a waffle reads. A
     // hunk's squares are consecutive in that order, which is what makes them a shape.
@@ -1222,6 +1292,51 @@ function draw() {
 
   outline();
   dim();
+  alignLegend();
+}
+
+// Framed, the legend's first swatch starts where the first column's first square does, as the
+// connectome's does under it (align() there). Measured, so it holds if the chart scales down.
+function alignLegend() {
+  const legend = document.getElementById("legend"), swatch = legend.querySelector("i");
+  if (!embedded || !swatch) return;
+  legend.style.paddingLeft = "0px";
+  const first = Math.min(...[...svg.querySelectorAll("rect.cell")].map(r => r.getBoundingClientRect().left));
+  legend.style.paddingLeft = `${first - swatch.getBoundingClientRect().left}px`;
+  // The controls over the chart span the chart itself, edge to edge, as the connectome's caption
+  // does over its plot.
+  const controls = qEl.closest(".controls");
+  controls.style.paddingLeft = "0px";
+  controls.style.width = "";
+  const left = controls.getBoundingClientRect().left;
+  controls.style.paddingLeft = `${svg.getBoundingClientRect().left - left}px`;
+  controls.style.width = `${svg.getBoundingClientRect().right - left}px`;
+  alignDetail();
+}
+
+// Framed, and while the panel sits beside the chart: the hunk's name and day level with the
+// controls over the chart, middle to middle, and its box running from the top of the y axis to
+// the foot of the legend, so the hunk is exactly as tall as the chart it came from. Measured from
+// where each rests, every margin cleared first, so a second pass changes nothing. Stacked, the
+// box keeps its square.
+function alignDetail() {
+  const end = detailEl.querySelector(".end");
+  if (!embedded || !end) return;
+  const who = end.querySelector(".who"), box = end.querySelector(".hunk");
+  end.style.marginTop = box.style.marginTop = box.style.height = "";
+  box.style.aspectRatio = box.style.boxSizing = "";
+  if (detailEl.getBoundingClientRect().left < svg.getBoundingClientRect().right) return;
+  const q = qEl.getBoundingClientRect(), wr = who.getBoundingClientRect();
+  end.style.marginTop = `${parseFloat(getComputedStyle(end).marginTop)
+                           + (q.top + q.bottom) / 2 - (wr.top + wr.bottom) / 2}px`;
+  const top = svg.querySelector(".ylabel").getBoundingClientRect().top;
+  const bottom = Math.max(...[...document.querySelectorAll("#legend > span")]
+                               .map(s => s.getBoundingClientRect().bottom));
+  box.style.marginTop = `${parseFloat(getComputedStyle(box).marginTop)
+                           + top - box.getBoundingClientRect().top}px`;
+  box.style.aspectRatio = "auto";
+  box.style.boxSizing = "border-box";
+  box.style.height = `${bottom - top}px`;
 }
 
 // One hunk, drawn as one thing. A square keeps its place on the pitch grid and simply grows into
@@ -1235,7 +1350,7 @@ function draw() {
 function piece(w, h, x0, first, last, baseY, pitch) {
   const g = el("g", { class: "piece" });
   const mine = n => n >= first && n <= last;
-  const edge = [], seam = [];
+  const seam = [];
 
   for (let n = first; n <= last; n++) {
     const c = n % perRow, r = (n - c) / perRow;
@@ -1249,22 +1364,23 @@ function piece(w, h, x0, first, last, baseY, pitch) {
     const x = x0 + c * pitch, top = baseY - r * pitch - cell;
     const x1 = x + cell + (right ? gap : 0);
     const y0 = top - (up ? gap : 0), y1 = top + cell;
-    g.appendChild(el("rect", {
-      class: "cell", x, y: y0, width: x1 - x, height: y1 - y0,
-      fill: kinds[h.kind].fill, "fill-opacity": kinds[h.kind].opacity,
-    }));
+    // The square and the gap to its right as one rect, the gap above it as another: the corner
+    // those two gaps share is filled only when all four squares round it are this hunk's. One
+    // rect up and right at once filled it with three, a tooth in the inner corner of an L.
+    const upRight = c < perRow - 1 && mine(n + perRow + 1);
+    const paint = { class: "cell", fill: kinds[h.kind].fill, "fill-opacity": kinds[h.kind].opacity };
+    g.appendChild(el("rect", { ...paint, x, y: top, width: x1 - x, height: y1 - top }));
+    if (up) g.appendChild(el("rect", { ...paint, x, y: y0, height: gap,
+                                       width: cell + (right && upRight ? gap : 0) }));
 
-    if (!left) edge.push(`M${x} ${y0}V${y1}`);
-    if (!right) edge.push(`M${x1} ${y0}V${y1}`);
-    if (!down) edge.push(`M${x} ${y1}H${x1}`);
-    if (!up) edge.push(`M${x} ${y0}H${x1}`);
     // Each internal boundary belongs to the square below it or to its left, so it is drawn once.
     if (right) seam.push(`M${x1} ${y0}V${y1}`);
     if (up) seam.push(`M${x} ${y0}H${x1}`);
   }
 
   if (seam.length) g.appendChild(el("path", { class: "seam", d: seam.join("") }));
-  g.appendChild(el("path", { class: "edge", d: edge.join("") }));
+  g.appendChild(el("path", { class: "edge",
+                             d: outlinePath(first, last, x0, baseY, pitch, embedded ? gap / 2 : 0) }));
   const tip = el("title");
   tip.textContent = `${h.note}\n${h.kind} · +${h.add} −${h.dele}`
                   + (h.chars ? ` · ${NUM.format(h.chars)} chars` : "");
@@ -1273,10 +1389,56 @@ function piece(w, h, x0, first, last, baseY, pitch) {
   return g;
 }
 
+// The outline of one piece, traced round the region its squares fill. The grid is taken at twice
+// the square's resolution — each square, and each gap beside one — so a gap the piece's rects
+// fill is inside it and a gap they leave is a notch, exactly as `piece` tiles them. Every side of
+// that boundary moves out by `o`, and each end with it: out past a corner that turns away from the
+// piece, back from one that turns into it, not at all where the side runs on into the next.
+//
+// On its own page `o` is 0 and this is the piece's own edge. Framed, it is half the gap, and
+// stroked five wide with square caps it is the connectome's ring (OUTLINE_WIDTH in
+// connection_waffle.py): a band centred in the gap around the hunk, so a picked hunk is outlined
+// alike in both charts.
+function outlinePath(first, last, x0, baseY, pitch, o) {
+  const sq = (c, r) => c >= 0 && c < perRow && r >= 0
+                       && r * perRow + c >= first && r * perRow + c <= last;
+  // `>>` floors negatives too, so the slots off the left edge read as empty.
+  const M = (i, j) => {
+    const c = i >> 1, r = j >> 1;
+    if (!(i & 1) && !(j & 1)) return sq(c, r);
+    if (!(j & 1)) return sq(c, r) && sq(c + 1, r);     // the gap right of a square
+    if (!(i & 1)) return sq(c, r) && sq(c, r + 1);     // the gap above one
+    return sq(c, r) && sq(c + 1, r) && sq(c, r + 1) && sq(c + 1, r + 1);   // a corner, among four
+  };
+  const xs = i => x0 + (i >> 1) * pitch + (i & 1 ? cell : 0);
+  const xe = i => i & 1 ? x0 + ((i >> 1) + 1) * pitch : xs(i) + cell;
+  const yb = j => baseY - (j >> 1) * pitch - (j & 1 ? cell : 0);
+  const yt = j => j & 1 ? baseY - ((j >> 1) + 1) * pitch : yb(j) - cell;
+  const end = (along, diag) => !along ? o : diag ? -o : 0;
+  const d = [];
+  const r0 = Math.floor(first / perRow), r1 = Math.floor(last / perRow);
+  for (let j = 2 * r0; j <= 2 * r1; j++) for (let i = 0; i < 2 * perRow - 1; i++) {
+    if (!M(i, j)) continue;
+    if (!M(i - 1, j)) d.push(`M${xs(i) - o} ${yt(j) - end(M(i, j + 1), M(i - 1, j + 1))}`
+                           + `V${yb(j) + end(M(i, j - 1), M(i - 1, j - 1))}`);
+    if (!M(i + 1, j)) d.push(`M${xe(i) + o} ${yt(j) - end(M(i, j + 1), M(i + 1, j + 1))}`
+                           + `V${yb(j) + end(M(i, j - 1), M(i + 1, j - 1))}`);
+    if (!M(i, j - 1)) d.push(`M${xs(i) - end(M(i - 1, j), M(i - 1, j - 1))} ${yb(j) + o}`
+                           + `H${xe(i) + end(M(i + 1, j), M(i + 1, j - 1))}`);
+    if (!M(i, j + 1)) d.push(`M${xs(i) - end(M(i - 1, j), M(i - 1, j + 1))} ${yt(j) - o}`
+                           + `H${xe(i) + end(M(i + 1, j), M(i + 1, j + 1))}`);
+  }
+  return d.join("");
+}
+
 // What is selected is a hunk and not a square: in the characters view a hunk owns a block of
 // them, and outlining one of that block would say the edit was smaller than it is.
 function outline() {
   for (const p of pieces) p.g.classList.toggle("on", p.hunk === selected);
+  // Last in the drawing, so its outline lies over the squares beside it, as the connectome's
+  // ring lies over its neighbours.
+  const on = pieces.find(p => p.hunk === selected);
+  if (on) svg.appendChild(on.g);
 }
 
 function dim() {
@@ -1288,6 +1450,24 @@ function show(w, h) {
   selected = h;
   outline();
   detailEl.textContent = "";
+  const box = hunkBox(h);
+  // Framed, the hunk is drawn as the connectome's ends are, so a hunk opened in either chart of
+  // the post looks the same: the caret, the note's name and its day in bold, the box open under
+  // them. On its own page, the name as a title and the facts as badges.
+  if (embedded) {
+    // Never folded here — the hunk is the whole of what a click asks for — so no caret.
+    const end = document.createElement("div");
+    end.className = "end";
+    const who = end.appendChild(document.createElement("span"));
+    who.className = "who";
+    for (const line of [h.note, [w.weekday, pretty(w.week)].filter(Boolean).join(" ")]) {
+      who.appendChild(document.createElement("span")).textContent = line;
+    }
+    end.appendChild(box);
+    detailEl.appendChild(end);
+    alignDetail();
+    return;
+  }
   const title = document.createElement("h2");
   title.className = "title";
   title.textContent = h.note;
@@ -1299,7 +1479,11 @@ function show(w, h) {
   if (h.add || h.dele) facts.appendChild(badge(`+${h.add} −${h.dele}`));
   if (h.chars) facts.appendChild(badge(`${NUM.format(h.chars)} chars`));
   detailEl.appendChild(facts);
+  detailEl.appendChild(box);
+}
 
+// The diff, one span per line, coloured by what the line did.
+function hunkBox(h) {
   const box = document.createElement("div");
   box.className = "hunk";
   const pre = document.createElement("pre");
@@ -1316,7 +1500,7 @@ function show(w, h) {
   }
   pre.appendChild(code);
   box.appendChild(pre);
-  detailEl.appendChild(box);
+  return box;
 }
 
 for (const k in kinds) {
@@ -1325,9 +1509,11 @@ for (const k in kinds) {
   i.style.background = kinds[k].fill;
   i.style.opacity = kinds[k].opacity;
   s.appendChild(i);
-  s.appendChild(document.createTextNode(`${k} — ${kinds[k].note}`));
+  // Framed, the name alone, as the connectome's legend under it has; the post says the rest.
+  s.appendChild(document.createTextNode(embedded ? k : `${k} — ${kinds[k].note}`));
   document.getElementById("legend").appendChild(s);
 }
+alignLegend();
 
 // Redrawing from scratch rather than resizing what is there: a hunk's squares are one, then
 // several, so there is nothing to animate between and the chart is a few dozen rects anyway.
@@ -1367,7 +1553,12 @@ for (const w of weeks) {
 // keystroke replaces it — and Tab or Enter takes the rest. A deletion is never completed, or
 // backspacing over a suggestion would put it straight back.
 // The `/` shortcut is this page's own; framed in a post the key belongs to the post.
-if (embedded) qEl.placeholder = "dim every square but one note";
+// Framed, the controls move over the chart (laid out by alignLegend and EXTRA_STYLE).
+if (embedded) {
+  qEl.placeholder = "Select one note to view its snapshots";
+  svg.closest(".chart").before(qEl.closest(".controls"));
+  alignLegend();
+}
 const noteNames = [...new Set(weeks.flatMap(w => w.hunks.map(h => h.note)))].sort();
 qEl.addEventListener("input", ev => {
   const typed = qEl.value;

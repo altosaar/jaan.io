@@ -890,9 +890,30 @@
   .panel { box-shadow: none; border-width: 2px; }
   /* Framed (FRAMED in _page.py), the post says what the arrows are, and the connection sits
      beside the chart as soon as there is room — the chart narrows to make it; see chartWidth. */
-  .embedded .note, .embedded #topics-panel { display: none; }
+  .embedded .note, .embedded #topics-panel, .embedded .panel:has(#conn) > h2 { display: none; }
+  .embedded .chart .legend { text-transform: capitalize; }
+  /* Framed, a caption centred over the plot (align() gives it the plot's width): the prompt, and
+     once an arrow is picked, Claude's sentence in its place. It is as tall as the tallest thing it
+     can hold (sizeExcerpt), with what it holds set at its top, so nothing under it ever moves;
+     and its top is level with the first hunk's name in the panel beside it (align), so the
+     quotation and the hunks start on one line. The prompt is centred across; a sentence is set
+     left, in ink, under its label, with the quotation's rule. */
+  .caption { display: none; }
+  .embedded .caption { display: flex; flex-direction: column; justify-content: flex-start;
+                       text-align: center; font-size: 13px; line-height: 1.5;
+                       min-height: var(--caption-h, 0px); }
+  .embedded .caption .excerpt { text-align: left; color: var(--ink); }
+  .embedded .caption .said-from { margin: 0 0 4px; }
+  /* No rule between the ends: the space and the names already part them. */
+  .embedded .end { border-top: 0; }
+  /* Two hunks open at once here, so each box is half the waffle's square (FRAMED in _page.py):
+     as wide, half as tall, still scrolling. Scoped to the panel to outrank the shared rule. */
+  .embedded #conn .hunk { aspect-ratio: 2; }
   @media (min-width: 960px) {
-    .embedded .layout { grid-template-columns: auto minmax(340px, 1fr); }
+    /* The chart's own width, set by mount() as the waffle sets it: left to `auto`, the legend's
+       one long line took the column wide and squeezed the panel, so a hunk here was drawn
+       smaller than the same hunk in the waffle above it. */
+    .embedded .layout { grid-template-columns: calc(var(--chart-w, 550px) + 32px) minmax(340px, 1fr); }
   }
   .panel > h2, .sub { border-bottom-width: 2px; }
   .sub { border-top-width: 2px; }
@@ -925,8 +946,8 @@
      alike: nothing is outlined until an arrow is picked, so the heavier border always means
      "this is one end of the connection you are reading" and never anything else. Because the arrow is the only thing on this chart that carries a
      reason, and a square that highlights under the pointer promises a click it will not honour.
-     Addressed by `data-index`, which is the mark's own position: 0 every hunk, 1 the arrows,
-     2 the ends. `className` would read better and is not available — Mosaic reads a string mark
+     Addressed by `data-index`, which is the mark's own position: 0 every hunk, 1 the week's
+     frame, 2 the arrows, 3 the ends, 4 the picked arrow again. `className` would read better and is not available — Mosaic reads a string mark
      option as a column reference, so it becomes a SQL error rather than a class. Kept as CSS
      rather than classes applied after render, so it survives Plot re-rendering a mark. */
   .chart g[aria-label="rect"] rect { cursor: default; }
@@ -941,24 +962,30 @@
      it flashed. Nothing about the frame should move when a connector is clicked.
 
      Same curve and duration as jaan.io's own tokens. */
-  .chart g[data-index="2"] rect,
+  .chart g[data-index="3"] rect,
   .chart g[data-index="4"] path {
     transition: stroke-opacity var(--dur-fast) var(--ease-standard);
   }
-  .chart g[data-index="1"] path {
+  .chart g[data-index="2"] path {
     transition: stroke-width var(--dur-fast) var(--ease-standard),
                 stroke-opacity var(--dur-fast) var(--ease-standard);
   }
-  .chart g[data-index="1"] path { cursor: pointer; }
-  .chart g[data-index="1"] path:hover { stroke-opacity: 1; stroke-width: 7.5px; }
+  .chart g[data-index="2"] path { cursor: pointer; }
+  .chart g[data-index="2"] path:hover { stroke-opacity: 1; stroke-width: 7.5px; }
 
   /* The redrawn selected arrow sits on top of the real one. Letting it swallow the pointer
      would make the selected arrow the one arrow you cannot hover or click, so it is invisible
      to the mouse and every event still reaches the mark that owns the toggle. Matched by "an
      arrow group that is not the interactive one", which stays true wherever it lands. */
-  .chart g[aria-label="arrow"]:not([data-index="1"]) path { pointer-events: none; }
+  .chart g[aria-label="arrow"]:not([data-index="2"]) path { pointer-events: none; }
   /* The ring is drawn over the arrows, and must not take a click meant for one. */
-  .chart g[data-index="2"] rect { pointer-events: none; }
+  .chart g[data-index="3"] rect { pointer-events: none; }
+  /* `highlight` hides the unpicked by writing stroke-opacity="0" on them, and "restores" the
+     picked by writing back the channel value they never had, the string "null". Chrome drops
+     that as invalid and inherits 1; not every browser need agree. Anything not hidden is solid,
+     so the ring is the same ink as the week's frame and the axes. */
+  .chart g[data-index="3"] rect:not([stroke-opacity="0"]),
+  .chart g[data-index="4"] path:not([stroke-opacity="0"]) { stroke-opacity: 1; }
   .note { padding: 0 16px 16px; font-size: 12px; max-width: 78ch; }
   .note code { background: var(--paper); border: 2px solid var(--ink); padding: 0 4px; }
   #palette-row { padding: 12px 16px 0; flex-direction: row; align-items: center; gap: 10px;
@@ -1120,6 +1147,7 @@
         <select id="palette"></select>
       </label>
     </div>
+    <div class="caption" id="caption">Click an arrow to read why these two edits belong together.</div>
     <div class="chart" id="view">loading duckdb-wasm&hellip;</div>
     <p class="note">Nothing in the vault links these notes &mdash; no tag, no backlink, no folder. Every arrow is one sentence from that week's letter, found by <code>claude-haiku-4-5</code> reading the letter back against the hunks it was written from, together with the week's own sleep report and ledger &mdash; those are units too, and the letter reads a note against them constantly. Click an arrow: it stays lit, and the two units it joins open on the right with their squares outlined. The arrows are the only thing to press, since a square carries no reason of its own.</p>
     <div id="topics-panel" hidden>
@@ -1142,9 +1170,13 @@
 <script type="module">
 import * as vg from "https://cdn.jsdelivr.net/npm/@uwdata/vgplot@0.31.0/+esm";
 
-const { hunks, conns, kinds, colors, perRow, weekGap, weeks, weekdays,
+const { hunks, conns, kinds, colors, perRow, weekGap: drawnGap, weeks, weekdays,
         annotatedWeek, annotatedSlot, colorBy, topics, topicCounts, palettes, palette } =
   JSON.parse(document.getElementById("data").textContent);
+// Framed, one empty column between weeks rather than --week-gap's three, so the chart gives up
+// width to the panel beside it without its squares shrinking (chartWidth). The waffle framed above
+// it draws the same (WEEK_GAP in microlite_waffle.py). FRAMED has run by now: a module waits.
+const weekGap = document.documentElement.classList.contains("embedded") ? 1 : drawnGap;
 
 vg.coordinator().databaseConnector(new vg.DuckDBWASMConnector());
 
@@ -1299,10 +1331,10 @@ const pretty = (iso) => {
 // itself and never once had anything to split.
 const dayName = (w) => weekdays?.[w] ?? "";
 
-// Framed, the squares are coloured by what the edit did, as the waffle above them in the post
-// is, so a hunk is one colour in both charts; the topic is still read out on each hunk's line
-// in the panel. On its own page the topic view colours by topic.
-const byTopic = colorBy === "topic" && !document.documentElement.classList.contains("embedded");
+// Framed, too: the post's waffle above this one says what each edit did, and this one says what
+// it was about, in the same palette's hues from its first slot where the waffle's kinds start
+// three along (--kind-* in microlite_waffle.py).
+const byTopic = colorBy === "topic";
 // The palette in force. Its hues are assigned to topics in the stored topic order, so a hue
 // follows a subject and not its rank; `other` keeps its grey in every palette, because the
 // absence of an identity should not change colour when the identities do.
@@ -1356,9 +1388,11 @@ const $connPin = pin($conn);
 // The slider publishes its starting value on construction, so the chart opens already filtered
 // rather than showing every arc for one frame.
 const $strength = vg.Selection.single();
+// Where the slider opens, and so which arrows a framed page ever shows: its slider is hidden.
+const SHOWN_AT = 5;
 const strengthSlider = vg.slider({
   as: $strength, field: "threshold", label: "Min strength",
-  min: 1, max: 5, step: 1, value: 5
+  min: 1, max: 5, step: 1, value: SHOWN_AT
 });
 
 // Week names live under the middle of each block. A text mark would need its own row in the
@@ -1371,8 +1405,22 @@ const blockAt = new Map(midpoints.map((m, i) => [m, weeks[i]]));
 // gap and the chart's own padding), or fills the frame once the two are stacked; the height
 // follows so a square keeps its shape.
 const embedded = document.documentElement.classList.contains("embedded");
-const chartWidth = () => !embedded ? 900
-  : Math.max(300, Math.min(900, innerWidth - (innerWidth >= 960 ? 392 : 32)));
+// Beside the panel, a square at 0.83 of the size it had filling that room with three empty columns
+// between weeks, and weekGap's one between them now: the chart is that much narrower, the panel
+// taking the rest. microlite_waffle.py's chartWidth is this, and must stay so.
+// Sized from the frame's full width in the post, not the frame as it stands — see basisWidth in
+// microlite_waffle.py: the panel gives up what the post takes back for its TOC rail.
+const basisWidth = () => {
+  const host = window.frameElement;
+  return host ? Math.max(host.parentElement.clientWidth, 0.75 * parent.innerWidth) : innerWidth;
+};
+const chartWidth = () => {
+  if (!embedded) return 900;
+  if (innerWidth < 960) return Math.max(300, Math.min(900, innerWidth - 32));
+  const unit = 0.83 * (Math.min(900, basisWidth() - 392) - 64) / (weeks.length * (perRow + 3) - 3 + 0.8);
+  return Math.min(innerWidth - 392,
+                  Math.round(64 + unit * (weeks.length * (perRow + weekGap) - weekGap + 0.8)));
+};
 // Square cells. x runs over X_UNITS data units and y over `tallest` rows, so the height that
 // makes a unit as tall as it is wide follows from the width, less the fixed-pixel margins. The
 // waffle framed above this in the post draws with the same numbers (microlite_waffle.py), which
@@ -1395,12 +1443,25 @@ const buildChart = () => vg.plot(
     // Framed, no square is outlined until an arrow picks it: the ring below is the only border.
     inset: CELL_INSET, stroke: embedded ? "none" : "var(--ink)", strokeWidth: UNIT_STROKE
   }),
+  // The frame around the week whose sentences these are: solid black, square-cornered, and a
+  // pixel heavier than the outline on a square, so it reads as the boundary of the week rather
+  // than as another unit. Second, over the squares and under every connector, since the arrows
+  // leaving the week cross it. It can sit this early because it always renders — one row, see
+  // week_box — so every later mark's rendered index is fixed, and the CSS addresses them by it.
+  vg.rect(vg.from("week_box"), {
+    x1: "bx1", x2: "bx2", y1: "by1", y2: "by2",
+    // Black on its own page; framed, the palette's ink, since the ground may be dark.
+    fill: "none", stroke: embedded ? "var(--ink)" : "#000000", strokeWidth: 2,
+    inset: CELL_INSET - FRAME_GAP
+  }),
   // Plot's own arrow mark, one <path> per connection. `headLength: 0` is how Plot documents
   // turning the head off: with only two ends and a rationale naming both, a head asserted a
   // direction the connection does not have.
   vg.arrow(vg.from("conn_arcs_at", { filterBy: $strength }), {
     x1: "cx1", y1: "cy1", x2: "cx2", y2: "cy2",
-    stroke: pal.link, strokeWidth: ARROW_WIDTH, strokeOpacity: 0.9,
+    // Framed, every arrow at half strength and the picked one, redrawn below, at full: the lit
+    // arrow is the one the panel is reading, and nothing else competes with it.
+    stroke: pal.link, strokeWidth: ARROW_WIDTH, strokeOpacity: embedded ? 0.5 : 0.9,
     // Plot's arrow mark caps its stroke round by default; flat here, so a connector ends
     // where it ends rather than in a bead.
     strokeLinecap: "butt",
@@ -1433,17 +1494,6 @@ const buildChart = () => vg.plot(
     inset: 0
   }),
   vg.highlight({ by: $connPin, strokeOpacity: 0 }),
-  // The frame around the week whose sentences these are: solid black, square-cornered, and a
-  // pixel heavier than the outline on a square, so it reads as the boundary of the week rather
-  // than as another unit. It sits here, after the arrows, because it always renders — anywhere
-  // earlier it would push every later mark's rendered index along and take the toggles and the
-  // hover CSS with it.
-  vg.rect(vg.from("week_box"), {
-    x1: "bx1", x2: "bx2", y1: "by1", y2: "by2",
-    // Black on its own page; framed, the palette's ink, since the ground may be dark.
-    fill: "none", stroke: embedded ? "var(--ink)" : "#000000", strokeWidth: 2,
-    inset: CELL_INSET - FRAME_GAP
-  }),
   // The arrow that is selected, drawn a second time at the weight it takes under the pointer.
   // `filterBy` means this mark is empty until something is picked and then holds exactly one
   // arrow, so the highlight the hover promised is the highlight that stays — the chart says
@@ -1531,6 +1581,25 @@ function diffBlock(row) {
  * against the file. An arrow joined by several sentences is several of these, cycled through
  * rather than stacked, because they are alternatives and not a list.
  */
+// Framed, the caption over the plot: the prompt until an arrow is picked, its sentence after.
+const caption = document.getElementById("caption");
+const PROMPT = caption.textContent;
+
+// The quotation: whose words, then the words. `null` gives the box alone, for the prompt that
+// stands in it before anything is picked; framed, the box's height is fixed (sizeExcerpt).
+function excerpt(sentence) {
+  const box = document.createElement("div");
+  box.className = "excerpt";
+  if (sentence === null) return box;
+  const from = box.appendChild(document.createElement("div"));
+  from.className = "said-from";
+  from.textContent = "Large language models connect changes in notes across time";
+  const said = box.appendChild(document.createElement("blockquote"));
+  said.className = "said";
+  said.textContent = sentence;
+  return box;
+}
+
 // Framed, an arrow reads as one sentence: the strongest behind it, and among equals one picked
 // by a hash of their text — arbitrary, but the same one every time that arrow is clicked.
 function one(rows) {
@@ -1567,7 +1636,24 @@ class ConnDetail extends vg.MosaicClient {
   }
   draw() {
     if (!this.rows.length) {
-      empty(this.el, "Click an arrow to read why these two edits belong together.");
+      if (!embedded) {
+        empty(this.el, "Click an arrow to read why these two edits belong together.");
+        return this;
+      }
+      // Framed, the caption over the plot holds the prompt until an arrow is picked, and here an
+      // invisible stand-in for the first end holds a name line where the name will be, so the
+      // first filename's place — which the caption is set level with — is known before anything
+      // is clicked and does not move after.
+      caption.replaceChildren(PROMPT);
+      const ghost = document.createElement("details");
+      ghost.className = "end";
+      ghost.style.visibility = "hidden";
+      const who = ghost.appendChild(document.createElement("summary"))
+                       .appendChild(document.createElement("span"));
+      who.className = "who";
+      who.appendChild(document.createElement("span")).textContent = "\u00a0";
+      this.el.replaceChildren(ghost);
+      align();
       return this;
     }
     const row = this.rows[Math.min(this.ix, this.rows.length - 1)];
@@ -1610,14 +1696,9 @@ class ConnDetail extends vg.MosaicClient {
     }
     if (facts.childNodes.length) frag.appendChild(facts);
 
-    const from = document.createElement("div");
-    from.className = "said-from";
-    from.textContent = "Excerpt from Claude output";
-    frag.appendChild(from);
-    const said = document.createElement("blockquote");
-    said.className = "said";
-    said.textContent = row.sentence;
-    frag.appendChild(said);
+    // Framed, the sentence is the caption over the plot, in the prompt's place.
+    if (embedded) caption.replaceChildren(excerpt(row.sentence));
+    else frag.appendChild(excerpt(row.sentence));
 
     // One block per end, each under the name of the unit it is about. A single rationale for
     // the pair kept coming back vague about which half was which — a figure quoted without
@@ -1669,6 +1750,7 @@ class ConnDetail extends vg.MosaicClient {
     }
 
     this.el.replaceChildren(frag);
+    if (embedded) align();
     return this;
   }
 }
@@ -1679,9 +1761,12 @@ const view = document.getElementById("view");
 // Framed, the arrows on show are the chosen ones and no others: the slider stays at 5, out of
 // sight, still filtering — it has to be on the page to publish.
 if (embedded) strengthSlider.style.display = "none";
-const mount = () => view.replaceChildren(embedded
-  ? vg.vconcat(vg.hconcat(strengthSlider), buildChart())
-  : vg.vconcat(vg.hconcat(strengthSlider), vg.vspace(6), buildChart()));
+const mount = () => {
+  document.documentElement.style.setProperty("--chart-w", `${chartWidth()}px`);
+  view.replaceChildren(embedded
+    ? vg.vconcat(vg.hconcat(strengthSlider), buildChart())
+    : vg.vconcat(vg.hconcat(strengthSlider), vg.vspace(6), buildChart()));
+};
 mount();
 // A frame is as wide as the post makes it, so a resize can move the chart's width.
 let drawnAt = chartWidth(), resizing;
@@ -1689,8 +1774,83 @@ addEventListener("resize", () => {
   clearTimeout(resizing);
   resizing = setTimeout(() => {
     if (chartWidth() !== drawnAt) { drawnAt = chartWidth(); mount(); }
+    if (embedded) sizeExcerpt();
   }, 150);
 });
+
+// Framed, the caption is fixed at the height of the tallest thing it can be asked to hold: the
+// prompt, or for each arrow on show the one sentence `one` picks for it, set in the caption's
+// width and measured. Asked once, measured again whenever the width may have changed.
+let shownSentences = null;
+async function sizeExcerpt() {
+  if (!shownSentences) {
+    const rows = Array.from(await vg.coordinator().query(
+      `SELECT c.cx1, c.cy1, c.cx2, c.cy2, c.strength, c.sentence
+         FROM conns c
+         JOIN (SELECT DISTINCT cx1, cy1, cx2, cy2 FROM conn_arcs_at
+                WHERE threshold = ${SHOWN_AT}) a
+           ON c.cx1 = a.cx1 AND c.cy1 = a.cy1 AND c.cx2 = a.cx2 AND c.cy2 = a.cy2`));
+    const byArc = new Map();
+    for (const r of rows) {
+      const k = [r.cx1, r.cy1, r.cx2, r.cy2].join();
+      byArc.set(k, [...(byArc.get(k) ?? []), r]);
+    }
+    shownSentences = [...byArc.values()].flatMap(one).map(r => r.sentence);
+  }
+  align();   // gives the caption the plot's width, which is the width the sentences wrap in
+  const probe = document.createElement("div");
+  probe.className = "caption";
+  probe.style.cssText = "position: absolute; visibility: hidden; min-height: 0; width: "
+    + caption.getBoundingClientRect().width + "px";
+  caption.after(probe);
+  let tallest = 0;
+  for (const s of [null, ...shownSentences]) {
+    probe.replaceChildren(s === null ? PROMPT : excerpt(s));
+    tallest = Math.max(tallest, probe.getBoundingClientRect().height);
+  }
+  probe.remove();
+  caption.style.setProperty("--caption-h", `${Math.ceil(tallest)}px`);
+  align();
+}
+if (embedded) sizeExcerpt();
+
+// Framed, two alignments, both measured off what is on screen rather than worked out from the
+// margins, so they hold whatever Plot and the panel decide. The legend starts under the first
+// column's first square, as the waffle's above it does. The caption spans the plot, so it is
+// centred over it. And while the panel sits beside the chart, the caption's top and the first
+// hunk's filename's are set level. The caption is one height whatever it holds (sizeExcerpt), and
+// before any click a stand-in holds the name's place, so this comes out the same every time and
+// the chart never moves once drawn.
+function align() {
+  const plot = [...view.querySelectorAll("svg")]
+    .sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+  if (!plot) return;
+  const legend = view.querySelector(".legend"), swatch = legend?.querySelector("svg");
+  const squares = [...plot.querySelectorAll('g[data-index="0"] rect')];
+  if (swatch && squares.length) {
+    legend.style.marginLeft = "0px";
+    const first = Math.min(...squares.map(r => r.getBoundingClientRect().left));
+    legend.style.marginLeft = `${first - swatch.getBoundingClientRect().left}px`;
+  }
+  caption.style.marginLeft = "0px";
+  caption.style.width = `${plot.getBoundingClientRect().width}px`;
+  caption.style.marginLeft =
+    `${plot.getBoundingClientRect().left - caption.getBoundingClientRect().left}px`;
+  const conn = document.getElementById("conn");
+  const name = conn.querySelector(".who > span");
+  const beside = conn.closest(".panel").getBoundingClientRect().left
+                 >= view.getBoundingClientRect().right;
+  if (!name || !beside) { caption.style.marginTop = conn.style.marginTop = "0px"; return; }
+  // Top to top, whichever is higher coming down to meet the other; each measured where it rests,
+  // before this pass's own margin.
+  const capTop = caption.getBoundingClientRect().top - parseFloat(getComputedStyle(caption).marginTop);
+  const nameTop = name.getBoundingClientRect().top - parseFloat(getComputedStyle(conn).marginTop);
+  caption.style.marginTop = `${Math.max(0, nameTop - capTop)}px`;
+  conn.style.marginTop = `${Math.max(0, capTop - nameTop)}px`;
+}
+// Plot renders after its query returns, and again on a remount; align once it has.
+if (embedded) new MutationObserver(() => requestAnimationFrame(align))
+  .observe(view, { childList: true, subtree: true });
 
 // The palette picker. Setting the attribute repaints the page's chrome in CSS; the chart has
 // its colours baked into an SVG, so it is rebuilt — which is what series.css asks for, since a

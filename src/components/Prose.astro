@@ -646,9 +646,17 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
 
   /* A framed chart that wants more room than the measure: out to 75vw, centred
      on the column, and never narrower than it. From 1401px, on a post that has
-     a TOC rail, the rail stands fixed in the left gutter, so there the width
-     also stops a rem short of its right edge on both sides — Toc.astro's own
-     `left` and `width`, written out again. */
+     a TOC rail, the rail stands fixed in the left gutter, so there the frame's
+     left edge stops a rem past the rail's right edge — Toc.astro's own `left`
+     and `width`, written out again — while its right edge stays put. The frame
+     narrows from the left only, and a chart page framed this way sizes its
+     chart from the full width, so the width it gives up comes out of the panel
+     beside the chart rather than the chart.
+
+     The selector is one :global() on purpose. Written as
+     `.prose:has(:global(.toc))`, Astro passed the inner :global() through
+     as-is, the browser read it as an unknown pseudo-class and dropped the
+     whole rule, and the frame ran under the rail at every width. */
   .prose :global(iframe.wide) {
     --wide: max(100%, 75vw);
     width: var(--wide);
@@ -657,18 +665,17 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
   }
 
   @media (min-width: 1401px) {
-    .prose:has(:global(.toc)) :global(iframe.wide) {
-      --wide: max(
-        100%,
-        min(
-          75vw,
-          100vw - 2 *
-            (
-              (100vw - var(--chrome-w)) / 2 +
-                min(15rem, (100vw - var(--reading-w)) / 2 - var(--edge) - 2rem) + 1rem
-            )
-        )
+    :global(.prose:has(.toc) iframe.wide) {
+      /* Viewport x of the rail's right edge, and the rem past it. */
+      --rail: calc(
+        (100vw - var(--chrome-w)) / 2 +
+          min(15rem, (100vw - var(--reading-w)) / 2 - var(--edge) - 2rem) + 1rem
       );
+      /* Viewport x of the frame's left edge: where centring put it, or past
+         the rail if that is further right. */
+      --left: max((100vw - var(--wide)) / 2, var(--rail));
+      width: calc((100vw + var(--wide)) / 2 - var(--left));
+      margin-inline: calc(var(--left) - (100vw - 100%) / 2) calc((100% - var(--wide)) / 2);
     }
   }
 
