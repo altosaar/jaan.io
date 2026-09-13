@@ -34,6 +34,8 @@ The easiest way I've found to do this is to use [Obsidian](https://obsidian.md/)
 
 With the help of Claude I created the [Microlite Obsidian plugin](https://community.obsidian.md/plugins/microlite) to enable creating these snapshots automatically. 
 
+For pulling physiology and sleep data, I use the Oura ring with the [Oura Metrics plugin](https://community.obsidian.md/plugins/oura-metrics) for Obsidian.
+
 To connect my bank accounts, investments, and credit card I used the [plaid-sync](https://github.com/mbafford/plaid-sync/) tool that leverages the [Plaid API](https://plaid.com/) to extract data from financial institutions into a [plain text format](https://sgoel.dev/posts/10-years-of-personal-finances-in-plain-text-files/) called Beancount.
 
 To orchestrate all of this, with Claude and my friend David's input, we built [Petrograph](https://github.com/altosaar/petrograph). This takes the above sources as input (Microlite for snapshots of changes in notes, plain text finances data, and physiology data from Oura), and prompts Claude with something like the following:
@@ -42,11 +44,50 @@ To orchestrate all of this, with Claude and my friend David's input, we built [P
 
 Then the [Eleven Labs](https://elevenlabs.io/) voice AI is used to convert the text to speech, and some audio plugins are used to add some effects like reverb and compression and mix it with a background audio track of the user's choice. This is the final output you can hear snippets of above.
 
-Wary about sharing all of this personal data with Anthropic or OpenAI or using closed-source APIs like Eleven Labs'? I am too! Thankfully, when my friend David's partner was interested in trying this system out but didn't want to share their data, he whipped up a completely open source toolkit that spins up Amazon Web Services instances that ensure no private data ever gets shared with external services. You can find that here: https://github.com/dlakata/sublimation (we have tested its integration with the above tools).
+Wary about sharing all of this personal data with Anthropic or OpenAI or using closed-source APIs like Eleven Labs'? I am too! Thankfully, when my friend David's partner was interested in trying this system out but didn't want to share their data, he whipped up a completely open source toolkit that spins up Amazon Web Services instances that ensure no private data ever gets shared with external services. You can find that here: https://github.com/dlakata/sublimation (we have tested its integration with the above tools, and no I haven't heard of anything more romantic in terms of infrastructure as a love language).
 
 # Summary
 
-In the middle of several weeks, I have at times feared Claude's admonishment, fretting about what it would chide be about next - whether my actions were aligning with my stated values. I worried whether I was becoming an agent taking atomic actions in a hierarchical world model of my own construction, sitting in Plato's tokenized cave.
+In the middle of several weeks, I have at times feared Claude's admonishment, fretting about what it would chide be about next - whether my actions were aligning with my stated values. I worried whether I was becoming an agent taking atomic actions in a hierarchical world model of my own construction, sitting in Plato's cave.
+
+```mermaid
+flowchart TB
+  MP["Meta-policy"]
+  L1[" "]:::label
+  L2[" "]:::label
+  SA["Skill A"]
+  SB["Skill B"]
+  TA["Temporal abstraction<br>(k steps)"]:::label
+  ENV["Environment<br>(changes in notes,<br>physiology, finances)"]
+  P1["Relational action"]
+  P2["Cognitive process"]
+  P3["Emotional process"]
+  P4["Intellectual process"]
+  AA["Atomic actions"]:::label
+
+  MP ~~~ L1
+  MP ~~~ L2
+  MP --> SA
+  SA -.->|Feedback| MP
+  MP --> SB
+  SB -.->|Feedback| MP
+  SA --> P1
+  P1 -.->|Feedback| SA
+  SA --> P2
+  P2 -.->|Feedback| SA
+  SB --> P3
+  P3 -.->|Feedback| SB
+  SB --> P4
+  P4 -.->|Feedback| SB
+  MP ~~~ TA
+  MP ~~~ ENV
+  SB ~~~ AA
+  ENV -->|State observation| MP
+
+  classDef label fill:none,stroke:none
+```
+
+
 
 
 
