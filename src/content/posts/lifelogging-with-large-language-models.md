@@ -95,11 +95,9 @@ flowchart TB
 ```
 
 
-After ingesting all this slop, has it significantly impacted my life? No. 
+Despite ingesting all this slop, my life has not been significantly altered. It still entertaining, and a vehicle for sharing different sides of myself with those I'm close to in a weird new way.
 
-It's entertaining, a vehicle for sharing different sides of myself with those I'm close to in a weird new way, and might lose its sheen. 
-
-But it has brought into relief ever smaller moments that cannot and will not be replaced by AI, such as making a friend laugh by catching them off guard with the inverse goggles gesture.
+But it has brought into relief ever smaller moments that cannot and will not be replaced by AI, such as catching someone off guard with the inverse goggles gesture. This is a great way to prove you are still human.
 
 <figure class="half">
 
