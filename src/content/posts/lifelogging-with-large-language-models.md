@@ -108,10 +108,7 @@ But it has brought into relief ever smaller moments that cannot and will not be 
 <figcaption>© 1972 Mick Rock.</figcaption>
 </figure>
 
-
-
-Do you know of even quirkier use cases of AI? Please email me! I started doing machine learning 12 years ago and feel like I'm barely scratching the surface - I'm excited to see what use cases generation alpha cooks up.
-
+Do you know of even quirkier ways of using AI for hyper-personalized self reflection? Please email me! I started doing machine learning 12 years ago and feel like I'm barely scratching the surface - I'm excited to see what use cases generation alpha cooks up.
 
 ## Acknowledgments
 
