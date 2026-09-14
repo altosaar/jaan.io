@@ -50,7 +50,7 @@ npm run a11y             # contrast-check.mjs against tokens.css
 npm run audit            # seo-audit.mjs over dist/ — titles, descriptions, canonicals, og
 npm run limits           # check-pages-limits.mjs over dist/ — Pages' size caps
 npm run test:newsletter  # posts to a running `npm run pages:dev`
-npm run test:redirects   # 46 legacy-URL cases; needs pages:dev, or pass a live origin
+npm run test:redirects   # 50 legacy-URL cases; needs pages:dev, or pass a live origin
 ```
 
 `.githooks/pre-push` runs format, check, a11y, build and audit before every
@@ -91,7 +91,7 @@ npm run test:redirects -- https://jaan.io   # or any deployed origin
 ## URLs, redirects and the feed
 
 Everything legacy lives in `public/_redirects`, and `scripts/redirect-check.mjs`
-covers it in 46 cases.
+covers it in 50 cases.
 
 - **Order matters.** Pages takes the first matching rule, so anything specific
   belongs above the `/*/ → /:splat` catch-all at the bottom of the file.

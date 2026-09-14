@@ -143,21 +143,17 @@
 /guest https://www.dropbox.com/s/0qi1xhd4qr8pt80/thinkspace.md?dl=0 302
 
 # ── Two rules from s3_website.yml that are deliberately NOT here ────────────
-# Both would be redirects onto something that no longer exists, which is worse
-# than a 404: a visitor waits through a hop to arrive nowhere, and a crawler
-# records the destination rather than the dead end.
-#
-# /impact → a Figma community file, GONE. The old README said curl's 403 was
-# probably bot-blocking and to check it in a browser. It is not bot-blocking:
-# with a browser User-Agent that file id returns 404 while figma.com/community
-# itself returns 200, so the file has been taken down or made private. Restore
-# it by pasting this back with a working URL:
+# /impact → a Figma community file, GONE. A redirect onto something that no
+# longer exists is worse than a 404: a visitor waits through a hop to arrive
+# nowhere, and a crawler records the destination rather than the dead end. The
+# old README said curl's 403 was probably bot-blocking and to check it in a
+# browser. It is not bot-blocking: with a browser User-Agent that file id
+# returns 404 while figma.com/community itself returns 200, so the file has been
+# taken down or made private. Restore it by pasting this back with a working URL:
 #     /impact https://www.figma.com/community/file/<id>/<slug> 302
 #
-# /dont-become-data-for-AI → the radicalization post, which is `published:
-# false` in the Jekyll tree and 404s on jaan.io today. The post is staying
-# unpublished, so the redirect goes too, and both forms plus the `/index.html`
-# twin now 404 directly instead of 301ing into one.
+# /dont-become-data-for-AI → the radicalization post, under its old working
+# title. Dropped by choice: the post is reachable only at its own slug.
 
 # ── Trailing slash → no trailing slash ──────────────────────────────────────
 # The site serves /about, not /about/ (astro.config.mjs `trailingSlash: never`
