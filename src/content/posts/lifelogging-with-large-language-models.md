@@ -50,7 +50,7 @@ Wary about sharing all of this personal data with Anthropic or OpenAI or using c
 
 # Summary
 
-In the middle of several weeks, I have at times feared Claude's admonishment, fretting about what it would chide be about next - whether my actions were aligning with my stated values. I worried whether I was becoming an agent taking atomic actions in a hierarchical world model of Claude's construction using a fun-house mirror of my journals, with me sitting in Plato's cave.
+In the middle of several weeks, I have at times feared Claude's future admonishment, fretting about what it would chide me about next - whether my actions were aligning with my stated values, whether I did what I said I wanted to. I worried whether I was becoming an agent taking atomic actions in a hierarchical world model of Claude's construction using a fun-house mirror of my journals, with me sitting in Plato's cave.
 
 ```mermaid
 ---
@@ -93,7 +93,6 @@ flowchart TB
 
   classDef label fill:none,stroke:none
 ```
-
 
 Despite ingesting all this slop, my life has not been significantly altered. It still entertaining, and a vehicle for sharing different sides of myself with those I'm close to in a weird new way.
 
