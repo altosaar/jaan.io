@@ -95,6 +95,17 @@ body {
   overflow-x: clip;
 }
 
+/* MONOSPACE — every element a browser sets in `monospace` by default, in
+   --font-mono (Hack) instead. The weight is left to inherit: Hack's faces are
+   static 400 and 700, so the body's 440 lands on the regular and a <code>
+   inside <strong> on the bold. */
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+}
+
 /* ── Viewport-locked pages ──────────────────────── */
 /* Set by <Base fullscreen> (currently the home page only): the page is exactly
    one screen, so there is nothing below the fold and nothing to scroll to.

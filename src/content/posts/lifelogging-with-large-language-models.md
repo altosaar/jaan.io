@@ -46,23 +46,30 @@ Then the [Eleven Labs](https://elevenlabs.io/) voice AI is used to convert the t
 
 Wary about sharing all of this personal data with Anthropic or OpenAI or using closed-source APIs like Eleven Labs'? I am too! Thankfully, when my friend David's partner was interested in trying this system out but didn't want to share their data, he whipped up a completely open source toolkit that spins up Amazon Web Services instances that ensure no private data ever gets shared with external services. You can find that here: https://github.com/dlakata/sublimation (we have tested its integration with the above tools, and no I haven't heard of anything more romantic in terms of infrastructure as a love language).
 
+# Guardrails
+
 # Summary
 
-In the middle of several weeks, I have at times feared Claude's admonishment, fretting about what it would chide be about next - whether my actions were aligning with my stated values. I worried whether I was becoming an agent taking atomic actions in a hierarchical world model of my own construction, sitting in Plato's cave.
+In the middle of several weeks, I have at times feared Claude's admonishment, fretting about what it would chide be about next - whether my actions were aligning with my stated values. I worried whether I was becoming an agent taking atomic actions in a hierarchical world model of Claude's construction using a fun-house mirror of my journals, with me sitting in Plato's cave.
 
 ```mermaid
+---
+config:
+  look: handDrawn
+  fontFamily: system-ui, sans-serif
+---
 flowchart TB
   MP["Meta-policy"]
   L1[" "]:::label
   L2[" "]:::label
   SA["Skill A"]
   SB["Skill B"]
-  TA["Temporal abstraction<br>(k steps)"]:::label
+  TA["Temporal abstraction<br>(1 week)"]:::label
   ENV["Environment<br>(changes in notes,<br>physiology, finances)"]
   P1["Relational action"]
   P2["Cognitive process"]
   P3["Emotional process"]
-  P4["Intellectual process"]
+  P4["Motor primitive"]
   AA["Atomic actions"]:::label
 
   MP ~~~ L1
@@ -88,12 +95,27 @@ flowchart TB
 ```
 
 
+After ingesting all this slop, has it significantly impacted my life? No. 
 
+It's entertaining, a vehicle for sharing different sides of myself with those I'm close to in a weird new way, and might lose its sheen. 
+
+But it has brought into relief ever smaller moments that cannot and will not be replaced by AI, such as making a friend laugh by catching them off guard with the inverse goggles gesture.
+
+<figure class="half">
+
+![David Bowie in a striped jacket and patterned tie, grinning, with his hands turned upside down over his face: forefingers and thumbs curled into rings around his eyes, the rest of his fingers resting on his cheeks.](../../assets/lifelogging/david-bowie-1972-mick-rock.jpg)
+
+<figcaption>© 1972 Mick Rock.</figcaption>
+</figure>
+
+
+
+Do you know of even quirkier use cases of AI? Please email me! I started doing machine learning 12 years ago and feel like I'm barely scratching the surface - I'm excited to see what use cases generation alpha cooks up.
 
 
 ## Acknowledgments
 
-Thank you to Toby for helping connect this practice to [lifelogging](https://en.wikipedia.org/wiki/Lifelog); to David, Sophie, Elana for thought partnership; to Frankie for calling this "Claudio journaling", and to additional friends who tolerated my sending of AI slop and cursed visualizations over the course of these experiments. 
+Thank you to Toby for referencing this practice as [lifelogging](https://en.wikipedia.org/wiki/Lifelog); to David, Sophie, Elana for thought partnership; to Frankie for calling this "Claudio journaling", and to additional friends who tolerated my sending of AI slop and cursed visualizations over the course of these experiments. 
 
 # References
 > [!cite]+

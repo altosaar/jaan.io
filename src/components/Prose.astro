@@ -582,6 +582,14 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     margin-inline: auto;
   }
 
+  /* A figure marked class="half" in the Markdown: half the measure, centred,
+     for a picture that would tower over the text at full width (a portrait
+     photograph, say). The caption keeps to the same width as the image. */
+  .prose :global(figure.half) {
+    width: 50%;
+    margin-inline: auto;
+  }
+
   /* ── Legacy figures drawn for a white page ────────────────────────────────
      The six diagrams in these posts date from 2016–2021, when jaan.io had a
      light background, and every one of them is pure black line art with no

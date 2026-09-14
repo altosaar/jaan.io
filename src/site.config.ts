@@ -53,7 +53,10 @@ export const SITE = {
   //     is the only place that decides between Lora and Source Serif 4
   //   • Inter — now BOTH the display face (--font-display: the hero and every
   //     heading) and the chrome face (--font-chrome: nav, mobile menu, footer),
-  //     so one file covers two roles and the list is two entries, not three
+  //     so one file covers two roles
+  //   • Hack's regular face (--font-mono: code, and the framed chart pages,
+  //     which ask for the same URL) — 23 KB, the Latin subset; its bold and
+  //     italic are left to load when something asks for them
   // Deliberately absent: the three other files of whichever body face is live,
   // which only italics and accented characters ask for; every file of the face
   // that is NOT live, which nothing asks for at all; BOTH HankenGrotesk files,
@@ -67,8 +70,12 @@ export const SITE = {
   // BODY FACE SWAP — the first entry follows --font-body (src/styles/tokens.css).
   // Move the comment in both places together, then run `npm run fonts:check`.
   // See the block of the same name in src/styles/fonts.css.
-  // fonts: ["/fonts/Lora-latin.woff2", "/fonts/Inter.woff2"],
-  fonts: ["/fonts/SourceSerif4-latin.woff2", "/fonts/Inter.woff2"],
+  // fonts: ["/fonts/Lora-latin.woff2", "/fonts/Inter.woff2", "/fonts/hack-regular-subset.woff2"],
+  fonts: [
+    "/fonts/SourceSerif4-latin.woff2",
+    "/fonts/Inter.woff2",
+    "/fonts/hack-regular-subset.woff2",
+  ],
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   // One source of truth. The header, the mobile menu, and the footer all read

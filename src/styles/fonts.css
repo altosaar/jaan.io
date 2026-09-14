@@ -216,6 +216,48 @@
   font-display: optional;
 }
 
+/* ── Hack — the MONOSPACE face (--font-mono) ────────────────────────────────
+   Source Foundry's own web build (npm `hack-font` 3.3.0, build/web/), as its
+   README's "web font usage" lays it out: the four faces of hack-subset.css,
+   with the file names unchanged so an update is a straight copy. woff2 only;
+   the .woff fallbacks in that stylesheet are for browsers this site does not
+   support. The subset is Latin, ~23 KB a face against ~108 KB for the full
+   set; anything outside it falls through to ui-monospace.
+
+   Not variable, unlike every other face here: four static files, one per
+   weight and style. Only the regular one is preloaded (SITE.fonts).
+
+   The licence travels with the files, as its MIT and Bitstream Vera terms
+   require: public/fonts/Hack-LICENSE.md. */
+@font-face {
+  font-family: "Hack";
+  src: url("/fonts/hack-regular-subset.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: optional;
+}
+@font-face {
+  font-family: "Hack";
+  src: url("/fonts/hack-bold-subset.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: optional;
+}
+@font-face {
+  font-family: "Hack";
+  src: url("/fonts/hack-italic-subset.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: optional;
+}
+@font-face {
+  font-family: "Hack";
+  src: url("/fonts/hack-bolditalic-subset.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: optional;
+}
+
 /* ── Fraunces — kept, currently unused ──────────────────────────────────────
    The display face until the content moved to Hanken Grotesk. An @font-face
    that nothing references costs nothing at runtime: a font file is fetched only
