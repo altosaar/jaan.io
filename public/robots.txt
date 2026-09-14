@@ -1,4 +1,10 @@
 User-agent: *
 Disallow: /zoom
 
+User-agent: ia_archiver
+Disallow: /
+
+User-agent: archive.org_bot
+Disallow: /
+
 Sitemap: https://jaan.io/sitemap-index.xml
