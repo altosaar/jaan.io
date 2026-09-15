@@ -67,6 +67,8 @@ if (import.meta.env.PROD && TESTING_SITE_KEYS.includes(siteKey)) {
 ---
 
 <section class="newsletter" aria-labelledby="newsletter-title">
+  {/* Anything a page wants said above the box, at the box's own width. */}
+  <slot />
   {
     /* THE BOX. Modelled on the Config login card: a dark plate on the black
        page, with the form field sitting on it as a LIGHTER filled box — two
