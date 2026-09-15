@@ -22,6 +22,9 @@ description: "One of my best friends went down a dark rabbit hole and never came
 #     each checked to answer there. ajbc.io does not, so it stays http://.
 thumb: ../../assets/thumbs/dont-become-data-for-ai-icon.svg
 date: 2021-01-25
+# The day it went up here — it is dated 2021 and would otherwise never reach a
+# feed subscriber. Feed-only; see `posted` in src/content.config.ts.
+posted: 2026-09-14
 updated: 2026-09-14T00:00:00Z
 ---
 

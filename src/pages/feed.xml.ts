@@ -23,14 +23,46 @@
 // gave a trailing slash. That is not an identifier, it is where the reader
 // sends you, and it should be this site's canonical slash-less form rather than
 // a URL that 301s.
+//
+// Two additions since, both for new posts reaching existing subscribers:
+//
+//   • <published> is `posted` when a post has one, not always `date` — see the
+//     note on `posted` in src/content.config.ts for why a backdated post is
+//     otherwise dropped by Feedly.
+//   • <link rel="hub"> names a WebSub hub, and CI pings it after every deploy
+//     (.github/workflows/ci.yml), so a reader subscribed through the hub
+//     fetches the feed within minutes rather than on its own schedule. The hub
+//     URL is spelled in both places; change them together.
+//
+// Every other address a reader might guess (/rss.xml, /feed, …) 301s here —
+// public/_redirects.
 import type { APIContext } from "astro";
-import { getCollection } from "astro:content";
+import { getCollection, type CollectionEntry } from "astro:content";
 import { SITE } from "../site.config";
 import { absolutize, cdata, katexToTex, youtubeFacadeToImage } from "../lib/feed-html";
 
 // What the Jekyll feed carried, and what a reader will show without scrolling
-// forever. The site has nine posts, so this is headroom rather than a limit.
+// forever. The site has twelve posts, so this is headroom rather than a limit.
 const MAX_ENTRIES = 20;
+
+const WEBSUB_HUB = "https://pubsubhubbub.appspot.com/";
+
+type Post = CollectionEntry<"posts">;
+
+// When the post reached this feed: the day it went up here for a backdated
+// post, its own date otherwise.
+const published = (post: Post) => post.data.posted ?? post.data.date;
+
+// `updated` when the post has one, the publication date otherwise, and never
+// earlier than <published> — a post revised before it was posted here was new
+// to the feed on the day it arrived. This is the field a reader uses to decide
+// whether to resurface something already seen, which is the whole reason
+// `updated` is set by hand rather than from git — see the note on it in
+// src/content.config.ts.
+const lastChanged = (post: Post) => {
+  const { updated } = post.data;
+  return updated && updated > published(post) ? updated : published(post);
+};
 
 export async function GET(context: APIContext) {
   // `context.site` is `site` from astro.config.mjs. Everything in a feed has to
@@ -41,16 +73,11 @@ export async function GET(context: APIContext) {
   const origin = context.site.origin;
 
   const posts = (await getCollection("posts"))
-    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+    .sort((a, b) => published(b).getTime() - published(a).getTime())
     .slice(0, MAX_ENTRIES);
 
   const entries = posts.map((post) => {
     const url = `${origin}/${post.id}`;
-    // `updated` when the post has one, the publication date otherwise. This is
-    // the field a reader uses to decide whether to resurface something already
-    // seen, which is the whole reason `updated` is set by hand rather than from
-    // git — see the note on it in src/content.config.ts.
-    const updated = post.data.updated ?? post.data.date;
     // rendered.html is the same HTML the page ships, so the feed cannot drift
     // from the post. It is then put back into a shape a reader can use: math
     // returned to its LaTeX source, video facades flattened to their poster
@@ -62,8 +89,8 @@ export async function GET(context: APIContext) {
   <title type="html">${cdata(post.data.title)}</title>
   <link rel="alternate" type="text/html" href="${url}" />
   <id>${url}</id>
-  <published>${post.data.date.toISOString()}</published>
-  <updated>${updated.toISOString()}</updated>
+  <published>${published(post).toISOString()}</published>
+  <updated>${lastChanged(post).toISOString()}</updated>
   <summary type="html">${cdata(post.data.description)}</summary>
   <content type="html">${cdata(html)}</content>
 </entry>`;
@@ -73,7 +100,7 @@ export async function GET(context: APIContext) {
   // Jekyll feed used `site.time`, which changed on every rebuild and told every
   // reader the feed had changed when nothing in it had.
   const latest = posts.reduce((newest, post) => {
-    const stamp = post.data.updated ?? post.data.date;
+    const stamp = lastChanged(post);
     return stamp > newest ? stamp : newest;
   }, new Date(0));
 
@@ -82,6 +109,7 @@ export async function GET(context: APIContext) {
 <title type="text">${cdata(SITE.name)}</title>
 <subtitle type="text">${cdata(SITE.description)}</subtitle>
 <link rel="self" type="application/atom+xml" href="${origin}/feed.xml" />
+<link rel="hub" href="${WEBSUB_HUB}" />
 <link rel="alternate" type="text/html" href="${origin}" />
 <updated>${latest.toISOString()}</updated>
 <id>${origin}/</id>

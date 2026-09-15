@@ -50,7 +50,7 @@ npm run a11y             # contrast-check.mjs against tokens.css
 npm run audit            # seo-audit.mjs over dist/ — titles, descriptions, canonicals, og
 npm run limits           # check-pages-limits.mjs over dist/ — Pages' size caps
 npm run test:newsletter  # posts to a running `npm run pages:dev`
-npm run test:redirects   # 50 legacy-URL cases; needs pages:dev, or pass a live origin
+npm run test:redirects   # 60 legacy-URL cases; needs pages:dev, or pass a live origin
 ```
 
 `.githooks/pre-push` runs format, check, a11y, build and audit before every
@@ -91,7 +91,7 @@ npm run test:redirects -- https://jaan.io   # or any deployed origin
 ## URLs, redirects and the feed
 
 Everything legacy lives in `public/_redirects`, and `scripts/redirect-check.mjs`
-covers it in 50 cases.
+covers it in 60 cases.
 
 - **Order matters.** Pages takes the first matching rule, so anything specific
   belongs above the `/*/ → /:splat` catch-all at the bottom of the file.
@@ -112,6 +112,18 @@ covers it in 50 cases.
   decade of posts to every subscriber's reader. Math is converted back from
   KaTeX to `$…$` source in the feed on purpose — shipping KaTeX markup turns the
   physics post into several hundred equations of gibberish in a reader.
+- **`/feed.xml` is the only feed.** `/rss.xml`, `/atom.xml`, `/index.xml`,
+  `/feed` and `/rss` each 301 to it, so any address someone guesses into a
+  reader lands on it.
+- **A backdated post needs `posted:` in its frontmatter.** Feedly takes in a new
+  entry only if it is dated after the newest one it already holds, so a post
+  whose `date` is older than the newest post in the feed never reaches a
+  subscriber. `posted` is the day it went up here; it becomes `<published>` in
+  the feed and nothing on the page shows it. See `src/content.config.ts`.
+- **Every deploy pings a WebSub hub** (`pubsubhubbub.appspot.com`, named in the
+  feed's `<link rel="hub">`), so Feedly fetches the feed within minutes of a
+  deploy. The step is `continue-on-error`; a hub outage only means readers fall
+  back to polling.
 
 **GA4 loads only on the hostnames in `SITE.analytics.hosts`, currently just
 `jaan.io`.** On localhost, on `npm run preview`, and on every `*.pages.dev`

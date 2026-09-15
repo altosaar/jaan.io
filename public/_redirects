@@ -120,6 +120,27 @@
 # things to keep in step, and a 301 is a thing crawlers follow and remember.
 /sitemap.xml /sitemap-index.xml 301
 
+# ── Other feed addresses → /feed.xml ────────────────────────────────────────
+# /feed.xml is the site's one feed (src/pages/feed.xml.ts) and it stays there:
+# it is the path the Jekyll site served from 2013, the one existing Feedly
+# followers are subscribed to, and what every page's autodiscovery link names.
+# These are the addresses people guess instead — Astro's (/rss.xml), Hugo's
+# (/index.xml), WordPress's (/feed) — each sent there in one hop.
+#
+# 301, because the answer is permanent, and a reader that meets a permanent
+# redirect on a feed updates its stored URL — so a subscription made at a guess
+# lands on the real feed rather than on an alias of it.
+/rss.xml/ /feed.xml 301
+/rss.xml /feed.xml 301
+/atom.xml/ /feed.xml 301
+/atom.xml /feed.xml 301
+/index.xml/ /feed.xml 301
+/index.xml /feed.xml 301
+/feed/ /feed.xml 301
+/feed /feed.xml 301
+/rss/ /feed.xml 301
+/rss /feed.xml 301
+
 # ── Vanity shortcuts to other people's services ─────────────────────────────
 # Typed and spoken more than they are linked — the whole point of them is that
 # they are short enough to say out loud. None of them is content this site

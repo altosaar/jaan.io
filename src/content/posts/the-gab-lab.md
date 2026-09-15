@@ -78,6 +78,10 @@ description: "How to use active listening and stories to facilitate communicatio
 thumb: ../../assets/thumbs/fork-in-the-road.svg
 # The doc's own stated release date, not the day it was ported.
 date: 2023-08-01
+# The day it went up here at its current URL, the rename — dated 2023, it would
+# otherwise never reach a feed subscriber. Feed-only; see `posted` in
+# src/content.config.ts.
+posted: 2026-09-04
 # CARRIES A TIME, and that is the point. This is the field that becomes
 # <updated> in the Atom feed, and it is the only signal a subscriber's reader
 # has that a piece it already holds has changed. A bare `2026-08-31` is midnight

@@ -62,6 +62,21 @@ const posts = defineCollection({
         // becomes <updated> in the Atom feed (src/pages/feed.xml.ts), which is
         // what tells a feed reader to resurface the piece.
         updated: z.coerce.date().optional(),
+        // The day the post went up on THIS site, for a post whose `date` is
+        // older than that — one ported from elsewhere, or written long ago and
+        // published late. Optional, and needed only then.
+        //
+        // FEED-ONLY. It becomes the entry's <published> in the Atom feed and
+        // orders the feed (src/pages/feed.xml.ts); the page ignores it and keeps
+        // printing the year from `date`.
+        //
+        // Without it a backdated post never reaches a subscriber. Feedly, where
+        // this feed's followers are, takes in a new entry only if it is dated
+        // after the newest one it already holds: The Gab Lab (dated 2023) and the
+        // radicalization post (2021) sat in the feed for weeks behind a 2024
+        // post, and Feedly stored neither. So whenever a new post's `date` is
+        // older than the newest post already in the feed, set this to today.
+        posted: z.coerce.date().optional(),
         // The little line-art mark beside the post in the /writing list, carried
         // over from the Jekyll site's `image.thumb`. Optional: a post without one
         // simply lists without a mark (see writing.astro), which is better than
@@ -107,6 +122,11 @@ const posts = defineCollection({
       .refine((post) => !post.ogImage || post.ogImageAlt, {
         message: "a post with `ogImage` must also set `ogImageAlt` — it becomes og:image:alt",
         path: ["ogImageAlt"],
+      })
+      // A post cannot reach this site before it was written.
+      .refine((post) => !post.posted || post.posted >= post.date, {
+        message: "`posted` is the day the post went up here, so it cannot be before `date`",
+        path: ["posted"],
       }),
 });
 

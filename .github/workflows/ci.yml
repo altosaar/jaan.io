@@ -107,6 +107,28 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npm run deploy
 
+      # WebSub: tell the hub named in the feed's <link rel="hub"> that /feed.xml
+      # has changed, so a reader subscribed through it (Feedly is) fetches the
+      # feed within minutes instead of on its own schedule — for a feed this
+      # quiet, that can be days. The hub URL is also in src/pages/feed.xml.ts;
+      # change them together.
+      #
+      # It waits for the live feed to match the one just built, because a hub
+      # that fetches before the deploy is visible sees the OLD feed and reports
+      # nothing new. continue-on-error, because a hub outage must not mark a good
+      # deploy failed and open the "did not go live" issue below — readers just
+      # fall back to polling.
+      - name: Ping the feed's WebSub hub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          for _ in $(seq 1 18); do
+            curl -fsS -H 'Cache-Control: no-cache' "$SITE/feed.xml" | cmp -s - dist/feed.xml && break
+            sleep 10
+          done
+          curl -fsS -X POST https://pubsubhubbub.appspot.com/ \
+            -d hub.mode=publish --data-urlencode "hub.url=$SITE/feed.xml"
+
       # Tell a human. Push only: pull_request runs from a fork (or from Dependabot)
       # get a read-only token, so trying this there would fail the job a second
       # time for an unrelated reason.

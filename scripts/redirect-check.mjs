@@ -171,6 +171,11 @@ const CASES = [
 
   // The feed, at the path a decade of subscribers' readers are polling.
   { from: "/feed.xml", to: null },
+  // …and every other address a reader might be pointed at, one hop onto it.
+  ...["/rss.xml", "/atom.xml", "/index.xml", "/feed", "/rss"].flatMap((path) => [
+    { from: `${path}/`, to: "/feed.xml" },
+    { from: path, to: "/feed.xml" },
+  ]),
 
   // Hotlinked documents. Not redirects — these must be served, at these exact
   // names, because other people's pages and CVs point straight at them.
