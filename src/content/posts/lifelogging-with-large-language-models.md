@@ -14,6 +14,16 @@ AI has...
 > [!cite]
 > Zak, P. J. (2015). [Why inspiring stories make us react: The neuroscience of narrative](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4445577/). In *Cerebrum: the Dana forum on brain science*.
 
+# What a hunk is
+
+Everything below is built out of one unit, so it is worth a minute on its own. `journal.md` is a single note of about 2,500 words. Microlite takes a snapshot of every note on a timer, and a **hunk** is the difference between two consecutive snapshots: a run of lines that changed, with a few unchanged lines either side for context. A week of journalling is a handful of hunks; a note nobody opened that week has none.
+
+Edit the note below and watch what comes out of it. The last square is the hunk being written — dark until the note differs from the snapshot under it, then coloured by what the edit has done so far. Take a snapshot to close that hunk and open the next one, and the square freezes at whatever it had become. Keep going and you get a row of them, which is the whole of the chart further down: click any square to read the hunk it stands for.
+
+<figure>
+<iframe class="wide" title="An editable 2,500-word note beside the hunk that editing it produces, with one square per snapshot taken, coloured by whether that edit added lines, removed them, or both" src="/files/lifelogging/what-is-a-hunk.html" height="680" loading="lazy"></iframe>
+</figure>
+
 # Snapshots of note edits
 Snapshots taken roughly a week apart of Hamlet's journal; Claude generated journals from Hamlet's perspective, roughly corresponding to acts I through IV of the play, as if it had taken place in present day.
 
