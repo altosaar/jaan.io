@@ -120,6 +120,27 @@
 # things to keep in step, and a 301 is a thing crawlers follow and remember.
 /sitemap.xml /sitemap-index.xml 301
 
+# ── Other feed addresses → /feed.xml ────────────────────────────────────────
+# /feed.xml is the site's one feed (src/pages/feed.xml.ts) and it stays there:
+# it is the path the Jekyll site served from 2013, the one existing Feedly
+# followers are subscribed to, and what every page's autodiscovery link names.
+# These are the addresses people guess instead — Astro's (/rss.xml), Hugo's
+# (/index.xml), WordPress's (/feed) — each sent there in one hop.
+#
+# 301, because the answer is permanent, and a reader that meets a permanent
+# redirect on a feed updates its stored URL — so a subscription made at a guess
+# lands on the real feed rather than on an alias of it.
+/rss.xml/ /feed.xml 301
+/rss.xml /feed.xml 301
+/atom.xml/ /feed.xml 301
+/atom.xml /feed.xml 301
+/index.xml/ /feed.xml 301
+/index.xml /feed.xml 301
+/feed/ /feed.xml 301
+/feed /feed.xml 301
+/rss/ /feed.xml 301
+/rss /feed.xml 301
+
 # ── Vanity shortcuts to other people's services ─────────────────────────────
 # Typed and spoken more than they are linked — the whole point of them is that
 # they are short enough to say out loud. None of them is content this site
@@ -143,21 +164,17 @@
 /guest https://www.dropbox.com/s/0qi1xhd4qr8pt80/thinkspace.md?dl=0 302
 
 # ── Two rules from s3_website.yml that are deliberately NOT here ────────────
-# Both would be redirects onto something that no longer exists, which is worse
-# than a 404: a visitor waits through a hop to arrive nowhere, and a crawler
-# records the destination rather than the dead end.
-#
-# /impact → a Figma community file, GONE. The old README said curl's 403 was
-# probably bot-blocking and to check it in a browser. It is not bot-blocking:
-# with a browser User-Agent that file id returns 404 while figma.com/community
-# itself returns 200, so the file has been taken down or made private. Restore
-# it by pasting this back with a working URL:
+# /impact → a Figma community file, GONE. A redirect onto something that no
+# longer exists is worse than a 404: a visitor waits through a hop to arrive
+# nowhere, and a crawler records the destination rather than the dead end. The
+# old README said curl's 403 was probably bot-blocking and to check it in a
+# browser. It is not bot-blocking: with a browser User-Agent that file id
+# returns 404 while figma.com/community itself returns 200, so the file has been
+# taken down or made private. Restore it by pasting this back with a working URL:
 #     /impact https://www.figma.com/community/file/<id>/<slug> 302
 #
-# /dont-become-data-for-AI → the radicalization post, which is `published:
-# false` in the Jekyll tree and 404s on jaan.io today. The post is staying
-# unpublished, so the redirect goes too, and both forms plus the `/index.html`
-# twin now 404 directly instead of 301ing into one.
+# /dont-become-data-for-AI → the radicalization post, under its old working
+# title. Dropped by choice: the post is reachable only at its own slug.
 
 # ── Trailing slash → no trailing slash ──────────────────────────────────────
 # The site serves /about, not /about/ (astro.config.mjs `trailingSlash: never`

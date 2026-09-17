@@ -149,8 +149,8 @@ const CASES = [
   // The two rules NOT carried over from s3_website.yml, asserted as 404s so
   // that "we decided against this" cannot be mistaken later for "we forgot".
   // /impact's Figma file is gone (404 to a browser UA, while figma.com/community
-  // is 200, so it is not bot-blocking); the radicalization post stays
-  // unpublished, so its redirect would land on a 404 either way.
+  // is 200, so it is not bot-blocking); /dont-become-data-for-AI, the
+  // radicalization post's old short address, was dropped by choice.
   //
   // The slashed forms are absent on purpose: those DO match the catch-all and
   // 301 to the slash-less form, which then 404s. That is a hop into a dead end
@@ -162,8 +162,8 @@ const CASES = [
   // copy describes an availability that no longer holds, and a stale offer is
   // worse than no page. So this is the one URL the port knowingly gives up.
   //
-  // Asserted for the same reason as the two above, and with one extra: this is
-  // the case most likely to be read later as an oversight, because unlike them
+  // Asserted for the same reason as the one above, and with one extra: this is
+  // the case most likely to be read later as an oversight, because unlike it
   // it is a 200 today. If it should instead land somewhere rather than 404 —
   // /about is the obvious candidate — this is the line to change, and _redirects
   // needs `/consulting /about 301` in the section above the catch-all.
@@ -171,6 +171,11 @@ const CASES = [
 
   // The feed, at the path a decade of subscribers' readers are polling.
   { from: "/feed.xml", to: null },
+  // …and every other address a reader might be pointed at, one hop onto it.
+  ...["/rss.xml", "/atom.xml", "/index.xml", "/feed", "/rss"].flatMap((path) => [
+    { from: `${path}/`, to: "/feed.xml" },
+    { from: path, to: "/feed.xml" },
+  ]),
 
   // Hotlinked documents. Not redirects — these must be served, at these exact
   // names, because other people's pages and CVs point straight at them.

@@ -159,7 +159,24 @@ if (!fileSet.has("404.html"))
 if (!fileSet.has("robots.txt")) err("(site)", "robots.txt missing.");
 else {
   const r = read("robots.txt");
-  if (/^\s*Disallow:\s*\/\s*$/im.test(r)) err("robots.txt", "Disallow: / blocks the whole site.");
+  // Grouped by user-agent, so a `Disallow: /` aimed at one bot (the Internet
+  // Archive's crawlers, say) is not mistaken for one that blocks everyone.
+  // Consecutive User-agent lines share a group; one after a rule starts a new one.
+  const groups = [];
+  let group = null;
+  for (const line of r.split(/\r?\n/)) {
+    const m = line.replace(/#.*/, "").match(/^\s*([\w-]+)\s*:\s*(.*?)\s*$/);
+    if (!m) continue;
+    const [, key, value] = m;
+    if (/^user-agent$/i.test(key)) {
+      if (!group || group.rules.length) groups.push((group = { agents: [], rules: [] }));
+      group.agents.push(value);
+    } else if (group && /^(dis)?allow$/i.test(key)) {
+      group.rules.push(`${key.toLowerCase()}:${value}`);
+    }
+  }
+  if (groups.some((g) => g.agents.includes("*") && g.rules.includes("disallow:/")))
+    err("robots.txt", "Disallow: / under User-agent: * blocks the whole site.");
   const sm = r.match(/^Sitemap:\s*(\S+)/im);
   if (!sm) warn("robots.txt", "No Sitemap: line.");
   else if (new URL(sm[1]).host !== siteHost)
