@@ -34,8 +34,13 @@ Snapshots taken roughly a week apart of Hamlet's journal; Claude generated journ
 # Patterns across snapshots
 A language model read the fourth week and wrote a letter back. Each arrow is one sentence of that letter, joining the two edits it was written from. Click an arrow.
 
+<!-- `data-src`, not `src`: this chart brings duckdb-wasm and Mosaic with it —
+     7.4 MB over 60 requests to a CDN — and it is a long way down the page.
+     loading="lazy" is not enough on its own to keep that off the initial load;
+     see src/components/DeferredFrames.astro. -->
 <figure>
-<iframe class="wide" title="Waffle chart of the same edits coloured by topic, with arrows for the connections the letter drew between them" src="/files/lifelogging/connections-topics.html" height="1100" loading="lazy"></iframe>
+<iframe class="wide" title="Waffle chart of the same edits coloured by topic, with arrows for the connections the letter drew between them" data-src="/files/lifelogging/connections-topics.html" height="1100"></iframe>
+<noscript><p><a href="/files/lifelogging/connections-topics.html">Open this chart on its own page</a> — the frame above waits for you to scroll to it, which needs JavaScript.</p></noscript>
 </figure>
 
 # Do it yourself

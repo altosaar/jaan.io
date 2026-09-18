@@ -1,0 +1,60 @@
+---
+// Holds a framed chart's `src` back until the reader is nearly at it.
+//
+// WHY, when <iframe loading="lazy"> already exists. It exists and it is on
+// these frames, but its margin is a browser heuristic tuned for images and
+// ads — generous enough that on a 1000px viewport Chrome starts all three of
+// this post's charts during the initial load, which is the opposite of what
+// the attribute is for. Measured on the lifelogging post: 9.24 MB pulled at
+// load, of which 7.37 MB over 60 requests to cdn.jsdelivr.net is duckdb-wasm
+// and Mosaic, asked for by connections-topics.html — the third figure, a long
+// way down a long post, and the only one that needs any of it. The two charts
+// beside it cost 0.11 and 0.21 MB from this origin and are left alone.
+//
+// So the frame is written with `data-src` instead of `src` and gets its real
+// address from an IntersectionObserver here. The margin below is deliberately
+// wide: the point is not to load the chart at the last possible moment but to
+// keep it off the initial load, and 800px is far enough ahead that a reader
+// scrolling down is unlikely to reach a frame before it has started.
+//
+// WITHOUT SCRIPT there is no src and never will be, so the figure carries a
+// plain link to the chart's own page beside it — the same bargain as the video
+// facade next door, where the failure mode is a link rather than a dead
+// rectangle. The frames themselves keep `height`, so the page does not reflow
+// when one arrives.
+//
+// WHY IT IS A COMPONENT AND NOT AN IMPORT IN Base.astro. Same as MermaidRuntime
+// and YouTubeRuntime beside it: a cost that belongs to a kind of content,
+// charged to the routes that carry it. See the `hasDeferredFrame` check in
+// src/pages/[slug].astro.
+---
+
+<script>
+  const frames = document.querySelectorAll<HTMLIFrameElement>("iframe[data-src]");
+
+  const load = (frame: HTMLIFrameElement) => {
+    const src = frame.dataset.src;
+    if (!src) return;
+    frame.removeAttribute("data-src");
+    frame.src = src;
+  };
+
+  if (frames.length === 0) {
+    // nothing to do
+  } else if (!("IntersectionObserver" in window)) {
+    // Older browser: load them the way it would have anyway, rather than not at all.
+    frames.forEach(load);
+  } else {
+    const near = new IntersectionObserver(
+      (entries, self) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          self.unobserve(entry.target);
+          load(entry.target as HTMLIFrameElement);
+        }
+      },
+      { rootMargin: "800px 0px" },
+    );
+    frames.forEach((frame) => near.observe(frame));
+  }
+</script>
