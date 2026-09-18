@@ -1072,10 +1072,7 @@
   </div>
   <div class="foot r-foot">
     <p class="unit">
-      microlite takes a snapshot of every note on a timer, and a <b>hunk</b> is the difference
-      between two consecutive snapshots. Take one to close the hunk in progress and open the
-      next: the squares are the hunks, in the order they were made, and every square in the two
-      charts below is one of these.
+    ⯅ A <b>hunk</b> is an edit made to a note, and its surrounding lines of context.
     </p>
   </div>
 
@@ -1209,6 +1206,7 @@ function kindOf(list) {
 // that microlite-waffle.html builds its hunk box out of.
 function paint(list) {
   outEl.textContent = "";
+  outEl.style.paddingTop = outEl.style.paddingBottom = "0px";
   for (const h of list) {
     const rows = [h.head, ...h.lines];
     rows.forEach((line, i) => {
@@ -1231,6 +1229,7 @@ function paint(list) {
 
 function empty(msg) {
   outEl.textContent = "";
+  outEl.style.paddingTop = outEl.style.paddingBottom = "0px";
   const p = document.createElement("div");
   p.className = "empty";
   p.textContent = msg;
@@ -1285,10 +1284,16 @@ function caretY() {
 // that line, else a deletion at it (the caret's line only took things out), else the unchanged
 // row at it, else — the caret is inside a run that was deleted and has no line in the new note at
 // all, or it is parked far from anything that changed — the nearest changed row.
-function follow(caretLine) {
+function follow() {
   const rows = [...outEl.querySelectorAll("span[data-op]")];
   if (!rows.length) return;
+  const before = box.value.slice(0, box.selectionStart);
+  const caretLine = before.split("\n").length;
+  const col = before.length - (before.lastIndexOf("\n") + 1);
   const at = (op) => rows.find(r => Number(r.dataset.b) === caretLine && r.dataset.op === op);
+  // The row whose text is the caret's line as it now reads. A deletion at that line is not it:
+  // it is what used to be there, so it is worth landing on but not worth measuring a column in.
+  const own = at("+") || at(" ");
   let best = at("+") || at("-") || at(" ");
   if (!best) {
     let gap = Infinity;
@@ -1299,18 +1304,54 @@ function follow(caretLine) {
     }
   }
   if (!best) return;
-  // Measured off the live rects rather than `offsetTop`, which is relative to whichever ancestor
-  // happens to be positioned. Clamped at both ends: near the top or bottom of a diff there is no
-  // scroll left to give, and the row then sits as close to level as the box allows.
   // A caret scrolled out of the note's own view — the reader moved it without typing, or wheeled
   // the note away from it — has no place in the box to line up with. Held at the near edge, so
   // the row lands at the top or the bottom instead of being sent past either.
   const y = Math.max(0, Math.min(caretY(), box.getBoundingClientRect().height));
+  // Measured from a known origin — no padding, scrolled to the top — rather than from wherever
+  // the box happens to be sitting, so the sum below is a plain distance into the diff. Off the
+  // live rects rather than `offsetTop`, which is relative to whichever ancestor is positioned.
+  outEl.style.paddingTop = outEl.style.paddingBottom = "0px";
+  scrollEl.scrollTop = 0;
   // Both offsets are taken from a border-box top, and the two boxes have the same border and
   // padding, so putting the row y from the hunk's edge puts it on the caret's line.
-  const row = best.getBoundingClientRect();
-  const want = scrollEl.scrollTop + (row.top - hunkEl.getBoundingClientRect().top) - y;
-  scrollEl.scrollTop = Math.max(0, Math.min(want, scrollEl.scrollHeight - scrollEl.clientHeight));
+  const want = rowTop(best, best === own ? col : null)
+             - hunkEl.getBoundingClientRect().top - y;
+  // A change near either end of a short diff asks for a scroll the content cannot give: the row
+  // would come to rest a few lines off the caret, which is the one place the eye is not. So the
+  // diff is given the room it is short of, and no more — an edit in the middle of a long one
+  // needs none, and the box stays a plain box.
+  //
+  // How much room there already is. Not `scrollHeight`, which is floored at the box's own height:
+  // a diff shorter than the box reports none at all and would be left short of what it asked for.
+  // The content's own height says it plainly, and understating it — on a browser that counts the
+  // box's bottom padding in as well — only pads a little more than is needed.
+  const over = parseFloat(getComputedStyle(scrollEl).paddingTop)
+             + outEl.getBoundingClientRect().height - scrollEl.clientHeight;
+  // Room added above moves the row down with it, so the scroll takes the same amount back.
+  const above = Math.max(0, -want), below = Math.max(0, want - over);
+  outEl.style.paddingTop = above + "px";
+  outEl.style.paddingBottom = below + "px";
+  scrollEl.scrollTop = want + above;
+}
+
+// The top of the wrapped row that column `col` of `span` falls on. The note and the hunk box are
+// different widths, so one paragraph wraps into a different number of rows in each and the row
+// the caret is on is not the paragraph's first: a caret four rows into a paragraph belongs level
+// with the fourth row here, not with its top. A collapsed range at the same column finds it,
+// offset by one for the +, - or space the diff puts in front of every line. `col` is null when
+// the span is not the caret's line, and some positions a range cannot place, in which case the
+// line as a whole is the best that can be said.
+function rowTop(span, col) {
+  const whole = span.getBoundingClientRect().top;
+  const node = span.firstChild;
+  if (col === null || !node) return whole;
+  const r = document.createRange();
+  const i = Math.min(col + 1, node.length);
+  r.setStart(node, i);
+  r.setEnd(node, i);
+  const rect = r.getBoundingClientRect();
+  return rect.height ? rect.top : whole;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1395,11 +1436,11 @@ function render() {
   if (shown) paint(shown.list);
   else if (done.length) empty("The note matches the last snapshot. Edit it to start the next hunk.");
   else if (touched) empty("The note matches the snapshot — no hunk.");
-  else empty("Edit the note, and the hunk it makes appears here.");
+  else empty("Edit the note, and the resulting hunks appear here.");
 
   // Following the caret only makes sense for the hunk being written; a closed one is not moving,
   // so it opens at the top.
-  if (shown && picked === null) follow(box.value.slice(0, box.selectionStart).split("\n").length);
+  if (shown && picked === null) follow();
   else scrollEl.scrollTop = 0;
 
   snapBtn.disabled = !pend;
@@ -1414,18 +1455,37 @@ function render() {
   hint.classList.toggle("touched", touched);
 }
 
-// Debounced: a hunk is a thing you arrive at, not a thing that flickers under every keystroke,
-// and it also keeps the diff off the typing path. Typing moves the box back to the hunk in
-// progress, since that is the one changing under the reader's hands.
-let pending;
-box.addEventListener("input", () => {
-  touched = true;
-  picked = null;
-  clearTimeout(pending);
-  pending = setTimeout(render, 300);
-});
-snapBtn.addEventListener("click", () => { clearTimeout(pending); snapshot(); });
-resetBtn.addEventListener("click", () => { clearTimeout(pending); start(); box.focus(); });
+// One update per frame rather than one per keystroke: a burst of keys inside a frame draws once,
+// and the work still waits until the browser has finished with the key. On this note a render is
+// a couple of milliseconds, so the hunk keeps up with the caret rather than arriving after it.
+//
+// It is the reader's note, though, and they can paste whatever they like into it. A render that
+// costs more than a frame would hold up the next keystroke, so past that the updates are spaced
+// out instead — typing stays smooth and the hunk lands a moment later, which is the right way
+// round. The last render's cost decides, so it corrects itself in either direction.
+// Typing also moves the box back to the hunk in progress, since that is the one changing under
+// the reader's hands.
+let frame = 0, timer = 0, cost = 0;
+function soon() {
+  if (frame || timer) return;
+  if (cost > 16) timer = setTimeout(() => { timer = 0; draw(); }, Math.min(300, cost * 4));
+  else frame = requestAnimationFrame(() => { frame = 0; draw(); });
+}
+function draw() {
+  const t = performance.now();
+  render();
+  cost = performance.now() - t;
+}
+// Before a button acts on the note, so it acts on the note as it stands and not as it was.
+function settle() {
+  cancelAnimationFrame(frame);
+  clearTimeout(timer);
+  frame = timer = 0;
+}
+
+box.addEventListener("input", () => { touched = true; picked = null; soon(); });
+snapBtn.addEventListener("click", () => { settle(); snapshot(); });
+resetBtn.addEventListener("click", () => { settle(); start(); box.focus(); });
 start();
 </script>
 </body>
