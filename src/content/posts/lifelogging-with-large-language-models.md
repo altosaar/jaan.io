@@ -14,7 +14,7 @@ AI has...
 > [!cite]
 > Zak, P. J. (2015). [Why inspiring stories make us react: The neuroscience of narrative](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4445577/). In *Cerebrum: the Dana forum on brain science*.
 
-# What a hunk is
+# Hunks track changes
 
 Everything below is built out of one unit, so it is worth a minute on its own. `journal.md` is a single note of about 2,500 words. Microlite takes a snapshot of every note on a timer, and a **hunk** is the difference between two consecutive snapshots: a run of lines that changed, with a few unchanged lines either side for context. A week of journalling is a handful of hunks; a note nobody opened that week has none.
 
