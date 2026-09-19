@@ -1,0 +1,575 @@
+<!doctype html>
+<!--
+  The page scripts/audio-annotate.mjs serves. Local authoring tool only — never
+  part of the site build. wavesurfer.js and its plugins are served by that
+  script straight out of node_modules, at /vendor/.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Audio annotate</title>
+    <style>
+      :root {
+        --bg: #111;
+        --panel: #1b1b1b;
+        --line: #2c2c2c;
+        --text: #e2e2e2;
+        --muted: #9a9a96;
+        --accent: #24cb71;
+        --warn: #f0b429;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.45 Inter,
+          system-ui,
+          sans-serif;
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        height: 100vh;
+      }
+      aside {
+        border-right: 1px solid var(--line);
+        overflow-y: auto;
+        padding: 12px 0;
+      }
+      h2 {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0 0 8px;
+      }
+      aside h2 {
+        margin: 0 16px 8px;
+      }
+      .item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: 0;
+        color: var(--text);
+        font: inherit;
+        padding: 6px 16px;
+        cursor: pointer;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .item small {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .item:hover {
+        background: var(--panel);
+      }
+      .item[aria-current="true"] {
+        background: var(--panel);
+        box-shadow: inset 3px 0 0 var(--accent);
+      }
+      main {
+        overflow-y: auto;
+        padding: 20px 28px 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+      }
+      header h1 {
+        font-size: 18px;
+        margin: 0;
+        overflow-wrap: anywhere;
+      }
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        white-space: nowrap;
+      }
+      #status {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      #status.dirty {
+        color: var(--warn);
+      }
+      button.primary {
+        background: var(--accent);
+        color: #000;
+        border: 0;
+        font: inherit;
+        font-weight: 600;
+        padding: 7px 14px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button.primary:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      #wave {
+        background: var(--panel);
+        border-radius: 4px;
+        min-height: 200px;
+      }
+      #wave:empty::before {
+        content: "Pick a waveform on the left.";
+        display: block;
+        padding: 88px 0;
+        text-align: center;
+        color: var(--muted);
+      }
+      .readout {
+        display: flex;
+        gap: 28px;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .readout b {
+        color: var(--text);
+        font-weight: 500;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--muted);
+        padding: 0 8px 6px;
+      }
+      td {
+        padding: 4px 8px;
+        border-top: 1px solid var(--line);
+        vertical-align: middle;
+      }
+      td.num {
+        color: var(--muted);
+        width: 28px;
+        font-variant-numeric: tabular-nums;
+      }
+      td.time {
+        width: 72px;
+      }
+      td.time button {
+        background: none;
+        border: 0;
+        color: var(--accent);
+        font: inherit;
+        font-variant-numeric: tabular-nums;
+        cursor: pointer;
+        padding: 0;
+      }
+      td.default,
+      td.remove {
+        width: 64px;
+        text-align: center;
+      }
+      td input[type="text"] {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        color: var(--text);
+        font: inherit;
+        padding: 6px 8px;
+        border-radius: 3px;
+      }
+      td input[type="text"]:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: -1px;
+      }
+      td.remove button {
+        background: none;
+        border: 0;
+        color: var(--muted);
+        font-size: 16px;
+        cursor: pointer;
+      }
+      td.remove button:hover {
+        color: var(--text);
+      }
+      tr.active td {
+        background: var(--panel);
+      }
+      #empty {
+        color: var(--muted);
+        margin: 0;
+      }
+      .keys {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 4px 20px;
+        color: var(--muted);
+        font-size: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      kbd {
+        display: inline-block;
+        min-width: 22px;
+        text-align: center;
+        font:
+          11px/1.6 ui-monospace,
+          Menlo,
+          monospace;
+        color: var(--text);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 0 5px;
+        margin-right: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <aside>
+      <h2>Waveforms</h2>
+      <div id="items"></div>
+    </aside>
+    <main>
+      <header>
+        <h1 id="title">Audio annotate</h1>
+        <div class="actions">
+          <span id="status"></span>
+          <button class="primary" id="save" type="button" disabled>Save ⌘S</button>
+        </div>
+      </header>
+
+      <div id="wave"></div>
+
+      <div class="readout">
+        <div>Cursor <b id="cursor">–</b></div>
+        <div id="mode"></div>
+      </div>
+
+      <section>
+        <h2>Markers</h2>
+        <p id="empty">None yet — double-click the waveform to add one.</p>
+        <table id="table" hidden>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Time</th>
+              <th>Note</th>
+              <th style="text-align: center">Shown first</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Keys</h2>
+        <ul class="keys">
+          <li><kbd>double-click</kbd>add a marker there</li>
+          <li><kbd>M</kbd>add a marker at the cursor</li>
+          <li><kbd>drag</kbd>a marker to move it</li>
+          <li><kbd>space</kbd>play / pause (when the audio is here)</li>
+          <li><kbd>⌫</kbd>delete the active marker</li>
+          <li><kbd>scroll</kbd>zoom · <kbd>0</kbd>fit whole file</li>
+          <li><kbd>⌘S</kbd>save into the peaks file</li>
+          <li><kbd>esc</kbd>leave a note field</li>
+        </ul>
+      </section>
+    </main>
+
+    <script type="module">
+      import WaveSurfer from "/vendor/wavesurfer.esm.js";
+      import RegionsPlugin from "/vendor/plugins/regions.esm.js";
+      import TimelinePlugin from "/vendor/plugins/timeline.esm.js";
+      import ZoomPlugin from "/vendor/plugins/zoom.esm.js";
+      import MinimapPlugin from "/vendor/plugins/minimap.esm.js";
+
+      const $ = (id) => document.getElementById(id);
+      const fmt = (t) => {
+        const m = Math.floor(t / 60);
+        return `${m}:${(t - m * 60).toFixed(1).padStart(4, "0")}`;
+      };
+
+      // ── state ──────────────────────────────────────────────────────────────
+      let items = [];
+      let current = null; // stem
+      let markers = []; // { id, t, text, region }
+      let shownFirst = null; // marker id
+      let active = null; // marker id: highlighted row, target of ⌫
+      let dirty = false;
+      let cursor = 0; // seconds; tracked here too, since a view-only file has no media to ask
+
+      // Both remade per file: a plugin is destroyed along with its waveform.
+      let regions = null;
+      let ws = null;
+
+      // ── markers ────────────────────────────────────────────────────────────
+      const COLOR = "rgba(226, 226, 226, 0.85)";
+      const FIRST = "#24cb71";
+
+      function setDirty(on) {
+        dirty = on;
+        $("status").textContent = on ? "Unsaved changes" : current ? "Saved" : "";
+        $("status").className = on ? "dirty" : "";
+        $("save").disabled = !on;
+      }
+
+      function paint() {
+        markers.sort((a, b) => a.t - b.t);
+        markers.forEach((m, i) => {
+          m.region.setOptions({ content: String(i + 1) });
+          // A marker is drawn as its left border, which setOptions({ color })
+          // leaves alone — it only repaints a region's background.
+          if (m.region.element) {
+            m.region.element.style.borderLeftColor = m.id === shownFirst ? FIRST : COLOR;
+          }
+        });
+      }
+
+      function addMarker(t, text = "", { focus = true } = {}) {
+        const region = regions.addRegion({ start: t, color: COLOR, drag: true, resize: false });
+        const m = { id: region.id, t, text, region };
+        markers.push(m);
+        if (!shownFirst) shownFirst = m.id;
+        region.on("update-end", () => {
+          m.t = region.start;
+          setDirty(true);
+          render();
+        });
+        region.on("click", (e) => {
+          e.stopPropagation();
+          activate(m.id, true);
+        });
+        return m;
+      }
+
+      function removeMarker(id) {
+        const m = markers.find((x) => x.id === id);
+        if (!m) return;
+        m.region.remove();
+        markers = markers.filter((x) => x !== m);
+        if (shownFirst === id) shownFirst = markers[0]?.id ?? null;
+        if (active === id) active = null;
+        setDirty(true);
+        render();
+      }
+
+      function activate(id, focusInput = false) {
+        active = id;
+        for (const tr of $("rows").children) tr.classList.toggle("active", tr.dataset.id === id);
+        if (focusInput) $("rows").querySelector(`tr[data-id="${id}"] input[type="text"]`)?.focus();
+      }
+
+      function render() {
+        paint();
+        $("empty").hidden = markers.length > 0;
+        $("table").hidden = markers.length === 0;
+        $("rows").replaceChildren(
+          ...markers.map((m, i) => {
+            const tr = document.createElement("tr");
+            tr.dataset.id = m.id;
+            tr.classList.toggle("active", m.id === active);
+            tr.innerHTML = `
+              <td class="num">${i + 1}</td>
+              <td class="time"><button type="button" title="Move the cursor here">${fmt(m.t)}</button></td>
+              <td><input type="text" placeholder="What happens here" /></td>
+              <td class="default"><input type="radio" name="first" aria-label="Show this one first" /></td>
+              <td class="remove"><button type="button" aria-label="Delete marker">×</button></td>`;
+            const input = tr.querySelector('input[type="text"]');
+            input.value = m.text;
+            input.oninput = () => {
+              m.text = input.value;
+              setDirty(true);
+            };
+            input.onfocus = () => activate(m.id);
+            const radio = tr.querySelector('input[type="radio"]');
+            radio.checked = m.id === shownFirst;
+            radio.onchange = () => {
+              shownFirst = m.id;
+              setDirty(true);
+              paint();
+            };
+            tr.querySelector(".time button").onclick = () => {
+              seek(m.t);
+              activate(m.id);
+            };
+            tr.querySelector(".remove button").onclick = () => removeMarker(m.id);
+            return tr;
+          }),
+        );
+      }
+
+      function seek(t) {
+        cursor = t;
+        ws.setTime(t);
+        $("cursor").textContent = fmt(t);
+      }
+
+      // ── loading ────────────────────────────────────────────────────────────
+      async function loadList() {
+        const r = await fetch("/api/list").then((r) => r.json());
+        items = r.items;
+        $("items").replaceChildren(
+          ...items.map((it) => {
+            const b = document.createElement("button");
+            b.className = "item";
+            b.dataset.stem = it.stem;
+            b.title = it.stem;
+            const mins = `${Math.floor(it.duration / 60)}:${String(Math.round(it.duration % 60)).padStart(2, "0")}`;
+            b.innerHTML = `${it.stem}<small>${mins} · ${it.markers} marker${it.markers === 1 ? "" : "s"}${it.audio ? "" : " · no audio here"}</small>`;
+            b.onclick = () => open(it.stem);
+            return b;
+          }),
+        );
+        for (const b of $("items").children)
+          b.setAttribute("aria-current", String(b.dataset.stem === current));
+      }
+
+      async function open(stem) {
+        if (dirty && !confirm("Discard unsaved markers?")) return;
+        current = stem;
+        for (const b of $("items").children)
+          b.setAttribute("aria-current", String(b.dataset.stem === stem));
+        $("title").textContent = stem;
+        const item = items.find((i) => i.stem === stem);
+        const data = await fetch(`/peaks/${encodeURIComponent(stem)}`).then((r) => r.json());
+        // Another file was picked while this one was still arriving.
+        if (current !== stem) return;
+
+        ws?.destroy();
+        $("wave").replaceChildren();
+        regions = RegionsPlugin.create();
+        markers = [];
+        shownFirst = null;
+        active = null;
+        cursor = 0;
+
+        ws = WaveSurfer.create({
+          container: "#wave",
+          height: 180,
+          waveColor: "#7b7b7b",
+          progressColor: item.audio ? "#b9b9b9" : "#7b7b7b",
+          cursorColor: "#24cb71",
+          cursorWidth: 2,
+          barWidth: 2,
+          peaks: data.peaks,
+          duration: data.duration,
+          ...(item.audio && { url: `/audio/${encodeURIComponent(stem)}` }),
+          plugins: [
+            regions,
+            TimelinePlugin.create({ style: { color: "#9a9a96", fontSize: "11px" } }),
+            ZoomPlugin.create({ scale: 0.25, maxZoom: 500, exponentialZooming: true }),
+            MinimapPlugin.create({
+              height: 28,
+              waveColor: "#444",
+              progressColor: "#777",
+              insertPosition: "beforebegin",
+            }),
+          ],
+        });
+        $("mode").textContent = item.audio
+          ? "Audio found — space plays"
+          : "View only — no audio found for this one, so markers go where you click";
+
+        ws.on("interaction", (t) => {
+          cursor = t;
+          $("cursor").textContent = fmt(t);
+        });
+        ws.on("timeupdate", (t) => {
+          if (ws.isPlaying()) {
+            cursor = t;
+            $("cursor").textContent = fmt(t);
+          }
+        });
+        ws.on("dblclick", (x) => {
+          const m = addMarker(x * ws.getDuration());
+          setDirty(true);
+          render();
+          activate(m.id, true);
+        });
+        ws.once("ready", () => {
+          for (const saved of data.markers ?? []) addMarker(saved.t, saved.text);
+          shownFirst = markers[data.selected ?? 0]?.id ?? markers[0]?.id ?? null;
+          render();
+          setDirty(false);
+          $("cursor").textContent = fmt(0);
+        });
+      }
+
+      // ── saving ─────────────────────────────────────────────────────────────
+      async function save() {
+        if (!current || !dirty) return;
+        const first = markers.find((m) => m.id === shownFirst);
+        const res = await fetch("/api/save", {
+          method: "POST",
+          body: JSON.stringify({
+            stem: current,
+            markers: markers.map(({ t, text }) => ({ t, text })),
+            selected: first?.t,
+          }),
+        });
+        const body = await res.json();
+        if (!res.ok) {
+          $("status").textContent = body.error;
+          return;
+        }
+        setDirty(false);
+        $("status").textContent =
+          `Saved ${body.markers} marker${body.markers === 1 ? "" : "s"} to ${body.path}`;
+        loadList();
+      }
+      $("save").onclick = save;
+
+      addEventListener("beforeunload", (e) => {
+        if (dirty) e.preventDefault();
+      });
+
+      // ── keys ───────────────────────────────────────────────────────────────
+      document.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+          e.preventDefault();
+          save();
+          return;
+        }
+        const typing = e.target instanceof HTMLInputElement && e.target.type === "text";
+        if (e.key === "Escape" && typing) return e.target.blur();
+        if (typing || e.metaKey || e.ctrlKey || e.altKey || !ws) return;
+
+        const k = e.key.toLowerCase();
+        if (k === " ") {
+          e.preventDefault();
+          if (items.find((i) => i.stem === current)?.audio) ws.playPause();
+        } else if (k === "m") {
+          const m = addMarker(cursor);
+          setDirty(true);
+          render();
+          activate(m.id, true);
+          e.preventDefault();
+        } else if ((k === "backspace" || k === "delete") && active) {
+          e.preventDefault();
+          removeMarker(active);
+        } else if (k === "0") {
+          ws.zoom(0);
+        }
+      });
+
+      await loadList();
+      if (items[0]) open(items[0].stem);
+    </script>
+  </body>
+</html>
