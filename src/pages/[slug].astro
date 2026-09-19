@@ -18,6 +18,7 @@ import Toc from "../components/Toc.astro";
 import MermaidRuntime from "../components/MermaidRuntime.astro";
 import YouTubeRuntime from "../components/YouTubeRuntime.astro";
 import DeferredFrames from "../components/DeferredFrames.astro";
+import AudioTickerRuntime from "../components/AudioTickerRuntime.astro";
 import NewsletterSignup from "../components/NewsletterSignup.astro";
 import { getCollection, render } from "astro:content";
 import { getImage } from "astro:assets";
@@ -59,6 +60,10 @@ const hasYouTube = /<lite-youtube[\s>]/.test(post.body ?? "");
 // `src`. See src/components/DeferredFrames.astro for what that is worth and
 // why <iframe loading="lazy"> is not enough on its own.
 const hasDeferredFrame = /<iframe[^>]*\sdata-src=/.test(post.body ?? "");
+
+// And for an audio clip, which a post writes as a one-line <audio class="snippet">.
+// See src/components/AudioTickerRuntime.astro.
+const hasAudio = /<audio[\s>]/.test(post.body ?? "");
 
 // WHAT A LINK TO THIS POST PREVIEWS AS, in three steps — see src/lib/og.ts.
 //
@@ -180,6 +185,7 @@ if (post.data.ogImage) {
   {hasMermaid && <MermaidRuntime />}
   {hasYouTube && <YouTubeRuntime />}
   {hasDeferredFrame && <DeferredFrames />}
+  {hasAudio && <AudioTickerRuntime />}
 
   {
     /* After the article, never before it — the same reasoning as on /writing:

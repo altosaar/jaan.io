@@ -9,10 +9,19 @@ thumb: ../../assets/thumbs/microlite.svg
 date: 2026-09-12
 ---
 
+<!-- The whole letter for the week of 18 September 2026, shown but not
+     published: no src, so only its waveform is drawn, from peaks made by
+     `npm run audio:peaks -- <the mp3> public/files/lifelogging/lifelog-2026-09-18.peaks.json`. -->
+<audio class="snippet" data-peaks="/files/lifelogging/lifelog-2026-09-18.peaks.json" data-label="The full letter for 18 September 2026"></audio>
+
 AI has...
 
 > [!cite]
 > Zak, P. J. (2015). [Why inspiring stories make us react: The neuroscience of narrative](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4445577/). In *Cerebrum: the Dana forum on brain science*.
+
+<!-- One line per clip; src/components/AudioTickerRuntime.astro builds the
+     player around it. Cut and exported by `npm run audio:trim`. -->
+<audio class="snippet" src="/files/lifelogging/test-a-full-chain-opel-32x-reverb12.mp3" controls preload="none"></audio>
 
 # Hunks track changes
 
@@ -24,7 +33,7 @@ Edit the note below and watch what comes out of it. The last square is the hunk 
 <iframe class="wide" title="An editable 2,500-word note beside the hunk that editing it produces, with one square per snapshot taken, coloured by whether that edit added lines, removed them, or both" src="/files/lifelogging/what-is-a-hunk.html" height="680" loading="lazy"></iframe>
 </figure>
 
-# Snapshots of note edits
+# Weekly snapshots
 Snapshots taken roughly a week apart of Hamlet's journal; Claude generated journals from Hamlet's perspective, roughly corresponding to acts I through IV of the play, as if it had taken place in present day.
 
 <figure>
