@@ -20,6 +20,9 @@
     "fonts:check": "node scripts/fonts-check.mjs",
     "gen:favicons": "node scripts/gen-favicons.mjs",
     "og": "node scripts/gen-og-cards.mjs",
+    "audio:peaks": "node scripts/audio-peaks.mjs",
+    "audio:trim": "node scripts/audio-trim.mjs",
+    "audio:annotate": "node scripts/audio-annotate.mjs",
     "deploy": "wrangler pages deploy dist --project-name=jaan-io --branch=main",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -37,7 +40,8 @@
     "mermaid": "^11.17.2",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "wavesurfer.js": "^7.12.12"
   },
   "overrides": {
     "esbuild": "^0.28.1",

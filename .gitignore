@@ -37,3 +37,11 @@ dump*.sql
 
 # macOS
 .DS_Store
+
+# Petrograph's private recordings, by the names it gives them: the whole weekly
+# letter (lifelog-YYYY-MM-DD.mp3) and its narration and stem. A post may show
+# one's waveform (its .peaks.json) but never the audio. Clips cut from a letter
+# with `npm run audio:trim` are named by hand, so they are not caught here.
+lifelog-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].mp3
+lifelog-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-voice.*
+lifelog-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-stem.*

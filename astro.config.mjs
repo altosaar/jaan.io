@@ -6,13 +6,19 @@ import rehypeKatex from "rehype-katex";
 import rehypeMermaid from "./src/lib/rehype-mermaid.mjs";
 import remarkCitation from "./src/lib/remark-citation.mjs";
 import rehypeHeadingAnchors from "./src/lib/rehype-heading-anchors.mjs";
+import rehypeFootnotesBeforeReferences from "./src/lib/rehype-footnotes-before-references.mjs";
 // Vendored, not an npm dependency — see the header of that file for why.
 import deleteUnusedImages from "./src/integrations/delete-unused-images/index.js";
 
 export default defineConfig({
   // Canonical production origin — used to build absolute URLs (e.g. the social
   // share image) at build time.
-  site: "https://jaan.io",
+  //
+  // SITE_URL overrides it for a preview deploy, so a pages.dev link unfurls
+  // with an image that exists on that host rather than one on jaan.io that the
+  // preview has not reached yet:
+  //   SITE_URL=https://<branch>.jaan-io.pages.dev npm run build
+  site: process.env.SITE_URL ?? "https://jaan.io",
   output: "static",
   // ── READ THIS BEFORE TOUCHING THESE TWO LINES ───────────────────────────────
   // The site serves slash-less URLs: /about, not /about/. Chosen deliberately
@@ -110,7 +116,15 @@ export default defineConfig({
       // pass: that one only assigns an id to a heading which has none, and by
       // then none is left. See the header of rehype-heading-anchors.mjs for
       // the second thing that ordering decides — why the anchor is empty.
-      rehypePlugins: [rehypeKatex, rehypeMermaid, rehypeHeadingIds, rehypeHeadingAnchors],
+      // rehype-footnotes-before-references also finds its heading by id, so it
+      // comes after rehypeHeadingIds too.
+      rehypePlugins: [
+        rehypeKatex,
+        rehypeMermaid,
+        rehypeHeadingIds,
+        rehypeHeadingAnchors,
+        rehypeFootnotesBeforeReferences,
+      ],
       // smartypants restores the punctuation kramdown applied on the old site.
       // dashes:"oldschool" is required, not cosmetic: the default only maps
       // `--` to an em dash and leaves `---` untouched, which is the exact

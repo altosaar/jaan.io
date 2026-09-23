@@ -146,6 +146,10 @@
   /* --font-body: "Lora", "Inter", system-ui, serif; */
   --font-body: "Source Serif 4", "Inter", system-ui, serif;
   --font-chrome: "Inter", system-ui, sans-serif;
+  /* MONOSPACE — code in posts (base.css), and the hunks and panels of the chart
+     pages under public/files/, which declare the same faces themselves because
+     they do not load this stylesheet. See the Hack block in fonts.css. */
+  --font-mono: "Hack", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* TRACKING ADDED TO EVERY RULE SET IN INTER — a delta, not a value.
      Each of those rules reads `letter-spacing: calc(<its own> + var(--track-sans))`,

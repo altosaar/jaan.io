@@ -1,0 +1,1492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>what a hunk is — one note, one edit, one square</title>
+<style>
+  :root {
+    /* Ink and paper are aliases onto the palette's own tokens, so switching palette moves
+       the ground and the type along with the marks. The contrasts in series.css were
+       measured against that ground; hues on somebody else's paper are an unchecked claim. */
+    --ink: var(--text);
+    --paper: var(--bg);
+    --yellow: #ffe500;
+    --cyan: #4de1ff;
+    --pink: #ff6ec7;
+    --lime: #b6ff3c;
+    --orange: #ff8a3d;
+    --shadow: 6px 6px 0 var(--ink);
+    /* jaan.io's motion tokens, same names and same curve, so the pages move alike. */
+    --dur-fast: 200ms;
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+    --series-1: #a65c00;
+    --series-2: #00779e;
+    --series-3: #9864f7;
+    --series-4: #b58700;
+    --series-5: #009ba9;
+    --series-6: #a80009;
+    --series-7: #005a2f;
+    --series-8: #6d31c3;
+    --series-9: #8b0091;
+    --series-link: #65006a;
+    --series-rest: #b9b2a0;
+    --bg: #fff9f0;
+    --card: #f7efe4;
+    --surface: #f1e8dd;
+    --text: #39322c;
+    --muted: #6c635b;
+  }
+  /* Hack, jaan.io's monospace (--font-mono), from the files the site serves under /fonts/: the
+     same URLs its pages preload, so a framed page finds them already fetched. Opened anywhere
+     that does not serve them, the stack falls through to ui-monospace. */
+  @font-face { font-family: "Hack"; src: url("/fonts/hack-regular-subset.woff2") format("woff2");
+               font-weight: 400; font-style: normal; font-display: optional; }
+  @font-face { font-family: "Hack"; src: url("/fonts/hack-bold-subset.woff2") format("woff2");
+               font-weight: 700; font-style: normal; font-display: optional; }
+  @font-face { font-family: "Hack"; src: url("/fonts/hack-italic-subset.woff2") format("woff2");
+               font-weight: 400; font-style: italic; font-display: optional; }
+  @font-face { font-family: "Hack"; src: url("/fonts/hack-bolditalic-subset.woff2") format("woff2");
+               font-weight: 700; font-style: italic; font-display: optional; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 15px/1.5 Hack, ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  h1, h2, h3 { font-family: Helvetica, Arial, sans-serif; font-weight: 900; margin: 0; }
+  :root[data-palette="arrietty-2010"] {
+    --series-1: #6eb447;
+    --series-2: #fb86ff;
+    --series-3: #006abe;
+    --series-4: #b26bfc;
+    --series-5: #c23500;
+    --series-6: #00d1b8;
+    --series-7: #d45e00;
+    --series-8: #a82fae;
+    --series-9: #9d54e3;
+    --series-link: #ffd24b;
+    --bg: #1c170f;
+    --card: #2b251d;
+    --surface: #342d25;
+    --text: #eae1d9;
+    --muted: #aaa198;
+  }
+  :root[data-palette="arrietty-2010-light"] {
+    --series-1: #3c7e00;
+    --series-2: #0890ff;
+    --series-3: #7323b4;
+    --series-4: #8a2300;
+    --series-5: #009280;
+    --series-6: #af8a00;
+    --series-7: #bd5400;
+    --series-8: #c34cc8;
+    --series-9: #5b0095;
+    --series-link: #65006a;
+    --bg: #fff9f0;
+    --card: #f7efe4;
+    --surface: #f1e8dd;
+    --text: #39322c;
+    --muted: #6c635b;
+  }
+  :root[data-palette="earwig-and-the-witch-2020"] {
+    --series-1: #fa813a;
+    --series-2: #94b1ff;
+    --series-3: #a06fff;
+    --series-4: #008a7e;
+    --series-5: #ca2200;
+    --series-6: #a82fae;
+    --series-7: #f7c900;
+    --series-8: #00f3a1;
+    --series-9: #834dde;
+    --series-link: #fec4ff;
+    --bg: #1e1611;
+    --card: #2d241e;
+    --surface: #362c26;
+    --text: #ece0da;
+    --muted: #ada19a;
+  }
+  :root[data-palette="earwig-and-the-witch-2020-light"] {
+    --series-1: #b75100;
+    --series-2: #1c2ab3;
+    --series-3: #9561f3;
+    --series-4: #009f91;
+    --series-5: #951600;
+    --series-6: #ac8b00;
+    --series-7: #008a5a;
+    --series-8: #7840d1;
+    --series-9: #820088;
+    --series-link: #65006a;
+    --bg: #fff9f5;
+    --card: #faede5;
+    --surface: #f4e7df;
+    --text: #3b312d;
+    --muted: #6e635d;
+  }
+  :root[data-palette="from-up-on-poppy-hill-2011"] {
+    --series-1: #c9b800;
+    --series-2: #39c5ec;
+    --series-3: #8443d3;
+    --series-4: #008874;
+    --series-5: #ff8dbe;
+    --series-6: #cf8100;
+    --series-7: #e13154;
+    --series-8: #ab6fff;
+    --series-9: #467600;
+    --series-link: #a8fa55;
+    --bg: #1c170f;
+    --card: #2b251d;
+    --surface: #342d25;
+    --text: #eae1d9;
+    --muted: #aaa198;
+  }
+  :root[data-palette="from-up-on-poppy-hill-2011-light"] {
+    --series-1: #7b7000;
+    --series-2: #007995;
+    --series-3: #ab6fff;
+    --series-4: #00a089;
+    --series-5: #910056;
+    --series-6: #c37900;
+    --series-7: #fb4c68;
+    --series-8: #6d26b8;
+    --series-9: #385f00;
+    --series-link: #2a4a00;
+    --bg: #fff9f0;
+    --card: #f7efe4;
+    --surface: #f1e8dd;
+    --text: #39322c;
+    --muted: #6c635b;
+  }
+  :root[data-palette="ghibli-master"] {
+    --series-1: #ef890f;
+    --series-2: #49c2f4;
+    --series-3: #a82fae;
+    --series-4: #9e6bfe;
+    --series-5: #ffcc5f;
+    --series-6: #ea3d35;
+    --series-7: #008f4e;
+    --series-8: #834dde;
+    --series-9: #cd56d2;
+    --series-link: #00e8fc;
+    --bg: #1c170f;
+    --card: #2b251d;
+    --surface: #342d25;
+    --text: #eae1d9;
+    --muted: #aaa198;
+  }
+  :root[data-palette="ghibli-master-light"] {
+    --series-1: #a65c00;
+    --series-2: #00779e;
+    --series-3: #9864f7;
+    --series-4: #b58700;
+    --series-5: #009ba9;
+    --series-6: #a80009;
+    --series-7: #005a2f;
+    --series-8: #6d31c3;
+    --series-9: #8b0091;
+    --series-link: #65006a;
+    --bg: #fff9f0;
+    --card: #f7efe4;
+    --surface: #f1e8dd;
+    --text: #39322c;
+    --muted: #6c635b;
+  }
+  :root[data-palette="grave-of-the-fireflies-1988"] {
+    --series-1: #f18913;
+    --series-2: #53c1f9;
+    --series-3: #a82fae;
+    --series-4: #9b67fa;
+    --series-5: #009bab;
+    --series-6: #007915;
+    --series-7: #de2c51;
+    --series-8: #804adb;
+    --series-9: #ffa4a9;
+    --series-link: #ffcc5f;
+    --bg: #1c170f;
+    --card: #2b251d;
+    --surface: #342d25;
+    --text: #eae1d9;
+    --muted: #aaa198;
+  }
+  :root[data-palette="grave-of-the-fireflies-1988-light"] {
+    --series-1: #a75c00;
+    --series-2: #0077a4;
+    --series-3: #9864f7;
+    --series-4: #b58700;
+    --series-5: #009bab;
+    --series-6: #00550c;
+    --series-7: #a60033;
+    --series-8: #672abc;
+    --series-9: #fb4c68;
+    --series-link: #6d0073;
+    --bg: #fff9f0;
+    --card: #f7efe4;
+    --surface: #f1e8dd;
+    --text: #39322c;
+    --muted: #6c635b;
+  }
+  :root[data-palette="howl-s-moving-castle-2004"] {
+    --series-1: #faa300;
+    --series-2: #50c1f8;
+    --series-3: #a82fae;
+    --series-4: #9864f7;
+    --series-5: #b08e00;
+    --series-6: #009bab;
+    --series-7: #da284e;
+    --series-8: #ac87ff;
+    --series-9: #ff6074;
+    --series-link: #82ff84;
+    --bg: #1c170f;
+    --card: #2b251d;
+    --surface: #342d25;
+    --text: #eae1d9;
+    --muted: #aaa198;
+  }
+  :root[data-palette="howl-s-moving-castle-2004-light"] {
+    --series-1: #9b6300;
+    --series-2: #0077a4;
+    --series-3: #9561f3;
+    --series-4: #ac8b00;
+    --series-5: #00550c;
+    --series-6: #009bab;
+    --series-7: #a60033;
+    --series-8: #672abc;
+    --series-9: #fb4c68;
+    --series-link: #6d0073;
+    --bg: #fff9f0;
+    --card: #f7efe4;
+    --surface: #f1e8dd;
+    --text: #39322c;
+    --muted: #6c635b;
+  }
+  :root[data-palette="kiki-s-delivery-service-1989"] {
+    --series-1: #00bffc;
+    --series-2: #ff9b90;
+    --series-3: #ab4b00;
+    --series-4: #7e46d8;
+    --series-5: #0094a4;
+    --series-6: #ec468f;
+    --series-7: #5dbd05;
+    --series-8: #a06fff;
+    --series-9: #cf2677;
+    --series-link: #ffd661;
+    --bg: #15181c;
+    --card: #23262a;
+    --surface: #2b2e33;
+    --text: #e2e2e6;
+    --muted: #a2a3a8;
+  }
+  :root[data-palette="kiki-s-delivery-service-1989-light"] {
+    --series-1: #00779f;
+    --series-2: #af534b;
+    --series-3: #580ca8;
+    --series-4: #af8a00;
+    --series-5: #009bab;
+    --series-6: #9c0055;
+    --series-7: #357200;
+    --series-8: #9561f3;
+    --series-9: #da3380;
+    --series-link: #682b00;
+    --bg: #f7faff;
+    --card: #ecf0f6;
+    --surface: #e6eaf0;
+    --text: #333337;
+    --muted: #65656a;
+  }
+  :root[data-palette="laputa-castle-in-the-sky-1986"] {
+    --series-1: #f6842c;
+    --series-2: #51c1f8;
+    --series-3: #a82fae;
+    --series-4: #a46cff;
+    --series-5: #d42515;
+    --series-6: #0098a5;
+    --series-7: #007c57;
+    --series-8: #874cdc;
+    --series-9: #ff9c8c;
+    --series-link: #ffc334;
+    --bg: #14181c;
+    --card: #22262a;
+    --surface: #2b2f33;
+    --text: #e2e2e5;
+    --muted: #a0a3a6;
+  }
+  :root[data-palette="laputa-castle-in-the-sky-1986-light"] {
+    --series-1: #b05600;
+    --series-2: #0077a4;
+    --series-3: #985ff1;
+    --series-4: #800500;
+    --series-5: #b58700;
+    --series-6: #009ead;
+    --series-7: #006c4b;
+    --series-8: #6520b4;
+    --series-9: #ac0a00;
+    --series-link: #65006a;
+    --bg: #f6fbff;
+    --card: #ebf1f6;
+    --surface: #e5eaef;
+    --text: #343336;
+    --muted: #636568;
+  }
+  :root[data-palette="lupin-iii-the-castle-of-cagliostro-1979"] {
+    --series-1: #00b2fc;
+    --series-2: #ffa838;
+    --series-3: #007e44;
+    --series-4: #a243cb;
+    --series-5: #de367e;
+    --series-6: #00ddf3;
+    --series-7: #ff796b;
+    --series-8: #b95ae3;
+    --series-9: #cd1819;
+    --series-link: #ffda74;
+    --bg: #16181c;
+    --card: #24262b;
+    --surface: #2c2e33;
+    --text: #e3e2e6;
+    --muted: #a3a3a8;
+  }
+  :root[data-palette="lupin-iii-the-castle-of-cagliostro-1979-light"] {
+    --series-1: #0076aa;
+    --series-2: #c77c00;
+    --series-3: #00572d;
+    --series-4: #c91a6d;
+    --series-5: #009bab;
+    --series-6: #886b00;
+    --series-7: #a30008;
+    --series-8: #8018a7;
+    --series-9: #df312b;
+    --series-link: #5d007c;
+    --bg: #f8faff;
+    --card: #edf0f7;
+    --surface: #e7e9f0;
+    --text: #343337;
+    --muted: #656469;
+  }
+  :root[data-palette="my-neighbor-totoro-1988"] {
+    --series-1: #f49600;
+    --series-2: #3971f8;
+    --series-3: #d395ff;
+    --series-4: #866200;
+    --series-5: #b72494;
+    --series-6: #00d5b4;
+    --series-7: #ff6a67;
+    --series-8: #ffb1e5;
+    --series-9: #973fca;
+    --series-link: #7bff94;
+    --bg: #121919;
+    --card: #212727;
+    --surface: #292f2f;
+    --text: #e0e3e2;
+    --muted: #9fa4a3;
+  }
+  :root[data-palette="my-neighbor-totoro-1988-light"] {
+    --series-1: #a06000;
+    --series-2: #2154d8;
+    --series-3: #004e1b;
+    --series-4: #61008c;
+    --series-5: #b58700;
+    --series-6: #e454bd;
+    --series-7: #00927b;
+    --series-8: #940018;
+    --series-9: #7b1dac;
+    --series-link: #710059;
+    --bg: #f3fcfc;
+    --card: #eaf2f2;
+    --surface: #e3ebeb;
+    --text: #323434;
+    --muted: #626666;
+  }
+  :root[data-palette="my-neighbors-the-yamadas-1999"] {
+    --series-1: #f18915;
+    --series-2: #67bdff;
+    --series-3: #a06fff;
+    --series-4: #ca48bd;
+    --series-5: #cd1819;
+    --series-6: #008472;
+    --series-7: #00b967;
+    --series-8: #8954e5;
+    --series-9: #af2ba3;
+    --series-link: #ffd06f;
+    --bg: #1e1613;
+    --card: #2d2321;
+    --surface: #362c29;
+    --text: #ede0dd;
+    --muted: #ada09d;
+  }
+  :root[data-palette="my-neighbors-the-yamadas-1999-light"] {
+    --series-1: #a75b00;
+    --series-2: #1174b2;
+    --series-3: #b58700;
+    --series-4: #a06fff;
+    --series-5: #a30008;
+    --series-6: #00a089;
+    --series-7: #00572d;
+    --series-8: #6222b6;
+    --series-9: #9b0c90;
+    --series-link: #7e0075;
+    --bg: #fff8f6;
+    --card: #fbedea;
+    --surface: #f4e6e2;
+    --text: #3b312f;
+    --muted: #6e6260;
+  }
+  :root[data-palette="nausicaa-of-the-valley-of-the-wind-1984"] {
+    --series-1: #00cefb;
+    --series-2: #ff9d73;
+    --series-3: #8e3fcc;
+    --series-4: #b38800;
+    --series-5: #00929a;
+    --series-6: #cd1819;
+    --series-7: #e15bcd;
+    --series-8: #c07cff;
+    --series-9: #b1299f;
+    --series-link: #74ffa2;
+    --bg: #13181b;
+    --card: #212729;
+    --surface: #2a2f32;
+    --text: #e1e3e4;
+    --muted: #9fa3a5;
+  }
+  :root[data-palette="nausicaa-of-the-valley-of-the-wind-1984-light"] {
+    --series-1: #007995;
+    --series-2: #b0552c;
+    --series-3: #731cae;
+    --series-4: #b38800;
+    --series-5: #009ca5;
+    --series-6: #9e0008;
+    --series-7: #005427;
+    --series-8: #9a4cda;
+    --series-9: #950086;
+    --series-link: #76006a;
+    --bg: #f5fbff;
+    --card: #eaf2f4;
+    --surface: #e4ebef;
+    --text: #323434;
+    --muted: #626668;
+  }
+  :root[data-palette="ocean-waves-1993"] {
+    --series-1: #fbb400;
+    --series-2: #59c0fc;
+    --series-3: #ab4b00;
+    --series-4: #8145d6;
+    --series-5: #008d9d;
+    --series-6: #e3397c;
+    --series-7: #ff8386;
+    --series-8: #a772ff;
+    --series-9: #b68100;
+    --series-link: #00ffa2;
+    --bg: #15181c;
+    --card: #23262b;
+    --surface: #2c2e33;
+    --text: #e3e2e6;
+    --muted: #a2a3a8;
+  }
+  :root[data-palette="ocean-waves-1993-light"] {
+    --series-1: #936700;
+    --series-2: #0076aa;
+    --series-3: #5a09a6;
+    --series-4: #009bab;
+    --series-5: #c61365;
+    --series-6: #fc4d5d;
+    --series-7: #00633c;
+    --series-8: #a46cff;
+    --series-9: #ae7c00;
+    --series-link: #682b00;
+    --bg: #f7faff;
+    --card: #ecf0f7;
+    --surface: #e7e9f0;
+    --text: #333336;
+    --muted: #646469;
+  }
+  :root[data-palette="only-yesterday-1991"] {
+    --series-1: #00b6fb;
+    --series-2: #ff9d71;
+    --series-3: #7e46d8;
+    --series-4: #b98a00;
+    --series-5: #008d9d;
+    --series-6: #cd1819;
+    --series-7: #ffbefc;
+    --series-8: #9e6bfe;
+    --series-9: #cf54ce;
+    --series-link: #71ffa8;
+    --bg: #13181b;
+    --card: #22262a;
+    --surface: #2a2f32;
+    --text: #e1e2e5;
+    --muted: #a0a3a6;
+  }
+  :root[data-palette="only-yesterday-1991-light"] {
+    --series-1: #0077a6;
+    --series-2: #b05529;
+    --series-3: #9b67fa;
+    --series-4: #b58700;
+    --series-5: #009bab;
+    --series-6: #a30008;
+    --series-7: #00572d;
+    --series-8: #672abc;
+    --series-9: #930b94;
+    --series-link: #770078;
+    --bg: #f5fbff;
+    --card: #ebf1f6;
+    --surface: #e4ebef;
+    --text: #333336;
+    --muted: #636568;
+  }
+  :root[data-palette="pom-poko-1994"] {
+    --series-1: #00b6fc;
+    --series-2: #ff9f4f;
+    --series-3: #c73600;
+    --series-4: #8742d1;
+    --series-5: #00e0f7;
+    --series-6: #ed458a;
+    --series-7: #007a4b;
+    --series-8: #a966f7;
+    --series-9: #e57c00;
+    --series-link: #ffd98b;
+    --bg: #13191a;
+    --card: #212728;
+    --surface: #292f30;
+    --text: #e1e3e3;
+    --muted: #9fa4a5;
+  }
+  :root[data-palette="pom-poko-1994-light"] {
+    --series-1: #0077a7;
+    --series-2: #aa5a00;
+    --series-3: #6002a2;
+    --series-4: #b58700;
+    --series-5: #009bab;
+    --series-6: #d02572;
+    --series-7: #00603a;
+    --series-8: #9f5ced;
+    --series-9: #7c4100;
+    --series-link: #6f1a00;
+    --bg: #f3fcfd;
+    --card: #eaf2f3;
+    --surface: #e3ebec;
+    --text: #323434;
+    --muted: #626667;
+  }
+  :root[data-palette="ponyo-2008"] {
+    --series-1: #00d3f4;
+    --series-2: #b48300;
+    --series-3: #8782ff;
+    --series-4: #a82fae;
+    --series-5: #ffc484;
+    --series-6: #ff8577;
+    --series-7: #007653;
+    --series-8: #6d5ff0;
+    --series-9: #bf48c5;
+    --series-link: #5fffc1;
+    --bg: #15181c;
+    --card: #23262a;
+    --surface: #2b2e33;
+    --text: #e2e2e6;
+    --muted: #a2a3a7;
+  }
+  :root[data-palette="ponyo-2008-light"] {
+    --series-1: #007a8f;
+    --series-2: #b48300;
+    --series-3: #482bbc;
+    --series-4: #975d00;
+    --series-5: #900006;
+    --series-6: #00a273;
+    --series-7: #786cfe;
+    --series-8: #bc45c1;
+    --series-9: #006c4b;
+    --series-link: #65006a;
+    --bg: #f7faff;
+    --card: #ecf0f6;
+    --surface: #e6eaf0;
+    --text: #333337;
+    --muted: #656569;
+  }
+  :root[data-palette="porco-rosso-1992"] {
+    --series-1: #00c2fb;
+    --series-2: #efa836;
+    --series-3: #c23500;
+    --series-4: #8443d3;
+    --series-5: #b98a00;
+    --series-6: #0094a4;
+    --series-7: #ed458a;
+    --series-8: #a86bfd;
+    --series-9: #ff815f;
+    --series-link: #00ffa2;
+    --bg: #121918;
+    --card: #212726;
+    --surface: #292f2f;
+    --text: #e0e3e2;
+    --muted: #9fa4a3;
+  }
+  :root[data-palette="porco-rosso-1992-light"] {
+    --series-1: #00789d;
+    --series-2: #996500;
+    --series-3: #5d05a4;
+    --series-4: #b58700;
+    --series-5: #009eaf;
+    --series-6: #c91a6d;
+    --series-7: #00603a;
+    --series-8: #995bec;
+    --series-9: #9c2900;
+    --series-link: #6f1a00;
+    --bg: #f3fdfb;
+    --card: #eaf2f1;
+    --surface: #e3ebeb;
+    --text: #323434;
+    --muted: #626666;
+  }
+  :root[data-palette="princess-mononoke-1997"] {
+    --series-1: #59b758;
+    --series-2: #de66e3;
+    --series-3: #c23500;
+    --series-4: #006cb4;
+    --series-5: #bdb7ff;
+    --series-6: #00e3c4;
+    --series-7: #ffbf86;
+    --series-8: #7f61f3;
+    --series-9: #ec460e;
+    --series-link: #e8e300;
+    --bg: #14181c;
+    --card: #22262a;
+    --surface: #2b2f33;
+    --text: #e2e2e5;
+    --muted: #a1a3a7;
+  }
+  :root[data-palette="princess-mononoke-1997-light"] {
+    --series-1: #1b8020;
+    --series-2: #a82fae;
+    --series-3: #004575;
+    --series-4: #9078ff;
+    --series-5: #009983;
+    --series-6: #959100;
+    --series-7: #794300;
+    --series-8: #7453e5;
+    --series-9: #cc3800;
+    --series-link: #6f1a00;
+    --bg: #f6fbff;
+    --card: #ebf1f6;
+    --surface: #e5eaef;
+    --text: #343336;
+    --muted: #646569;
+  }
+  :root[data-palette="site"] {
+    --series-1: #24cb71;
+    --series-2: #8a2cb7;
+    --series-3: #c91304;
+    --series-4: #e870ed;
+    --series-5: #008a7e;
+    --series-6: #cc7200;
+    --series-7: #79ddff;
+    --series-8: #af55df;
+    --series-9: #007137;
+    --series-link: #fbda00;
+    --bg: #000000;
+    --card: #1e1e1e;
+    --surface: #292929;
+    --text: #e2e2e2;
+    --muted: #9a9a96;
+  }
+  :root[data-palette="the-red-turtle-2016"] {
+    --series-1: #fcaa00;
+    --series-2: #50c1f8;
+    --series-3: #d72824;
+    --series-4: #8e3fcc;
+    --series-5: #00e4fb;
+    --series-6: #dd57c9;
+    --series-7: #00ad72;
+    --series-8: #be76ff;
+    --series-9: #b1299f;
+    --series-link: #ffda74;
+    --bg: #131919;
+    --card: #212728;
+    --surface: #292f30;
+    --text: #e0e3e3;
+    --muted: #9fa4a4;
+  }
+  :root[data-palette="the-red-turtle-2016-light"] {
+    --series-1: #986500;
+    --series-2: #0077a4;
+    --series-3: #860005;
+    --series-4: #6d12a7;
+    --series-5: #af8a00;
+    --series-6: #009bab;
+    --series-7: #006641;
+    --series-8: #a053e1;
+    --series-9: #8c007e;
+    --series-link: #6a005f;
+    --bg: #f4fcfc;
+    --card: #eaf2f3;
+    --surface: #e3ebec;
+    --text: #323435;
+    --muted: #626667;
+  }
+  :root[data-palette="the-tale-of-the-princess-kaguya-2013"] {
+    --series-1: #57b759;
+    --series-2: #c36dfa;
+    --series-3: #006abe;
+    --series-4: #ff8ae5;
+    --series-5: #c23500;
+    --series-6: #dbd000;
+    --series-7: #d45e00;
+    --series-8: #b3279c;
+    --series-9: #79b9ff;
+    --series-link: #00fdfc;
+    --bg: #1c170f;
+    --card: #2b251d;
+    --surface: #342d25;
+    --text: #eae1d9;
+    --muted: #aaa198;
+  }
+  :root[data-palette="the-tale-of-the-princess-kaguya-2013-light"] {
+    --series-1: #168021;
+    --series-2: #7e21b0;
+    --series-3: #0890ff;
+    --series-4: #8a2300;
+    --series-5: #989000;
+    --series-6: #00908f;
+    --series-7: #b95200;
+    --series-8: #e056c5;
+    --series-9: #004885;
+    --series-link: #6b005c;
+    --bg: #fff9f0;
+    --card: #f7efe4;
+    --surface: #f1e8dd;
+    --text: #39322c;
+    --muted: #6c635b;
+  }
+  :root[data-palette="the-wind-rises-2013"] {
+    --series-1: #7eb33a;
+    --series-2: #ff82cf;
+    --series-3: #bc6bfa;
+    --series-4: #006cb4;
+    --series-5: #837100;
+    --series-6: #009c86;
+    --series-7: #e63745;
+    --series-8: #71bbff;
+    --series-9: #a351de;
+    --series-link: #ffc488;
+    --bg: #191810;
+    --card: #28261d;
+    --surface: #302e25;
+    --text: #e7e2d9;
+    --muted: #a7a399;
+  }
+  :root[data-palette="the-wind-rises-2013-light"] {
+    --series-1: #4f7b00;
+    --series-2: #e852b4;
+    --series-3: #0091ee;
+    --series-4: #a28c00;
+    --series-5: #008e7a;
+    --series-6: #7a4800;
+    --series-7: #770016;
+    --series-8: #005b99;
+    --series-9: #9441cd;
+    --series-link: #5c008a;
+    --bg: #fcfbef;
+    --card: #f3f0e4;
+    --surface: #eceade;
+    --text: #37332c;
+    --muted: #69655c;
+  }
+  :root[data-palette="when-marnie-was-there-2014"] {
+    --series-1: #69b54c;
+    --series-2: #ff93f6;
+    --series-3: #006abe;
+    --series-4: #bc71ff;
+    --series-5: #c23500;
+    --series-6: #00959e;
+    --series-7: #d86100;
+    --series-8: #ad2ca7;
+    --series-9: #a659e8;
+    --series-link: #ffda74;
+    --bg: #141914;
+    --card: #222722;
+    --surface: #2b2f2a;
+    --text: #e2e3dd;
+    --muted: #a1a49e;
+  }
+  :root[data-palette="when-marnie-was-there-2014-light"] {
+    --series-1: #347f09;
+    --series-2: #0890ff;
+    --series-3: #7925b5;
+    --series-4: #8a2300;
+    --series-5: #af8a00;
+    --series-6: #008e97;
+    --series-7: #bd5400;
+    --series-8: #d556ce;
+    --series-9: #5d0092;
+    --series-link: #680064;
+    --bg: #f5fcf5;
+    --card: #ebf2eb;
+    --surface: #e6ebe5;
+    --text: #333430;
+    --muted: #646661;
+  }
+  /* The kinds' colours by name, exactly as microlite-waffle.html declares them, so the status
+     square here and the squares in the chart below are painted out of one set of tokens: the
+     page's own lime/cyan/pink standing alone, the host palette's series framed in the post.
+     There is a fourth state here that the chart has no need of — a note nobody has touched
+     yet — and it takes the ink, so it reads as a square that is simply not lit. */
+  :root {
+    --kind-added: var(--lime); --kind-mixed: var(--cyan); --kind-removed: var(--pink);
+    --kind-none: var(--ink);
+  }
+  :root.embedded {
+    --kind-added: var(--series-4); --kind-mixed: var(--series-5); --kind-removed: var(--series-6);
+  }
+
+  /* One grid over both columns rather than a column each. The two sides have to line up row for
+     row — the note's name against the hunk's name, the word count against the pair of times —
+     and the blocks they sit in are not the same height, so neither column can be laid out on its
+     own. Five shared rows: the squares, the two names, the two second lines, the two boxes, and
+     what goes under them. A shared row is one height, so everything in it starts and ends on the
+     same line however either side wraps.
+
+     Narrow, the cells are in reading order and simply stack: the note and its controls, then the
+     squares and the hunk. */
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 20px; padding: 20px; }
+  .layout > * { min-width: 0; }
+  .name { margin-bottom: 3px; }
+  .meta { margin-bottom: 7px; }
+  .r-status { margin-bottom: 9px; }
+  .foot { margin-top: 10px; }
+  @media (max-width: 839px) { .l-foot { margin-bottom: 26px; } }
+  @media (min-width: 840px) {
+    .layout { grid-template-columns: minmax(0, 1.05fr) minmax(310px, 0.95fr); }
+    .l-label { grid-area: 1 / 1; } .l-name { grid-area: 3 / 1; }
+    .l-meta { grid-area: 4 / 1; } .l-box { grid-area: 5 / 1; } .l-foot { grid-area: 6 / 1; }
+    .r-label { grid-area: 1 / 2; } .r-status { grid-area: 2 / 2; }
+    .r-name { grid-area: 3 / 2; } .r-meta { grid-area: 4 / 2; }
+    .r-box  { grid-area: 5 / 2; } .r-foot { grid-area: 6 / 2; }
+    /* Hanging from the floor of the row, so a name long enough to wrap grows its row upwards and
+       the line beneath it stays where it is, against the top of the box. */
+    .label, .r-status, .name, .meta { align-self: end; }
+    .foot { align-self: start; }
+  }
+
+  /* What each side is. Set in the type the charts below set their axis labels and legends in —
+     Plot's 11px system face framed, the page's monospace standing alone, which is the same swap
+     `.axis` makes in microlite-waffle.html. It is the one piece of type here that is not the
+     note's own, because on those charts this is the frame around the data rather than the data.
+     `small-caps` rides in the shorthand so that the framed override cannot reset it. */
+  .label { font: small-caps 11px Hack, ui-monospace, Menlo, monospace;
+           letter-spacing: 0.05em; color: var(--muted); margin-bottom: 8px; }
+  .embedded .label { font: small-caps 11px system-ui, sans-serif; }
+
+  /* The note's name, and under it when — set as a hunk's heading is set in the two charts below
+     (`.embedded .end .who` in microlite-waffle.html): 12px, bold. There the two lines are spans
+     in one block; here they are two cells of the grid, so that the name on this side and the name
+     on the other are in the same row and cannot drift apart. */
+  .who { display: block; font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+  /* The pair of snapshot times, in tabular figures so the two do not jitter against each other
+     as the second one counts on. */
+  .when { font-variant-numeric: tabular-nums; }
+
+  /* One square per hunk, in the order they were taken, with the chart's own 4px between them.
+     Each is drawn as the chart draws its cells — a bare square, 2px of ink round it standing
+     alone, and framed the palette's hue at half strength with no outline. The last square is the
+     hunk in progress: dark until the note differs from the snapshot under it, then coloured by
+     what the edit has done so far, and frozen at whatever it is when the next snapshot is taken. */
+  .status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  /* The chart sets its cells 4px apart, being a waffle of contiguous blocks. These stand further
+     out — 12px — because each can carry a selection ring, which reaches 5px past the square on
+     every side; at the chart's spacing two rings would touch. */
+  .squares { display: flex; flex-wrap: wrap; gap: 12px; }
+  .square {
+    width: 22px; height: 22px; flex: none; display: block; padding: 0; cursor: pointer;
+    border: 2px solid var(--ink); background: var(--kind-none);
+    transition: background var(--dur-fast) var(--ease-standard);
+  }
+  .embedded .square { border: 0; width: 23px; height: 23px; }
+  .square[data-kind="added"] { background: var(--kind-added); }
+  .square[data-kind="mixed"] { background: var(--kind-mixed); }
+  .square[data-kind="removed"] { background: var(--kind-removed); }
+  /* Framed, the chart paints its cells at half strength through `fill-opacity`, which thins the
+     fill and leaves the outline alone. Mixed into the ground here for that same reason rather
+     than set with `opacity`: the ring that marks the picked square has to stay full strength. */
+  .embedded .square[data-kind="added"] { background: color-mix(in srgb, var(--kind-added) 50%, var(--paper)); }
+  .embedded .square[data-kind="mixed"] { background: color-mix(in srgb, var(--kind-mixed) 50%, var(--paper)); }
+  .embedded .square[data-kind="removed"] { background: color-mix(in srgb, var(--kind-removed) 50%, var(--paper)); }
+  /* Which hunk the box below is showing. The chart rings its picked square rather than
+     recolouring it, so that picked and kind stay two separate things; so does this.
+
+     Only once there are two. Before the first snapshot there is one square and it is the only
+     thing the box could be showing, so a ring around it would distinguish it from nothing. */
+  .squares[data-many] .square[aria-pressed="true"] {
+    outline: 3px solid var(--ink); outline-offset: 2px;
+  }
+  .kind { font-size: 12px; font-weight: 700; text-transform: capitalize; }
+  .kind.none { font-weight: 400; color: var(--muted); text-transform: none; }
+
+  /* The editor. A textarea and nothing else: the borders and the ground are the search box's from
+     the chart below (`input[type=search]`), and the type is the hunk's, so the lines a reader
+     edits here are set in the same face and size as the lines they come out as.
+
+     `align-self: start` keeps it at its own height instead of being stretched to the row, which
+     is what lets it be the one box that sets the row's height. */
+  .note {
+    display: block; width: 100%; height: 340px; resize: vertical; align-self: start;
+    border: 3px solid var(--ink); background: var(--card); color: var(--ink);
+    padding: 12px; margin: 0;
+    font: 13px/1.55 Hack, ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  /* No ring when the caret goes in. The 3px of ink round the box, the text cursor and the count
+     that swaps in on the first keystroke already say it is live, and a 4px ring on a box this
+     large reads as an error state. */
+  .note:focus { outline: none; }
+  @media (min-width: 840px) { .note { height: 460px; } }
+
+  /* The hint, in the muted ink the chart uses for a line of diff context, with a block caret
+     after it that blinks until the note is touched — the one piece of motion on the page, and the
+     standard way a text field says it is a text field. It is a <label>, so it also gives the
+     textarea its name and clicking it puts the caret in the note. */
+  .hint { display: block; font-size: 12px; color: var(--muted); cursor: text; }
+  .hint .caret { display: inline-block; width: 0.55em; height: 1.05em; margin-left: 0.3em;
+                 vertical-align: -0.2em; background: var(--ink);
+                 animation: blink 1.1s steps(1, end) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .hint .caret { animation: none; } }
+  .hint.touched .caret { display: none; }
+
+  /* Off-screen twin of the note, used only to find out where the caret is sitting — see
+     `caretY`. It has to wrap exactly as the note wraps, so everything that decides that is
+     copied onto it at measuring time. */
+  .mirror { position: absolute; top: 0; left: -9999px; visibility: hidden;
+            white-space: pre-wrap; overflow-wrap: anywhere; }
+
+  /* The diff box, and the lines in it, copied from microlite-waffle.html so a hunk opened here
+     and a hunk opened in either chart under it are the same object drawn the same way: the header
+     in violet, additions green, deletions red, context plain. */
+  .hunk { border: 3px solid var(--ink); background: var(--card);
+          width: 100%; height: 340px; display: flex; flex-direction: column; }
+  /* Beside the note, the hunk has no height of its own — it fills the row that the note sized.
+     It has to come out of the flow to do that: a diff is as long as it is, and an in-flow box
+     reports that length as its intrinsic height, which is what a grid row is sized from. So the
+     row would grow to whatever had just been edited and the note, fixed at its own height, would
+     stop short of it. Out of flow the box contributes nothing to the row and is stretched to it,
+     and the two bottoms are the same line by construction, at any diff length and at whatever
+     height the reader drags the note to. */
+  @media (min-width: 840px) {
+    .r-box { position: relative; }
+    .hunk { position: absolute; inset: 0; height: auto; }
+  }
+  .hunk pre { margin: 0; flex: 1; min-height: 0; overflow: auto; padding: 12px;
+              background: var(--card);
+              font: 13px/1.55 Hack, ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .hunk code { display: block; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .hunk code > span { display: block; padding: 0 6px; margin: 0 -6px; }
+  .hunk .ln-h { color: #8250df; background: #f3eefd; font-weight: 700; }
+  .hunk .ln-a { color: #116329; background: #e6ffec; }
+  .hunk .ln-d { color: #a40e26; background: #ffebe9; }
+  .hunk .ln-c { color: #57606a; }
+  .empty { padding: 40px 16px; text-align: center; font-size: 13px; color: var(--muted); }
+
+  /* The note under the hunk, in the chart's own `.unit` type: what the two times mean, which is
+     the one thing the picture cannot say by itself. */
+  .unit { font-size: 12px; max-width: 80ch; margin: 0; color: var(--muted); }
+  .unit b { color: var(--ink); }
+
+  /* Taking a snapshot is only available once there is a change for it to close over, which is the
+     rule the whole section is about: no edit, no hunk. Reset appears once there is anything to
+     reset. */
+  .buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font: inherit; font-size: 12px; padding: 4px 8px; cursor: pointer;
+          border: 3px solid var(--ink); background: var(--card); color: var(--ink); }
+  .chip:hover:not(:disabled) { background: var(--yellow); color: #111111; }
+  .chip:disabled { opacity: 0.45; cursor: default; }
+  .chip[hidden] { display: none; }
+
+  /* Framed, the page is these two columns and nothing around them, and the frame is sized to the
+     body by the script above — so the body must not scroll on its own. */
+  .embedded, .embedded body { overflow: hidden; }
+  .embedded:not([data-palette$="-light"]) { color-scheme: dark; }
+  .embedded:not([data-palette$="-light"]) .hunk .ln-h { color: #d2a8ff; background: #2b1f45; }
+  .embedded:not([data-palette$="-light"]) .hunk .ln-a { color: #aff5b4; background: #0f3a1d; }
+  .embedded:not([data-palette$="-light"]) .hunk .ln-d { color: #ffdcd7; background: #5a1219; }
+  .embedded:not([data-palette$="-light"]) .hunk .ln-c { color: var(--muted); }
+  .embedded:not([data-palette$="-light"]) .chip:hover:not(:disabled) { color: #111111; }
+
+  /* Standing on its own the page wears the same masthead the two charts wear; framed in the post
+     it is hidden, as theirs are, because the post's own heading is already over it. */
+  header { border-bottom: 4px solid var(--ink); background: var(--yellow); color: #111111;
+           padding: 18px 20px; display: flex; flex-wrap: wrap; gap: 16px; align-items: baseline; }
+  header h1 { font-size: 30px; letter-spacing: -1px; text-transform: uppercase; }
+  header .sub { font-size: 13px; }
+  .embedded header { display: none; }
+</style>
+</head>
+<body>
+<script>
+(() => {
+  const frame = window.frameElement;
+  if (!frame) return;
+  const root = document.documentElement, host = parent.document.documentElement;
+  const names = new Set(["arrietty-2010", "arrietty-2010-light", "earwig-and-the-witch-2020", "earwig-and-the-witch-2020-light", "from-up-on-poppy-hill-2011", "from-up-on-poppy-hill-2011-light", "ghibli-master", "ghibli-master-light", "grave-of-the-fireflies-1988", "grave-of-the-fireflies-1988-light", "howl-s-moving-castle-2004", "howl-s-moving-castle-2004-light", "kiki-s-delivery-service-1989", "kiki-s-delivery-service-1989-light", "laputa-castle-in-the-sky-1986", "laputa-castle-in-the-sky-1986-light", "lupin-iii-the-castle-of-cagliostro-1979", "lupin-iii-the-castle-of-cagliostro-1979-light", "my-neighbor-totoro-1988", "my-neighbor-totoro-1988-light", "my-neighbors-the-yamadas-1999", "my-neighbors-the-yamadas-1999-light", "nausicaa-of-the-valley-of-the-wind-1984", "nausicaa-of-the-valley-of-the-wind-1984-light", "ocean-waves-1993", "ocean-waves-1993-light", "only-yesterday-1991", "only-yesterday-1991-light", "pom-poko-1994", "pom-poko-1994-light", "ponyo-2008", "ponyo-2008-light", "porco-rosso-1992", "porco-rosso-1992-light", "princess-mononoke-1997", "princess-mononoke-1997-light", "site", "the-red-turtle-2016", "the-red-turtle-2016-light", "the-tale-of-the-princess-kaguya-2013", "the-tale-of-the-princess-kaguya-2013-light", "the-wind-rises-2013", "the-wind-rises-2013-light", "when-marnie-was-there-2014", "when-marnie-was-there-2014-light"]);
+  root.classList.add("embedded");
+  const follow = () => {
+    const name = host.dataset.palette || "site";
+    root.dataset.palette = names.has(name) ? name : "ghibli-master-light";
+  };
+  follow();
+  new MutationObserver(follow).observe(host, { attributes: true, attributeFilter: ["data-palette"] });
+  // A frame has no height of its own to give. The page says, and says again when a click opens
+  // a panel or a redraw changes the chart.
+  // The body's scroll height as well as its box, so whatever a chart draws past the body's
+  // edge is inside the frame rather than clipped by it.
+  const fit = () => {
+    const body = document.body;
+    frame.style.height = Math.ceil(Math.max(body.getBoundingClientRect().height, body.scrollHeight)) + "px";
+  };
+  new ResizeObserver(fit).observe(document.body);
+})();
+</script>
+<script type="application/json" id="note">"# journal\n\n**11-13** \u2014 osric left a voice message at 11:52. laertes proposes tuesday, gothersgade, seven. \"a friendly bout, nothing formal, he asked me to ask you.\" osric has never in his life asked me anything on his own account.\n\ni laughed out loud in the street outside ursa, properly, for the first time in weeks, because it is such a *transparent* piece of work. tuesday is a fencing night. it has always been a fencing night. that is what makes it workable \u2014 nobody has to invent anything, you just leave the ordinary thing where it is and let a man walk into it.\n\ni said yes. i am writing down that i said yes, and that i knew, so that i cannot come back to this page later and pretend i did not.\n\ni am not angry at laertes. i would be laertes. that is the whole trouble with this week.\n\n**11-12** \u2014 ophelia.\n\nthere is nothing to write here yet. there is a list and the list is of the times i could have called and did not: 10-28, after ursa. 10-31. 11-05, from the corridor on nine, when i had my phone in my hand for a different reason. 11-09 from the airport. 11-10 from the hotel in lisbon, after marcellus's text. 11-11 from the train.\n\nthey found her at the water below roskilde. mum was the one who rang to tell me, the first time she has rung since 11-05. nobody will say the obvious thing out loud and i am not going to be the first, which is its own kind of cowardice and i know it.\n\n**11-11** \u2014 came back on the 19:40, alone, did not tell anyone i was coming. rosencrantz and guildenstern are still down there with a hotel booked to 11-20.\n\nread the file twice on tuesday. the second time with the dates laid against the board minutes from the month he died and that is when you can see it: the decision existed before the meeting that made it. voltemand's instructions run to two pages and my name is in the second paragraph of both.\n\nthe thing i felt was not shock. it was the flat relief of being handed proof of something i had stopped needing proof of.\n\n**11-10** \u2014 norvik's deal team in the hotel bar, a table of eight, loud and pleased with themselves. fortinbras's people. they closed two more of our suppliers today, and one of them is a warehouse in set\u00fabal that has lost money every year for a decade \u2014 they bought it because it was there to be bought and we were not paying attention. eight grown people celebrating a warehouse, and i have had forty seconds and a standing order nobody can name for three weeks and made a film.\n\nfrom tonight either what i think is worth doing something about, or it is not worth thinking.\n\n**11-09** \u2014 lisbon. claudius booked a fortnight, put r&g on the same flight, and had it in my calendar before he mentioned it. the itinerary came from osric at 17:14 sunday.\n\n**11-08** \u2014 lisbon, second day. r&g took me to the ocean\u00e1rio because it was on a list somebody gave them. guildenstern asked, in front of the jellyfish, how i had been \"since everything\", and rosencrantz looked at the floor, and i understood that the question had been assigned. i said i had been sleeping badly and watched them both write it down behind their faces.\n\nthere is a version of this where they are two men with a job and no malice in either of them. i have tried to hold that version for whole minutes at a time and it will not stay held.\n\n**11-07** \u2014 could not sleep so i went through dad's laptop properly for the first time, on hotel wifi, which is exactly the wrong place to do it. the estate account has a standing order going out monthly to an entity called ines abril lda that nobody at the company can name and that predates the acquisition by eleven months.\n\nwrote to horatio: *who is ines abril*. he wrote back at 04:40 his time: *dont put that in writing again*.\n\nso now there are two things i am not allowed to put in writing, and this is the file where i put things in writing.\n\n**11-06** \u2014 writing this at two in the morning on 11-06, so it is friday, so it has been about thirty hours.\n\nthe screening was 16:40 on the ninth floor. the archive section runs at 06:20 into the cut. i watched claudius rather than the screen. he was fine for nine seconds. at the tenth he put his glass down on the table beside him without looking at where the table was, and then at 16:47 he stood up and went out through the back and the lights were still down. osric went after him about four seconds later, which tells you osric's job.\n\ni was calm. that is the part i keep coming back to and it is not the part i expected to keep coming back to. not triumphant, not frightened. calm, the way you are calm when a long arithmetic finally comes out.\n\nthen mum's office at about half five, and i said the things i have been saving since the wedding, and they came out worse than i had them saved. i said \"you married the man who was on the roof\" which i cannot prove and should not have said in that order. she said my father's name twice and i talked over her both times.\n\npolonius was in the room next door with the door open enough. i heard the chair. i went out into the corridor and he was already at the rail and then he was not, and i have gone over the four seconds between those two facts about two hundred times and i still cannot put anything in the middle of them.\n\n18:05. the duty log will say 18:05 because francisco logged the alarm.\n\ni did not mean it. i am also not sorry in the way a person is supposed to be sorry. both of those are true at once and i cannot put either of them down because admitting one looks like lying about the other.\n\nby this evening it is being handled as an accident. that is the second time this company has used that word about a man going off a high thing, and i appear to be the only person in the building who has counted.\n\n**11-05** \u2014 corridor on nine, half four, phone in my hand to ring ophelia, and i rang bispebjerg records instead. the woman there was kind and told me twice that a next-of-kin request takes twenty working days and that the inquest bundle is not the same thing as the file.\n\ntwenty working days. he has been dead five months and the answer to every question is a number of working days.\n\n**11-03** \u2014 dr nyholm at 09:15, the appointment mum made in august that i have moved four times. she asked what i wanted from it. i said i wanted to know whether what i am doing is grief or something with a worse name. she said those are not exclusive. i said that was not an answer and she said it was, i just did not like it.\n\nforty minutes. i talked for thirty-four of them and did not mention the forty seconds once, which i noticed on the stairs afterwards and have been sitting with since.\n\n**11-02** \u2014 gave tobias the file. told him it was archive from the building, 02:11 timestamp, use it under the middle section. he did not ask what it was of. crews do not, apparently. cut locked at 16:12 on monday.\n\n**10-31** \u2014 saturday. had the phone in my hand to ring ophelia and put it down again.\n\nyesterday on tobias's monitor sigrid cried at the end of her interview, properly, for a man who signed her pay slips. i have not cried once. not at the funeral, not at the forty seconds. i said *coward* out loud in the flat this afternoon, to nobody, and it was embarrassing and it was also accurate. the film is either the answer to that or a more elaborate way of not doing anything, and from in here i genuinely cannot tell which.\n\n**10-30** \u2014 fencing, gothersgade, tuesdays. first time back since june. the mask is dad's, the jacket is dad's, the blade is mine and it is the only one of the three that fits.\n\nlaertes was there and was decent to me in a way i had not earned. we did not bout. he asked after mum and i said fine, which is the word i have been using all month for a thing i have not looked at.\n\n**10-29** \u2014 decided about the film today, in about four seconds, standing in the corridor on nine. tobias wants archive for the middle section. i have forty seconds of archive. i can put it in the cut and sit in the room and watch claudius watch it.\n\nfelt something close to joy for about four hours. then felt like a coward for being that pleased with a plan that is still only a plan. i keep asking myself why i have not simply gone to the police with it, and the honest answer is that i do not have an answer i believe. the plan is better than the answer. that is the kind of sentence i would once have made fun of somebody for writing down.\n\n**10-28** \u2014 was cruel to ophelia at ursa and i am writing down exactly what i said because i want it on the record against me. she asked whether i was going to the offsite and i said \"you can tell your father i havent decided\". she said \"i wasnt asking for him\" and i said \"you never are\". then i left. i paid for her coffee on the way out, which is the most contemptible part of it.\n\nreynaldo has been asking about me in nordhavn. petra told me, not because she is on anyone's side but because she thought it was odd \u2014 a man asking the landlord what hours her tenant keeps.\n\n**10-27** \u2014 started being difficult on purpose to see who reports it. late to the ten o'clock, oblique in the eleven, cheerful at claudius in a way that is worse than rude. by four rosencrantz had asked horatio whether i was sleeping. so: eleven minutes and two floors, it turns out, is how long it takes.\n\ni am better at this than i expected and that bothers me.\n\n**10-26** \u2014 rosencrantz and guildenstern in reception at 08:40 with lanyards already printed. \"strategic review\". nobody commissioned a strategic review. guildenstern is always three steps behind and says the thing rosencrantz said, slower, as though he thought of it.\n\n**10-25** \u2014 sunday, nothing. walked to nordhavn and back along the water and ran the thirteen seconds for two hours, which is not thinking about it, it is just running the tape.\n\npetra was outside when i got back and mentioned, lightly, the way you mention weather, that a man had been asking her what hours i keep. i said that was odd. she said yes it was. neither of us said anything else about it and i have thought about nothing else since.\n\n**10-24** \u2014 opened the box marked *personal*. a laptop, a watch that has stopped at some time on some day, and a folder of printouts about the roskilde site that i do not understand yet and that he had no business taking home.\n\nput it all back. closed the box. this is the fourth time i have written down that i will start on monday.\n\n**10-23** \u2014 claudius in the lift at nine, on my way out to bispebjerg, smiling the good smile, the one for the board. a man can smile at you every morning in a lift and still be the shoulder in the frame. i am writing that down because i want to remember it, and i am afraid that if i see the smile enough mornings i will stop being able to.\n\nremember. that is the whole of the instruction, and nobody gave it to me. it is just what forty seconds says if you watch it enough times.\n\n**10-22** \u2014 horatio watched it with me at the flat, twice, then a third time with the sound off because the sound is just wind. he did not say much. what he said was \"we should know who that is before we say anything to anyone\", and i agreed, and then we sat there for a while not saying anything to anyone. the second figure is at 02:11:18 and gone by 02:11:31. thirteen seconds. shoulder, part of an arm, then the frame is empty and it stays empty for the rest of it.\n\ni have watched it enough times now that i can tell you what the pigeons do.\n\n**10-21** \u2014 marcellus asked me to come to ursa before his shift ended. 06:20, he was already at the back table with his coat on. he put his phone on the table face up and said \"this is from that night\" and i said i know what it is and he said \"no you dont\". forty seconds. 02:11. i have seen the still the inquest used. i had not seen the forty seconds.\n\nhe said he pulled it the week after and kept it because nobody asked him for it. that is the part i keep turning over. nobody asked him for it.\n\nam furious in a way that has nowhere to go and comes out as being late for things. was twenty minutes late to the eleven o'clock and could not have told you why.\n\n**10-20** \u2014 sigrid brought three boxes down from roskilde, left them in the hall, one marked *personal* in her handwriting which is her way of apologising. dad's laptop is in that one. i have not opened any of them. they are by the window.\n\nshe stayed eleven minutes. asked how mum was. i said fine. she said \"and you\" and i said fine and she looked at me the way she used to look at dad when he said he would be home by seven.\n"</script>
+<header>
+  <h1>What a hunk is</h1>
+  <div class="sub">one note, one snapshot at a time, one square each</div>
+</header>
+
+<div class="layout">
+
+  <div class="label l-label">note editor</div>
+  <span class="who name l-name">journal.md</span>
+  <label class="hint meta l-meta" id="hint" for="note-box"></label>
+  <textarea class="note l-box" id="note-box" spellcheck="false" autocomplete="off"
+            aria-describedby="hint"></textarea>
+  <div class="foot l-foot">
+    <div class="buttons">
+      <button class="chip" type="button" id="snap" disabled>Take snapshot of changes</button>
+      <button class="chip" type="button" id="reset" hidden>Reset</button>
+    </div>
+  </div>
+
+  <div class="label r-label">hunk viewer</div>
+  <div class="status r-status">
+    <div class="squares" id="squares" role="group" aria-label="One square per hunk"></div>
+    <span class="kind none" id="kind" aria-live="polite">No edits yet</span>
+  </div>
+  <span class="who name r-name">journal.md</span>
+  <span class="who when meta r-meta" id="when"></span>
+  <div class="r-box">
+    <div class="hunk" id="hunk">
+      <pre id="scroll"><code id="out" class="language-diff"></code></pre>
+    </div>
+  </div>
+  <div class="foot r-foot">
+    <p class="unit">
+    ⯅ A <b>hunk</b> is an edit made to a note, and its surrounding lines of context.
+    </p>
+  </div>
+
+</div>
+
+<script>
+const BASE = JSON.parse(document.getElementById("note").textContent);
+
+const box = document.getElementById("note-box");
+const hint = document.getElementById("hint");
+const squaresEl = document.getElementById("squares");
+const kindEl = document.getElementById("kind");
+const whenEl = document.getElementById("when");
+const hunkEl = document.getElementById("hunk");
+const scrollEl = document.getElementById("scroll");
+const outEl = document.getElementById("out");
+const snapBtn = document.getElementById("snap");
+const resetBtn = document.getElementById("reset");
+
+const NUM = new Intl.NumberFormat("en-US");
+// A wall clock, seconds included: two snapshots of one sitting are a minute or so apart and hours
+// and minutes alone would print the same time twice.
+const clock = (d) => d.toTimeString().slice(0, 8);
+
+// Splitting on newlines the way a diff tool counts lines: a note that ends in a newline ends
+// after its last line, not with an empty one after it. Taken literally, `split` hands back that
+// phantom line, and every line number and count below it comes out one past where `git diff`
+// puts it.
+const norm = (s) => (s === "" || s.endsWith("\n") ? s : s + "\n");
+const lines = (s) => {
+  const a = norm(s).split("\n");
+  if (a[a.length - 1] === "") a.pop();
+  return a;
+};
+
+// A line diff by longest common subsequence, with the shared head and tail taken off first so the
+// table covers only the part that moved. The note is a hundred-odd lines and an edit touches a
+// handful, so in practice the table is a few dozen cells wide. A paste large enough to make it
+// expensive is reported as the whole note replaced, which is what it is.
+const BUDGET = 4e6;
+function diff(a, b) {
+  let lo = 0;
+  while (lo < a.length && lo < b.length && a[lo] === b[lo]) lo++;
+  let hi = 0;
+  while (hi < a.length - lo && hi < b.length - lo &&
+         a[a.length - 1 - hi] === b[b.length - 1 - hi]) hi++;
+  const A = a.slice(lo, a.length - hi), B = b.slice(lo, b.length - hi);
+  const n = A.length, m = B.length, w = m + 1;
+  const ops = [];
+  for (let k = 0; k < lo; k++) ops.push([" ", a[k]]);
+  if (n * m > BUDGET) {
+    for (const s of A) ops.push(["-", s]);
+    for (const s of B) ops.push(["+", s]);
+  } else {
+    const dp = new Uint32Array((n + 1) * w);
+    for (let i = n - 1; i >= 0; i--) {
+      for (let j = m - 1; j >= 0; j--) {
+        dp[i * w + j] = A[i] === B[j]
+          ? dp[(i + 1) * w + j + 1] + 1
+          : Math.max(dp[(i + 1) * w + j], dp[i * w + j + 1]);
+      }
+    }
+    let i = 0, j = 0;
+    while (i < n && j < m) {
+      if (A[i] === B[j]) { ops.push([" ", A[i]]); i++; j++; }
+      // Ties go to the deletion, so a replaced line prints as the old line then the new one
+      // rather than the other way round — the order `git diff` puts them in.
+      else if (dp[(i + 1) * w + j] >= dp[i * w + j + 1]) { ops.push(["-", A[i]]); i++; }
+      else { ops.push(["+", B[j]]); j++; }
+    }
+    while (i < n) ops.push(["-", A[i++]]);
+    while (j < m) ops.push(["+", B[j++]]);
+  }
+  for (let k = a.length - hi; k < a.length; k++) ops.push([" ", a[k]]);
+  return ops;
+}
+
+// Unified-diff grouping: three lines of context either side, and two changes closer together than
+// six lines of context share a section rather than repeating the lines between them. This is why
+// editing two distant entries gives two `@@` sections in one hunk and editing one gives one.
+const CTX = 3;
+function hunks(ops) {
+  let ai = 1, bi = 1;
+  const ann = ops.map(([t, s]) => {
+    const e = { t, s, a: ai, b: bi };
+    if (t !== "+") ai++;
+    if (t !== "-") bi++;
+    return e;
+  });
+  const out = [];
+  let k = 0;
+  while (k < ann.length) {
+    if (ann[k].t === " ") { k++; continue; }
+    const start = Math.max(0, k - CTX);
+    let end = k;
+    for (;;) {
+      let next = end + 1;
+      while (next < ann.length && ann[next].t === " ") next++;
+      if (next < ann.length && next - end <= CTX * 2 + 1) end = next; else break;
+    }
+    end = Math.min(ann.length - 1, end + CTX);
+    const part = ann.slice(start, end + 1);
+    const aN = part.filter(o => o.t !== "+").length;
+    const bN = part.filter(o => o.t !== "-").length;
+    const aS = part.find(o => o.t !== "+");
+    const bS = part.find(o => o.t !== "-");
+    // A section that is pure insertion covers no lines of the old file, and git writes its start
+    // as the line it comes after — so, zero length at the line before. Likewise pure deletion.
+    out.push({
+      head: `@@ -${aN ? aS.a : part[0].a - 1},${aN} +${bN ? bS.b : part[0].b - 1},${bN} @@`,
+      lines: part.map(o => o.t + o.s),
+      // The line each row occupies in the edited note, for following the caret. A deleted line
+      // has no place in the new note, so it takes the number of the line now in its place.
+      nums: part.map(o => o.b),
+      add: part.filter(o => o.t === "+").length,
+      del: part.filter(o => o.t === "-").length,
+    });
+    k = end + 1;
+  }
+  return out;
+}
+
+// The chart's three kinds, decided here the way it decides them.
+function kindOf(list) {
+  let add = 0, del = 0;
+  for (const h of list) { add += h.add; del += h.del; }
+  return !list.length ? null : add && del ? "mixed" : add ? "added" : "removed";
+}
+
+// One span per line, classed by what the line did — the same four classes, in the same order,
+// that microlite-waffle.html builds its hunk box out of.
+function paint(list) {
+  outEl.textContent = "";
+  outEl.style.paddingTop = outEl.style.paddingBottom = "0px";
+  for (const h of list) {
+    const rows = [h.head, ...h.lines];
+    rows.forEach((line, i) => {
+      const span = document.createElement("span");
+      span.className = line.startsWith("@@") ? "ln-h"
+        : line.startsWith("+") ? "ln-a"
+        : line.startsWith("-") ? "ln-d"
+        : "ln-c";
+      span.textContent = line || " ";
+      // The header belongs to the section rather than to a line, so it takes the line the
+      // section starts at; the rest take their own.
+      span.dataset.b = i === 0 ? h.nums[0] : h.nums[i - 1];
+      // What the line did, for choosing which row the caret is really on. A header gets none,
+      // so it is never mistaken for a line of the note.
+      if (i > 0) span.dataset.op = line[0] === "+" || line[0] === "-" ? line[0] : " ";
+      outEl.appendChild(span);
+    });
+  }
+}
+
+function empty(msg) {
+  outEl.textContent = "";
+  outEl.style.paddingTop = outEl.style.paddingBottom = "0px";
+  const p = document.createElement("div");
+  p.className = "empty";
+  p.textContent = msg;
+  outEl.appendChild(p);
+}
+
+// How far the caret is below the top edge of the note box. A textarea will not say, so the text
+// in front of the caret is laid out a second time in a hidden twin with the note's own metrics
+// and wrap width, and the end of it is measured. Wrapping is why the line number alone will not
+// do: one line of this journal is a paragraph, and it occupies as many rows on screen as it needs.
+let mirror;
+function caretY() {
+  if (!mirror) {
+    mirror = document.createElement("div");
+    mirror.className = "mirror";
+    document.body.appendChild(mirror);
+  }
+  const cs = getComputedStyle(box);
+  for (const k of ["fontFamily", "fontSize", "fontWeight", "fontStyle", "lineHeight",
+                   "letterSpacing", "wordSpacing", "textTransform", "tabSize",
+                   "whiteSpace", "wordWrap", "overflowWrap", "wordBreak"]) {
+    mirror.style[k] = cs[k];
+  }
+  // Padding and border carried by hand rather than copied, so that what `offsetTop` measures
+  // from is the same edge on both boxes: no padding on the twin, and its width is the note's
+  // content width, which is what the note actually wraps at.
+  mirror.style.boxSizing = "content-box";
+  mirror.style.padding = "0";
+  mirror.style.border = "0";
+  const padL = parseFloat(cs.paddingLeft), padR = parseFloat(cs.paddingRight);
+  mirror.style.width = (box.clientWidth - padL - padR) + "px";
+  mirror.textContent = box.value.slice(0, box.selectionStart);
+  // A zero-width mark at the caret: its box is the row the caret is on.
+  const mark = mirror.appendChild(document.createElement("span"));
+  mark.textContent = "\u200b";
+  const down = parseFloat(cs.paddingTop) + parseFloat(cs.borderTopWidth) + mark.offsetTop;
+  return down - box.scrollTop;
+}
+
+// Put the hunk box on the line the caret is on — not merely in view, but at the same distance
+// down its box as the caret is down the note's. Side by side, where the two boxes start and end
+// together and carry the same border and padding, that is the same height on screen: the line
+// being edited and the line it turned into are on one level, and the eye goes straight across.
+//
+// Matched box to box rather than in page coordinates on purpose. Stacked on a narrow screen the
+// note sits hundreds of pixels above the hunk, and anchoring to where the caret is on the page
+// would ask the box to scroll by that gap as well.
+//
+// The target is the row for the caret's own line, and where a line was replaced there are two of
+// them at that line — the old one and the new one, one row apart. The added row is the one the
+// caret is actually on; the removed row above it is what used to be there. So: an addition at
+// that line, else a deletion at it (the caret's line only took things out), else the unchanged
+// row at it, else — the caret is inside a run that was deleted and has no line in the new note at
+// all, or it is parked far from anything that changed — the nearest changed row.
+function follow() {
+  const rows = [...outEl.querySelectorAll("span[data-op]")];
+  if (!rows.length) return;
+  const before = box.value.slice(0, box.selectionStart);
+  const caretLine = before.split("\n").length;
+  const col = before.length - (before.lastIndexOf("\n") + 1);
+  const at = (op) => rows.find(r => Number(r.dataset.b) === caretLine && r.dataset.op === op);
+  // The row whose text is the caret's line as it now reads. A deletion at that line is not it:
+  // it is what used to be there, so it is worth landing on but not worth measuring a column in.
+  const own = at("+") || at(" ");
+  let best = at("+") || at("-") || at(" ");
+  if (!best) {
+    let gap = Infinity;
+    for (const r of rows) {
+      if (r.dataset.op === " ") continue;
+      const d = Math.abs(Number(r.dataset.b) - caretLine);
+      if (d < gap) { gap = d; best = r; }
+    }
+  }
+  if (!best) return;
+  // A caret scrolled out of the note's own view — the reader moved it without typing, or wheeled
+  // the note away from it — has no place in the box to line up with. Held at the near edge, so
+  // the row lands at the top or the bottom instead of being sent past either.
+  const y = Math.max(0, Math.min(caretY(), box.getBoundingClientRect().height));
+  // Measured from a known origin — no padding, scrolled to the top — rather than from wherever
+  // the box happens to be sitting, so the sum below is a plain distance into the diff. Off the
+  // live rects rather than `offsetTop`, which is relative to whichever ancestor is positioned.
+  outEl.style.paddingTop = outEl.style.paddingBottom = "0px";
+  scrollEl.scrollTop = 0;
+  // Both offsets are taken from a border-box top, and the two boxes have the same border and
+  // padding, so putting the row y from the hunk's edge puts it on the caret's line.
+  const want = rowTop(best, best === own ? col : null)
+             - hunkEl.getBoundingClientRect().top - y;
+  // A change near either end of a short diff asks for a scroll the content cannot give: the row
+  // would come to rest a few lines off the caret, which is the one place the eye is not. So the
+  // diff is given the room it is short of, and no more — an edit in the middle of a long one
+  // needs none, and the box stays a plain box.
+  //
+  // How much room there already is. Not `scrollHeight`, which is floored at the box's own height:
+  // a diff shorter than the box reports none at all and would be left short of what it asked for.
+  // The content's own height says it plainly, and understating it — on a browser that counts the
+  // box's bottom padding in as well — only pads a little more than is needed.
+  const over = parseFloat(getComputedStyle(scrollEl).paddingTop)
+             + outEl.getBoundingClientRect().height - scrollEl.clientHeight;
+  // Room added above moves the row down with it, so the scroll takes the same amount back.
+  const above = Math.max(0, -want), below = Math.max(0, want - over);
+  outEl.style.paddingTop = above + "px";
+  outEl.style.paddingBottom = below + "px";
+  scrollEl.scrollTop = want + above;
+}
+
+// The top of the wrapped row that column `col` of `span` falls on. The note and the hunk box are
+// different widths, so one paragraph wraps into a different number of rows in each and the row
+// the caret is on is not the paragraph's first: a caret four rows into a paragraph belongs level
+// with the fourth row here, not with its top. A collapsed range at the same column finds it,
+// offset by one for the +, - or space the diff puts in front of every line. `col` is null when
+// the span is not the caret's line, and some positions a range cannot place, in which case the
+// line as a whole is the best that can be said.
+function rowTop(span, col) {
+  const whole = span.getBoundingClientRect().top;
+  const node = span.firstChild;
+  if (col === null || !node) return whole;
+  const r = document.createRange();
+  const i = Math.min(col + 1, node.length);
+  r.setStart(node, i);
+  r.setEnd(node, i);
+  const rect = r.getBoundingClientRect();
+  return rect.height ? rect.top : whole;
+}
+
+// ---------------------------------------------------------------------------------------------
+// The state is three things: the last snapshot taken, the hunks already closed over, and which
+// square the box is showing. microlite keeps every snapshot it has written; this only ever needs
+// the most recent one, because the diffs behind it are already worked out and do not change.
+let head;        // { text, at } — what the hunk in progress is measured against
+let done;        // closed hunks, oldest first: { t1, t2, list, kind }
+let picked;      // null = the hunk in progress; otherwise an index into `done`
+let touched;     // has the reader typed yet — only to decide what the hint says
+
+function start() {
+  head = { text: BASE, at: clock(new Date()) };
+  done = [];
+  picked = null;
+  touched = false;
+  box.value = BASE;
+  render();
+}
+
+// The hunk between the last snapshot and the note as it stands, or null when they are the same —
+// which is the state a fresh snapshot leaves behind, and the state the page opens in.
+function progress() {
+  const now = box.value;
+  if (norm(now) === norm(head.text)) return null;
+  const list = hunks(diff(lines(head.text), lines(now)));
+  return { t1: head.at, t2: clock(new Date()), list, kind: kindOf(list) };
+}
+
+function snapshot() {
+  const pend = progress();
+  if (!pend) return;                       // the button is disabled, but the keyboard is not
+  done.push(pend);
+  // The snapshot just taken is what the next hunk will be measured against, and its time is that
+  // hunk's opening time — so the times run end to end with no gaps, as microlite's do.
+  head = { text: box.value, at: pend.t2 };
+  // And the view moves to the hunk that snapshot opened, which is empty. The note on the left is
+  // now identical to the snapshot under it, so the box on the right saying there is no hunk yet
+  // is the two sides telling the reader the same thing. The hunk just closed does not go
+  // anywhere — its square is still there to be clicked.
+  picked = null;
+  render();
+}
+
+function render() {
+  const pend = progress();
+
+  // One square per closed hunk, then one for the hunk in progress — dark while there is nothing
+  // in it. The last square is always that one, so the row reads left to right as the note's
+  // history with the present on the end.
+  squaresEl.textContent = "";
+  const row = [...done, pend];
+  // The ring that marks the picked square is worth drawing only when there is another square it
+  // could have been.
+  if (row.length > 1) squaresEl.dataset.many = ""; else squaresEl.removeAttribute("data-many");
+  row.forEach((entry, i) => {
+    const live = i === done.length;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "square";
+    if (entry) b.dataset.kind = entry.kind;
+    b.setAttribute("aria-pressed", String(live ? picked === null : picked === i));
+    const label = live
+      ? (entry ? `The hunk in progress: ${entry.kind}, since ${entry.t1}`
+               : "No edits since the last snapshot — nothing in this hunk yet")
+      : `Hunk ${i + 1}: ${entry.kind}, ${entry.t1} to ${entry.t2}`;
+    b.title = label;
+    b.setAttribute("aria-label", label);
+    b.onclick = () => { picked = live ? null : i; render(); };
+    squaresEl.appendChild(b);
+  });
+
+  const shown = picked === null ? pend : done[picked];
+
+  kindEl.textContent = shown ? shown.kind
+    : done.length ? "No edits since the last snapshot" : "No edits yet";
+  kindEl.classList.toggle("none", !shown);
+  // The two snapshots this hunk is the difference between. For a closed hunk both times are
+  // fixed; for the one in progress the second is now, and counts on as the reader types.
+  whenEl.textContent = shown ? `${shown.t1} → ${shown.t2}` : "";
+
+  if (shown) paint(shown.list);
+  else if (done.length) empty("The note matches the last snapshot. Edit it to start the next hunk.");
+  else if (touched) empty("The note matches the snapshot — no hunk.");
+  else empty("Edit the note, and the resulting hunks appear here.");
+
+  // Following the caret only makes sense for the hunk being written; a closed one is not moving,
+  // so it opens at the top.
+  if (shown && picked === null) follow();
+  else scrollEl.scrollTop = 0;
+
+  snapBtn.disabled = !pend;
+  resetBtn.hidden = !done.length && !pend;
+
+  const now = box.value;
+  const words = now.trim() ? now.trim().split(/\s+/).length : 0;
+  hint.textContent = touched
+    ? `${NUM.format(words)} words · ${NUM.format(now.length)} characters`
+    : `${NUM.format(words)} words · click the note to edit it`;
+  if (!touched) hint.appendChild(document.createElement("b")).className = "caret";
+  hint.classList.toggle("touched", touched);
+}
+
+// One update per frame rather than one per keystroke: a burst of keys inside a frame draws once,
+// and the work still waits until the browser has finished with the key. On this note a render is
+// a couple of milliseconds, so the hunk keeps up with the caret rather than arriving after it.
+//
+// It is the reader's note, though, and they can paste whatever they like into it. A render that
+// costs more than a frame would hold up the next keystroke, so past that the updates are spaced
+// out instead — typing stays smooth and the hunk lands a moment later, which is the right way
+// round. The last render's cost decides, so it corrects itself in either direction.
+// Typing also moves the box back to the hunk in progress, since that is the one changing under
+// the reader's hands.
+let frame = 0, timer = 0, cost = 0;
+function soon() {
+  if (frame || timer) return;
+  if (cost > 16) timer = setTimeout(() => { timer = 0; draw(); }, Math.min(300, cost * 4));
+  else frame = requestAnimationFrame(() => { frame = 0; draw(); });
+}
+function draw() {
+  const t = performance.now();
+  render();
+  cost = performance.now() - t;
+}
+// Before a button acts on the note, so it acts on the note as it stands and not as it was.
+function settle() {
+  cancelAnimationFrame(frame);
+  clearTimeout(timer);
+  frame = timer = 0;
+}
+
+box.addEventListener("input", () => { touched = true; picked = null; soon(); });
+snapBtn.addEventListener("click", () => { settle(); snapshot(); });
+resetBtn.addEventListener("click", () => { settle(); start(); box.focus(); });
+start();
+</script>
+</body>
+</html>

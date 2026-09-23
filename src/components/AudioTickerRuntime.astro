@@ -1,0 +1,826 @@
+---
+// Makes an audio player in a post's Markdown play: a SoundCloud-style
+// waveform from wavesurfer.js (its "Soundcloud player" example, with the
+// progress drawn in the palette's --accent rather than SoundCloud orange)
+// after the play/pause control from plgcleanup.org's Ticker.astro.
+//
+// THE BUTTON'S STYLING IS MOSTLY NOT HERE. The .ticker* rules came over with
+// the rest of the Community Cleanup chrome and are still in
+// src/styles/chrome.css, untouched — both SVGs, their colours and the icon swap
+// on `.is-playing` look and behave exactly like the original. The overrides
+// below are the band's fixed height, which was sized for a line of text, not a
+// waveform, and the button drawn at 1.5× so it holds its own beside one.
+//
+// A POST WRITES ONE LINE:
+//
+//   <audio class="snippet" src="/files/<dir>/<name>.mp3" controls preload="none"></audio>
+//
+// and everything else — the button, both SVGs, the waveform — is built around
+// it here. `controls` is for the reader without script, who gets the browser's
+// own player instead of nothing; it is taken off once the real one is built.
+// scripts/audio-trim.mjs copies exactly this line to the clipboard on export.
+// Optional: `data-label` names the clip in the button's aria-label ("Play
+// <label>"), and `data-peaks` points somewhere other than the default below.
+//
+// A CLIP INSIDE A SENTENCE: add `snippet--inline` and the player is the button
+// alone — no band, no waveform, nothing the paragraph has to break for.
+//
+//   <audio class="snippet snippet--inline" src="…" data-label="…" controls preload="none"></audio>
+//
+// The sentence around it says what the clip is; `data-label` says the same
+// thing to a screen reader, through the button's "Play <label>". Give it one:
+// on its own the button reads as "Play audio sample", which is no use to
+// somebody who cannot hear it.
+//
+// OMITTED AUDIO: leave out `src` (and `controls`), give `data-peaks`, and the
+// waveform is drawn with the play button greyed out; hovering or focusing it
+// says why — `data-omitted`, or "Omitted for privacy". For a recording that is
+// shown but not published: only its peaks are in public/ (see the second form
+// in scripts/audio-peaks.mjs), a loudness outline at about one value a second,
+// from which nothing said can be recovered. Without script it renders nothing,
+// since an <audio> with no controls is invisible.
+//
+// THE <audio> ELEMENT IS THE ONE SOURCE OF TRUTH. wavesurfer is handed it as
+// `media` rather than making its own, so the waveform, the button and the
+// "one voice at a time" rule all follow the same element's events.
+//
+// THE MP3 IS NOT FETCHED ON LOAD. The waveform is drawn from peaks precomputed
+// by scripts/audio-peaks.mjs, found by convention beside the mp3
+// (<name>.peaks.json); the file itself is left to preload="none", which asks
+// for it on the first play. A clip with no peaks file still works — wavesurfer
+// falls back to fetching and decoding the mp3 — it just costs the download.
+//
+// NOTES ON THE WAVEFORM, SoundCloud-style: if the peaks file carries
+// `markers` ([{ t, text }]) and `selected` — written by scripts/audio-annotate.mjs
+// — each marker is a dot in a row above the waveform, and one note is shown,
+// with a line down from its dot. `selected` is pinned to begin with.
+// Hovering previews: whichever marker the pointer comes nearest — its dot, or
+// anywhere on the waveform within 5% of the width of it — is shown while the
+// pointer is there. A click (or tap) pins the one being previewed, and moving
+// away from the markers goes back to whichever is pinned. From the keyboard,
+// focusing a dot previews it and Enter or Space pins it. The pinned dot
+// carries a ring, so it is clear what the note will return to.
+//
+// WHY IT IS A COMPONENT AND NOT AN IMPORT IN Base.astro. Same as the runtimes
+// beside it: a cost that belongs to a kind of content, charged to the routes
+// that carry it. See the `hasAudio` check in src/pages/[slug].astro.
+---
+
+<style is:inline>
+  .ticker--audio {
+    height: auto;
+  }
+  /* The ticker's button at 1.5× — every dimension in chrome.css times 1.5, so
+     the icon keeps the same share of its hit area. The strokes are in viewBox
+     units and scale with it. */
+  .ticker--audio .ticker__toggle {
+    width: calc(2.696rem * 1.5);
+    height: calc(1.926rem * 1.5);
+  }
+  .ticker--audio .ticker__icon {
+    width: calc(1.926rem * 1.5);
+    height: calc(1.926rem * 1.5);
+  }
+  /* The same button in a line of prose, with the sentence around it doing the
+     describing. It started at 1.05em — an outlined circle reads smaller than
+     the letters it sits with, and 5% is the usual correction — and has been
+     taken up by 5% twice since, by eye. `middle` puts it on the text's own
+     midpoint (the baseline plus half an x-height), where an inline icon
+     belongs, and it is still short enough not to open the line up. */
+  .ticker--inline {
+    display: inline-flex;
+    width: auto;
+    height: auto;
+    margin-inline: 0.15em;
+    /* `middle` is the baseline plus half an x-height, which is lower than the
+       eye reads as the middle of a line: a bullet, and the body of the letters
+       themselves, sit above it. The lift puts the triangle's tip — the circle's
+       centre, and so the button's — on the middle of the bullet a clip is
+       listed under. 0.105em rather than a rounder number because the engines
+       do not agree on where a list marker goes: Blink wants 0.115em and WebKit
+       0.094em, half a pixel apart at 24px text, and this sits within a third of
+       a pixel of both. `top` on a relatively positioned box moves what is drawn
+       and nothing else, so no line opens up to make room. */
+    vertical-align: middle;
+    position: relative;
+    top: -0.105em;
+  }
+  /* font: inherit, because a <button> takes the UA's own font rather than the
+     paragraph's, and its `em` would otherwise measure against 13.33px. */
+  .ticker--inline .ticker__toggle {
+    font: inherit;
+    position: relative;
+  }
+  .ticker--inline .ticker__toggle,
+  .ticker--inline .ticker__icon {
+    width: calc(1.05em * 1.05 * 1.05);
+    height: calc(1.05em * 1.05 * 1.05);
+  }
+  /* The circle itself lands near 26px, but at the body sizes further down a
+     post it can fall under the 24px a finger needs (WCAG 2.5.8). The hit area
+     is grown past it with a pseudo-element, which takes no room in the line. */
+  .ticker--inline .ticker__toggle::after {
+    content: "";
+    position: absolute;
+    inset: -0.35em;
+  }
+  /* The played part of the outline, lying over the grey circle and hiding none
+     of it until a clip is played. Only the colour is here: the dash that
+     reveals it is in user units, written onto the element itself (see RING and
+     `wire`), because a browser that drops `stroke-dashoffset: calc(… var(…))`
+     — or the `pathLength` that made it a fraction — falls back to an offset of
+     0, and that is the whole ring in accent on a clip nobody has touched. No
+     transition either: the offset is set from a frame callback, and a
+     transition would only ever have it chasing the sound. */
+  .ticker__ring {
+    fill: none;
+    stroke: var(--accent);
+  }
+  /* The dial's track: grey whatever the pointer is doing, so what is accent on
+     the circle is only ever what has been played. It keeps the muted grey the
+     ticker gives a resting button; the glyph inside still goes accent under the
+     pointer, which is affordance enough for a button this size. */
+  .ticker__track {
+    stroke: var(--text-muted);
+  }
+  /* From the wavesurfer example, with its ids made classes so a post can carry
+     more than one player. min-height is wavesurfer's default height, held
+     while the peaks load so the page does not jump when they arrive. */
+  .waveform {
+    flex: 1;
+    min-width: 0;
+    min-height: 128px;
+    cursor: pointer;
+    position: relative;
+  }
+  .waveform__hover {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 10;
+    pointer-events: none;
+    height: 100%;
+    width: 0;
+    mix-blend-mode: overlay;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .waveform:hover .waveform__hover {
+    opacity: 1;
+  }
+  .waveform__time,
+  .waveform__duration {
+    position: absolute;
+    z-index: 11;
+    top: 50%;
+    margin-top: -1px;
+    transform: translateY(-50%);
+    /* The example's 11px, in the site's sans (Inter) rather than the body
+       serif the post would otherwise hand down. Tabular figures so the running
+       time does not twitch as its digits change. */
+    font-family: var(--font-chrome);
+    font-size: 11px;
+    letter-spacing: calc(0rem + var(--track-sans));
+    font-variant-numeric: tabular-nums;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 2px;
+    color: #ddd;
+  }
+  .waveform__time {
+    left: 0;
+  }
+  .waveform__duration {
+    right: 0;
+  }
+  /* Omitted: the ticker's button, greyed and inert, with a tooltip saying why.
+     aria-disabled rather than `disabled`, so it can still take focus and a
+     keyboard or screen-reader user gets the reason too. */
+  .ticker--omitted .ticker__toggle {
+    position: relative;
+    cursor: not-allowed;
+  }
+  .ticker--omitted .ticker__icon {
+    opacity: 0.4;
+  }
+  .ticker--omitted .ticker__toggle:hover,
+  .ticker--omitted .ticker__toggle:focus-visible {
+    color: var(--text-muted);
+  }
+  .ticker--omitted .ticker__toggle:hover .ticker__icon--play path + path,
+  .ticker--omitted .ticker__toggle:focus-visible .ticker__icon--play path + path {
+    fill: var(--text);
+  }
+  .ticker__tip {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 0.4rem);
+    /* Above the markers (12), whose dots and note it would otherwise fall
+       under, being earlier in the page. */
+    z-index: 13;
+    white-space: nowrap;
+    font-family: var(--font-chrome);
+    font-size: 0.8rem;
+    letter-spacing: calc(0rem + var(--track-sans));
+    color: var(--text);
+    background: var(--surface);
+    padding: 0.3rem 0.6rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+  .ticker__toggle:hover .ticker__tip,
+  .ticker__toggle:focus-visible .ticker__tip {
+    opacity: 1;
+  }
+  .ticker--omitted .waveform {
+    cursor: default;
+  }
+  .ticker--omitted .waveform__time,
+  .ticker--omitted .waveform__hover {
+    display: none;
+  }
+  /* Markers: a row of dots above the waveform (the padding makes room for it),
+     a line down from the shown one, and its note just under the dots. The note
+     sits at its marker's x, shifted left by the same fraction
+     (translateX(-x%)), so it never runs off either end. */
+  .waveform--annotated {
+    padding-top: 1rem;
+  }
+  .waveform--annotated .waveform__time,
+  .waveform--annotated .waveform__duration {
+    top: calc(50% + 0.5rem);
+  }
+  .waveform__markers {
+    position: absolute;
+    inset: 0;
+    z-index: 12;
+    pointer-events: none;
+  }
+  /* The dots sit --dot-drop below the top of the padding: taken off the
+     22px they were from the tallest bars in two 10% steps, 2.2px then 1.98px. */
+  .waveform__markers {
+    --dot-drop: 0.26125rem;
+  }
+  /* The row of dots adds 1rem above the waveform, which flex centring would
+     split between the button's top and bottom. A 1rem top margin takes it back,
+     so the button centres on the waveform alone. */
+  .ticker--annotated .ticker__toggle {
+    margin-top: 1rem;
+  }
+  .waveform__marker {
+    position: absolute;
+    top: var(--dot-drop);
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    transform: translateX(-50%);
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  .waveform__marker::before {
+    content: "";
+    position: absolute;
+    inset: 0.25rem;
+    border-radius: 50%;
+    background: var(--text-muted);
+    transition: background var(--dur-fast) var(--ease-out);
+  }
+  .waveform__marker[aria-current="true"]::before {
+    background: var(--accent);
+  }
+  .waveform__marker[aria-pressed="true"]::before {
+    box-shadow:
+      0 0 0 2px var(--bg),
+      0 0 0 3px var(--accent);
+  }
+  .waveform__line {
+    position: absolute;
+    top: calc(0.75rem + var(--dot-drop));
+    bottom: 0;
+    width: 1px;
+    background: var(--accent);
+  }
+  /* One line, cut short with an ellipsis if it must be, as SoundCloud does:
+     a wrapped note would climb over the time labels on a phone. The whole
+     text is always in the dot's aria-label. */
+  .waveform__note {
+    position: absolute;
+    top: 1.25rem;
+    max-width: min(100%, 24rem);
+    width: max-content;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-chrome);
+    font-size: 0.8rem;
+    line-height: 1.35;
+    letter-spacing: calc(0rem + var(--track-sans));
+    color: var(--text);
+    background: var(--surface);
+    padding: 0.3rem 0.6rem;
+  }
+  .waveform__note-time {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    margin-right: 0.4em;
+  }
+</style>
+
+<script>
+  import WaveSurfer from "wavesurfer.js";
+
+  // Rounds once, then splits — the wavesurfer example rounded only the
+  // seconds, so 119.9 s came out as "1:00" rather than "2:00".
+  const formatTime = (seconds: number) => {
+    const whole = Math.round(seconds);
+    return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
+  };
+
+  // The example's gradients. They are measured against a fresh canvas's
+  // default 150px height, not the waveform's — that is the example's
+  // arithmetic, and it is what puts the white line where it is.
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d")!;
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height * 1.35);
+  gradient.addColorStop(0, "#656666"); // Top color
+  gradient.addColorStop((canvas.height * 0.7) / canvas.height, "#656666"); // Top color
+  gradient.addColorStop((canvas.height * 0.7 + 1) / canvas.height, "#ffffff"); // White line
+  gradient.addColorStop((canvas.height * 0.7 + 2) / canvas.height, "#ffffff"); // White line
+  gradient.addColorStop((canvas.height * 0.7 + 3) / canvas.height, "#B1B1B1"); // Bottom color
+  gradient.addColorStop(1, "#B1B1B1"); // Bottom color
+
+  // The progress gradient is the example's shape in the current palette's
+  // --accent instead of SoundCloud orange: accent above the line, and below it
+  // the accent washed toward white, as the example's #F6B094 is to its #EB4926.
+  // Rebuilt whenever the palette changes, since a canvas gradient holds colours,
+  // not a reference to the custom property.
+  const WASH = 0.55;
+  function accentGradient() {
+    // Assigning any CSS colour to fillStyle reads it back as #rrggbb, which
+    // saves parsing whatever notation a palette happens to write it in.
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+    const accent = ctx.fillStyle;
+    const wash = (i: number) => {
+      const c = parseInt(accent.slice(i, i + 2), 16);
+      return Math.round(c + (255 - c) * WASH)
+        .toString(16)
+        .padStart(2, "0");
+    };
+    const bottom = `#${wash(1)}${wash(3)}${wash(5)}`;
+
+    const g = ctx.createLinearGradient(0, 0, 0, canvas.height * 1.35);
+    g.addColorStop(0, accent); // Top color
+    g.addColorStop((canvas.height * 0.7) / canvas.height, accent); // Top color
+    g.addColorStop((canvas.height * 0.7 + 1) / canvas.height, "#ffffff"); // White line
+    g.addColorStop((canvas.height * 0.7 + 2) / canvas.height, "#ffffff"); // White line
+    g.addColorStop((canvas.height * 0.7 + 3) / canvas.height, bottom); // Bottom color
+    g.addColorStop(1, bottom); // Bottom color
+    return g;
+  }
+
+  // The palette's colours are @property tokens that TRANSITION over --dur-fast
+  // (src/styles/palettes.css), so when data-palette changes, --accent still
+  // reads as the old colour. Wait out the transition before reading it, as
+  // src/components/MermaidRuntime.astro does for the same reason.
+  const settleMs = () => {
+    const value = getComputedStyle(document.documentElement).getPropertyValue("--dur-fast").trim();
+    const ms = parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
+    return (Number.isFinite(ms) ? ms : 250) + 32;
+  };
+
+  const players: WaveSurfer[] = [];
+  let queued: ReturnType<typeof setTimeout> | undefined;
+  new MutationObserver(() => {
+    clearTimeout(queued);
+    queued = setTimeout(() => {
+      const progressColor = accentGradient();
+      for (const p of players) p.setOptions({ progressColor });
+    }, settleMs());
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-palette"] });
+
+  // The ticker's button, SVGs from plgcleanup.org's Ticker.astro, with one
+  // change: the play triangle's three corners are sharp.
+  //
+  // Heroicons draws that triangle with its corners rounded off — a .375 arc at
+  // the tip and a .286 curve at each of the two on the left — which put the
+  // corners inside the triangle they were cut from. The `d` below is that
+  // triangle: the same three edges, run out to where they actually meet, at
+  // (9.75, 8.251), (16.5, 12) and (9.75, 15.749). Its centroid is the circle's
+  // centre, (12, 12), as the rounded one's was. The pause bars alongside are
+  // already square (stroke-linecap="square").
+  //
+  // THE OUTLINE IS ALSO THE CLIP'S TIMELINE. Over each circle lies a second
+  // copy of it, `.ticker__ring`, drawn in the accent and revealed a fraction at
+  // a time as the clip plays: the straight bar a player usually carries, bent
+  // into the ring that was already there. It is the dash trick every progress
+  // ring uses — one dash as long as the whole path, pulled back out of sight by
+  // the dash offset.
+  //
+  // The circle under it is the dial's track and keeps its own grey, `.ticker
+  // __track`: the ticker turned the whole outline accent on hover, which on a
+  // clip nobody had played read as a dial already run all the way round — and
+  // a reader hovers the button on the way to pressing it. The glyph inside
+  // still answers the pointer, which is affordance enough.
+  //
+  // A <circle> of the same centre and radius as the outline (12, 12, r 9),
+  // rather than another copy of its `d`: chrome.css reaches into these icons
+  // with `path + path` — to fill the triangle, to thicken the pause bars — and
+  // a second <path> in here is caught by all of it. It also goes last, since
+  // `+` wants the triangle and the bars to keep the outline as the sibling
+  // immediately before them. A circle starts at 3 o'clock, so the ring is
+  // turned a quarter back to fill clockwise from 12, where a clock hand and
+  // every other progress ring starts. Both icons carry one, since the pause
+  // icon is what is on screen while a clip plays. The ring is left full when
+  // the clip ends, which is how a played clip can be told from one not yet
+  // played.
+  // The dash is its own circumference, 2πr with r 9, and the offset starts at
+  // the same, which holds the whole ring back out of sight: a clip nobody has
+  // played shows the grey outline alone, and one played to the end shows the
+  // accent all the way round. `wire` measures the circle itself rather than
+  // trust this arithmetic, and then moves the offset as the clip plays.
+  const RING = `<circle class="ticker__ring" cx="12" cy="12" r="9" transform="rotate(-90 12 12)" stroke-dasharray="56.549" stroke-dashoffset="56.549"></circle>`;
+  const TOGGLE = `
+      <button class="ticker__toggle" type="button" aria-pressed="false">
+        <svg class="ticker__icon ticker__icon--play" width="22" height="22" viewBox="2.25 2.25 19.5 19.5" fill="none" stroke="currentColor" stroke-width="0.75" aria-hidden="true">
+          <path class="ticker__track" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
+          <path fill="currentColor" stroke="none" d="M9.75 8.251 16.5 12 9.75 15.749Z"></path>
+          ${RING}
+        </svg>
+        <svg class="ticker__icon ticker__icon--pause" width="22" height="22" viewBox="2.25 2.25 19.5 19.5" fill="none" stroke="currentColor" stroke-width="0.75" aria-hidden="true">
+          <path class="ticker__track" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
+          <path stroke-width="1.5" stroke-linecap="square" d="M14.25 10v4M9.75 10v4"></path>
+          ${RING}
+        </svg>
+      </button>`;
+
+  // That button with the wavesurfer example's waveform furniture beside it,
+  // and — for a clip inside a sentence — the button on its own, in a span so
+  // it can sit in a paragraph.
+  const PLAYER = `
+    <div class="ticker-bar"><div class="ticker ticker--audio">${TOGGLE}
+      <div class="waveform">
+        <div class="waveform__time">0:00</div>
+        <div class="waveform__duration">0:00</div>
+        <div class="waveform__hover"></div>
+      </div>
+    </div></div>`;
+  const INLINE = `<span class="ticker ticker--inline">${TOGGLE}</span>`;
+
+  type Marker = { t: number; text: string };
+  type Peaks = { duration: number; peaks: number[][]; markers?: Marker[]; selected?: number };
+
+  /** The saved notes, as dots along the bottom of the waveform with one shown. */
+  function drawMarkers(waveform: HTMLElement, { duration, markers = [], selected = 0 }: Peaks) {
+    if (!markers.length || !duration) return;
+    const layer = document.createElement("div");
+    layer.className = "waveform__markers";
+    const line = document.createElement("div");
+    line.className = "waveform__line";
+    const note = document.createElement("div");
+    note.className = "waveform__note";
+    const at = (t: number) => `${Math.min(100, Math.max(0, (t / duration) * 100))}%`;
+
+    const dots = markers.map((m, i) => {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "waveform__marker";
+      dot.style.left = at(m.t);
+      dot.setAttribute("aria-label", `${formatTime(m.t)}: ${m.text}`);
+      // Keyboard only: a pointer click bubbles to the waveform's handler below,
+      // which pins by position, the same rule as the preview it is pinning.
+      dot.addEventListener("focus", () => show(i));
+      dot.addEventListener("blur", () => show(pinned));
+      dot.addEventListener("click", (e) => {
+        if (e.detail !== 0) return;
+        e.stopPropagation();
+        pin(i);
+      });
+      return dot;
+    });
+
+    // The marker nearest the pointer — over a dot or anywhere on the waveform —
+    // if it is within REACH, as a fraction of the width; otherwise -1.
+    const REACH = 0.05;
+    const nearest = (e: MouseEvent) => {
+      const box = waveform.getBoundingClientRect();
+      const x = (e.clientX - box.left) / box.width;
+      let best = -1;
+      let gap = REACH;
+      markers.forEach((m, i) => {
+        const d = Math.abs(m.t / duration - x);
+        if (d <= gap) [best, gap] = [i, d];
+      });
+      return best;
+    };
+    waveform.addEventListener("pointermove", (e) => {
+      const i = nearest(e);
+      show(i === -1 ? pinned : i);
+    });
+    waveform.addEventListener("pointerleave", () => show(pinned));
+    // `click` rather than pointerdown, so it also arrives from a tap.
+    waveform.addEventListener("click", (e) => {
+      const i = nearest(e);
+      if (i !== -1) pin(i);
+    });
+
+    let pinned = Math.min(Math.max(0, selected), markers.length - 1);
+    function pin(i: number) {
+      pinned = i;
+      dots.forEach((d, j) => d.setAttribute("aria-pressed", String(j === i)));
+      show(i);
+    }
+
+    let shown = -1;
+    function show(i: number) {
+      if (i === shown) return;
+      shown = i;
+      const m = markers[i];
+      const x = at(m.t);
+      line.style.left = x;
+      note.style.left = x;
+      note.style.transform = `translateX(-${x})`;
+      const time = document.createElement("span");
+      time.className = "waveform__note-time";
+      time.textContent = formatTime(m.t);
+      note.replaceChildren(time, m.text);
+      dots.forEach((d, j) => d.setAttribute("aria-current", String(j === i)));
+    }
+
+    layer.append(line, note, ...dots);
+    waveform.classList.add("waveform--annotated");
+    waveform.closest(".ticker")?.classList.add("ticker--annotated");
+    waveform.append(layer);
+    pin(pinned);
+  }
+  const loadPeaks = (url: string) =>
+    fetch(url)
+      .then((r) => (r.ok ? (r.json() as Promise<Peaks>) : undefined))
+      .catch(() => undefined);
+
+  /** A recording shown but not published: the waveform, and a button that says why it will not play. */
+  function omit(
+    ticker: HTMLElement,
+    toggle: HTMLButtonElement,
+    waveform: HTMLElement,
+    durationEl: HTMLElement,
+    audio: HTMLAudioElement,
+    label: string,
+  ) {
+    const reason = audio.dataset.omitted ?? "Omitted for privacy";
+    ticker.classList.add("ticker--omitted");
+    toggle.removeAttribute("aria-pressed");
+    toggle.setAttribute("aria-disabled", "true");
+    toggle.setAttribute("aria-label", `${label}: ${reason.toLowerCase()}`);
+    const tip = document.createElement("span");
+    tip.className = "ticker__tip";
+    tip.setAttribute("aria-hidden", "true");
+    tip.textContent = reason;
+    toggle.append(tip);
+
+    if (!audio.dataset.peaks) return;
+    loadPeaks(audio.dataset.peaks).then((pre) => {
+      if (!pre) return;
+      players.push(
+        WaveSurfer.create({
+          container: waveform,
+          waveColor: gradient,
+          progressColor: gradient,
+          barWidth: 2,
+          interact: false,
+          peaks: pre.peaks,
+          duration: pre.duration,
+        }),
+      );
+      durationEl.textContent = formatTime(pre.duration);
+      drawMarkers(waveform, pre);
+    });
+  }
+
+  // FADES. A clip cut out of a letter can begin or break off mid-breath, and a
+  // media element switched on or off deals a step in the waveform that is heard
+  // as a click. 50 ms on and 100 ms off takes that edge off and is too short to
+  // be heard as a fade.
+  //
+  // Through Web Audio rather than `audio.volume`: iOS ignores writes to volume,
+  // and a gain ramp is scheduled on the audio clock instead of stepped from a
+  // frame callback. Routing an element through a context silences it while that
+  // context is suspended, so the context is made and woken inside the click
+  // that starts a clip, which is the gesture a browser wants to see.
+  const FADE_IN = 0.05;
+  const FADE_OUT = 0.1;
+  const gains = new WeakMap<HTMLAudioElement, GainNode>();
+  let context: AudioContext | undefined;
+
+  /** The clip's own gain, made the first time it is asked for. */
+  function gainFor(audio: HTMLAudioElement) {
+    const made = gains.get(audio);
+    if (made) return made;
+    const Ctx =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return undefined;
+    try {
+      context ??= new Ctx();
+      const gain = context.createGain();
+      context.createMediaElementSource(audio).connect(gain).connect(context.destination);
+      gains.set(audio, gain);
+      return gain;
+    } catch {
+      // Nothing was rerouted, so the clip still plays — just without the fades.
+      return undefined;
+    }
+  }
+
+  /** Lay the ramps down for what is about to be heard: on from silence, off into the end. */
+  function fade(audio: HTMLAudioElement) {
+    const gain = gains.get(audio);
+    if (!gain) return;
+    const now = gain.context.currentTime;
+    const level = gain.gain;
+    level.cancelScheduledValues(now);
+    level.setValueAtTime(0, now);
+    level.linearRampToValueAtTime(1, now + FADE_IN);
+    // Where the end falls on the audio clock. Math.max keeps the ramps in order
+    // when a clip is resumed with less than the two fades left to play.
+    const left = (audio.duration - audio.currentTime) / (audio.playbackRate || 1);
+    if (!Number.isFinite(left)) return;
+    const out = now + Math.max(FADE_IN, left - FADE_OUT);
+    level.setValueAtTime(1, out);
+    level.linearRampToValueAtTime(0, out + FADE_OUT);
+  }
+
+  /** The button: its icons and its label follow the audio, and it plays or pauses it. */
+  function wire(
+    ticker: HTMLElement,
+    toggle: HTMLButtonElement,
+    audio: HTMLAudioElement,
+    label: string,
+  ) {
+    const sync = () => {
+      const playing = !audio.paused && !audio.ended;
+      ticker.classList.toggle("is-playing", playing);
+      toggle.setAttribute("aria-pressed", String(playing));
+      toggle.setAttribute("aria-label", `${playing ? "Pause" : "Play"} ${label}`);
+    };
+    sync();
+    audio.addEventListener("play", sync);
+    audio.addEventListener("pause", sync);
+    audio.addEventListener("ended", sync);
+
+    // How much of the clip has gone, on the outline. Followed frame by frame
+    // while it plays — `timeupdate` comes about four times a second, which the
+    // eye reads as a ring that ticks rather than one that moves — and read off
+    // once more whenever the sound stops or jumps, so it settles exactly on
+    // what was played. Media elements go on reporting currentTime === duration
+    // after `ended`, so the full ring is simply what the last reading leaves.
+    const rings = [...ticker.querySelectorAll<SVGCircleElement>(".ticker__ring")].map((ring) => {
+      // The circle's own length, in the user units the dash is measured in.
+      const length = ring.getTotalLength() || 2 * Math.PI * ring.r.baseVal.value;
+      ring.style.strokeDasharray = String(length);
+      return { ring, length };
+    });
+    const draw = () => {
+      const { currentTime, duration } = audio;
+      const played = duration > 0 ? Math.min(1, currentTime / duration) : 0;
+      for (const { ring, length } of rings) {
+        ring.style.strokeDashoffset = String(length * (1 - played));
+      }
+    };
+    let frame = 0;
+    const follow = () => {
+      draw();
+      frame = requestAnimationFrame(follow);
+    };
+    audio.addEventListener("play", () => (frame ||= requestAnimationFrame(follow)));
+    for (const stop of ["pause", "ended"]) {
+      audio.addEventListener(stop, () => {
+        cancelAnimationFrame(frame);
+        frame = 0;
+        draw();
+      });
+    }
+    // The duration is unknown until the clip is asked for (preload="none"), and
+    // a seek can land anywhere while paused.
+    for (const settled of ["loadedmetadata", "durationchange", "seeked"]) {
+      audio.addEventListener(settled, draw);
+    }
+    draw();
+
+    // The ramps are laid down on `playing` rather than on the click: with
+    // preload="none" the sound starts some way after it, and after a stall it
+    // starts again, which should fade in too.
+    audio.addEventListener("playing", () => fade(audio));
+    for (const moved of ["seeked", "ratechange"]) {
+      audio.addEventListener(moved, () => {
+        if (!audio.paused) fade(audio);
+      });
+    }
+    // A fade-out left scheduled would come due while the clip is stopped, and
+    // silence the beginning of whatever plays next.
+    audio.addEventListener("pause", () => {
+      const gain = gains.get(audio);
+      if (!gain) return;
+      gain.gain.cancelScheduledValues(gain.context.currentTime);
+      gain.gain.setValueAtTime(1, gain.context.currentTime);
+    });
+
+    const play = () => {
+      // One voice at a time.
+      for (const other of document.querySelectorAll("audio")) if (other !== audio) other.pause();
+      // Inside the click, so the context is allowed to start.
+      gainFor(audio);
+      context?.resume();
+      audio.play();
+    };
+
+    toggle.addEventListener("click", () => {
+      if (audio.paused) play();
+      else audio.pause();
+      toggle.classList.add("is-activated");
+    });
+    return play;
+  }
+
+  /** Builds `html` and puts it where the audio was, with the audio inside it. */
+  function mount(audio: HTMLAudioElement, html: string, replace: Element = audio) {
+    const host = document.createElement("div");
+    host.innerHTML = html;
+    const root = host.firstElementChild as HTMLElement;
+    replace.replaceWith(root);
+    audio.removeAttribute("controls");
+    (root.querySelector(".ticker") ?? root).prepend(audio);
+    return root;
+  }
+
+  for (const audio of document.querySelectorAll<HTMLAudioElement>("audio.snippet")) {
+    // A clip inside a sentence: the button alone, in the audio's own place, so
+    // the paragraph closes back over it.
+    if (audio.classList.contains("snippet--inline")) {
+      const ticker = mount(audio, INLINE);
+      const toggle = ticker.querySelector<HTMLButtonElement>(".ticker__toggle")!;
+      wire(ticker, toggle, audio, audio.dataset.label ?? "audio sample");
+      continue;
+    }
+
+    // An <audio> alone on a line is inline HTML to Markdown, so it arrives
+    // wrapped in a <p>. Replace the paragraph rather than nest the player in it.
+    const host = audio.parentElement;
+    const alone =
+      host instanceof HTMLParagraphElement &&
+      [...host.childNodes].every((n) => n === audio || !n.textContent?.trim());
+    const ticker = mount(audio, PLAYER, alone ? host : audio).querySelector<HTMLElement>(
+      ".ticker",
+    )!;
+
+    const toggle = ticker.querySelector<HTMLButtonElement>(".ticker__toggle")!;
+    const waveform = ticker.querySelector<HTMLElement>(".waveform")!;
+    const hover = waveform.querySelector<HTMLElement>(".waveform__hover")!;
+    const timeEl = waveform.querySelector<HTMLElement>(".waveform__time")!;
+    const durationEl = waveform.querySelector<HTMLElement>(".waveform__duration")!;
+    const src = audio.getAttribute("src");
+    const label = audio.dataset.label ?? "audio sample";
+
+    if (!src) {
+      omit(ticker, toggle, waveform, durationEl, audio, label);
+      continue;
+    }
+
+    const play = wire(ticker, toggle, audio, label);
+
+    // Measured against the waveform, not the event target, so passing over a
+    // marker dot does not throw the overlay off.
+    waveform.addEventListener(
+      "pointermove",
+      (e) => (hover.style.width = `${e.clientX - waveform.getBoundingClientRect().left}px`),
+    );
+
+    loadPeaks(audio.dataset.peaks ?? src.replace(/\.mp3$/, ".peaks.json")).then((pre) => {
+      const wavesurfer = WaveSurfer.create({
+        container: waveform,
+        media: audio,
+        waveColor: gradient,
+        progressColor: accentGradient(),
+        barWidth: 2,
+        url: src,
+        ...(pre && { peaks: pre.peaks, duration: pre.duration }),
+      });
+      players.push(wavesurfer);
+      if (pre) drawMarkers(waveform, pre);
+
+      // A click seeks there (wavesurfer does that itself) and plays from
+      // that point. Unlike the example, it never pauses: a click ahead while
+      // playing carries on from the new spot. Pausing is the button's job.
+      wavesurfer.on("interaction", () => {
+        if (audio.paused) play();
+      });
+
+      wavesurfer.on("decode", (d) => (durationEl.textContent = formatTime(d)));
+      wavesurfer.on("timeupdate", (t) => (timeEl.textContent = formatTime(t)));
+    });
+  }
+</script>

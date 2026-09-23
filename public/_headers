@@ -4,6 +4,14 @@
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
 
+# The standalone chart pages a post frames with <iframe src="/files/…">. `/*` above forbids
+# framing outright, which is right for every page of the site and wrong for exactly these, so
+# it is detached here and replaced with the CSP spelling: this origin may frame them, nobody
+# else may.
+/files/*
+  ! X-Frame-Options
+  Content-Security-Policy: frame-ancestors 'self'
+
 # The Atom feed.
 #
 # Pages types a .xml file as `application/xml` from its extension, which readers

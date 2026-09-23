@@ -17,6 +17,9 @@ import Prose from "../components/Prose.astro";
 import Toc from "../components/Toc.astro";
 import MermaidRuntime from "../components/MermaidRuntime.astro";
 import YouTubeRuntime from "../components/YouTubeRuntime.astro";
+import DeferredFrames from "../components/DeferredFrames.astro";
+import AudioTickerRuntime from "../components/AudioTickerRuntime.astro";
+import CopyRuntime from "../components/CopyRuntime.astro";
 import NewsletterSignup from "../components/NewsletterSignup.astro";
 import { getCollection, render } from "astro:content";
 import { getImage } from "astro:assets";
@@ -52,6 +55,20 @@ const hasMermaid = /^\s*```mermaid\s*$/m.test(post.body ?? "");
 // src/components/YouTubeRuntime.astro for what it loads and why the embed is
 // a facade rather than an iframe.
 const hasYouTube = /<lite-youtube[\s>]/.test(post.body ?? "");
+
+// And once more for a framed chart the post wants held back until the reader
+// reaches it, which it says by writing `data-src` on the <iframe> in place of
+// `src`. See src/components/DeferredFrames.astro for what that is worth and
+// why <iframe loading="lazy"> is not enough on its own.
+const hasDeferredFrame = /<iframe[^>]*\sdata-src=/.test(post.body ?? "");
+
+// And for an audio clip, which a post writes as a one-line <audio class="snippet">.
+// See src/components/AudioTickerRuntime.astro.
+const hasAudio = /<audio[\s>]/.test(post.body ?? "");
+
+// And for a quote the reader is meant to take away, which a post says by
+// wrapping it in a <div class="copyable">. See src/components/CopyRuntime.astro.
+const hasCopyable = /class="[^"]*\bcopyable\b/.test(post.body ?? "");
 
 // WHAT A LINK TO THIS POST PREVIEWS AS, in three steps — see src/lib/og.ts.
 //
@@ -172,6 +189,9 @@ if (post.data.ogImage) {
 
   {hasMermaid && <MermaidRuntime />}
   {hasYouTube && <YouTubeRuntime />}
+  {hasDeferredFrame && <DeferredFrames />}
+  {hasAudio && <AudioTickerRuntime />}
+  {hasCopyable && <CopyRuntime />}
 
   {
     /* After the article, never before it — the same reasoning as on /writing:

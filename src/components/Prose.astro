@@ -582,6 +582,14 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     margin-inline: auto;
   }
 
+  /* A figure marked class="half" in the Markdown: half the measure, centred,
+     for a picture that would tower over the text at full width (a portrait
+     photograph, say). The caption keeps to the same width as the image. */
+  .prose :global(figure.half) {
+    width: 50%;
+    margin-inline: auto;
+  }
+
   /* ── Legacy figures drawn for a white page ────────────────────────────────
      The six diagrams in these posts date from 2016–2021, when jaan.io had a
      light background, and every one of them is pure black line art with no
@@ -644,6 +652,41 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     border: 0;
   }
 
+  /* A framed chart that wants more room than the measure: out to 75vw, centred
+     on the column, and never narrower than it. From 1401px, on a post that has
+     a TOC rail, the rail stands fixed in the left gutter, so there the frame's
+     left edge stops a rem past the rail's right edge — Toc.astro's own `left`
+     and `width`, written out again — while its right edge stays put. The frame
+     narrows from the left only, and a chart page framed this way sizes its
+     chart from the full width, so the width it gives up comes out of the panel
+     beside the chart rather than the chart.
+
+     The selector is one :global() on purpose. Written as
+     `.prose:has(:global(.toc))`, Astro passed the inner :global() through
+     as-is, the browser read it as an unknown pseudo-class and dropped the
+     whole rule, and the frame ran under the rail at every width. */
+  .prose :global(iframe.wide) {
+    --wide: max(100%, 75vw);
+    width: var(--wide);
+    max-width: none;
+    margin-inline: calc((100% - var(--wide)) / 2);
+  }
+
+  @media (min-width: 1401px) {
+    :global(.prose:has(.toc) iframe.wide) {
+      /* Viewport x of the rail's right edge, and the rem past it. */
+      --rail: calc(
+        (100vw - var(--chrome-w)) / 2 +
+          min(15rem, (100vw - var(--reading-w)) / 2 - var(--edge) - 2rem) + 1rem
+      );
+      /* Viewport x of the frame's left edge: where centring put it, or past
+         the rail if that is further right. */
+      --left: max((100vw - var(--wide)) / 2, var(--rail));
+      width: calc((100vw + var(--wide)) / 2 - var(--left));
+      margin-inline: calc(var(--left) - (100vw - 100%) / 2) calc((100% - var(--wide)) / 2);
+    }
+  }
+
   .prose :global(code) {
     font-size: 0.9em;
     padding: 0.15em 0.35em;
@@ -661,6 +704,93 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
   .prose :global(pre code) {
     padding: 0;
     background: none;
+  }
+
+  /* ── A hunk, in the running text ──────────────────────────────────────────
+     A specimen diff, written by hand in the Markdown as <figure class="hunk">
+     holding one <code> per line — see the lifelogging post, under the sentence
+     that says what a hunk is. Elements rather than spans inside one <pre>
+     because these lines are display:block: in a preformatted box the newline
+     BETWEEN two block spans is still a line of its own, so the diff would come
+     out double-spaced unless the whole thing were written on a single source
+     line. Out of a pre, the newlines are ordinary collapsible whitespace and
+     each line carries its own `white-space: pre` for the leading column.
+
+     THE COLOURS ARE COPIED, NOT APPROXIMATED, from the hunk box in
+     public/files/lifelogging/what-is-a-hunk.html, which took them from
+     microlite-waffle.html: violet header, green addition, red deletion, muted
+     context. A hunk in the prose and a hunk in either frame below it are then
+     the same object drawn the same way, which is the only reason to put one
+     here rather than let the frame do all the explaining.
+
+     Literal hex on a page whose palette a reader can change, because every
+     pair is self-contained: the line paints its own background, so it never
+     lands on --bg and no palette can break it. Only the plate around them is
+     tokenised. The light set is the chart page's own, swapped in behind the
+     same `-light` test --figure-invert is switched by (palettes.css) — two
+     full sets, so this one cannot be folded into a token the way that one
+     was. */
+  .prose :global(figure.hunk) {
+    --hunk-head: #d2a8ff;
+    --hunk-head-bg: #2b1f45;
+    --hunk-add: #aff5b4;
+    --hunk-add-bg: #0f3a1d;
+    --hunk-del: #ffdcd7;
+    --hunk-del-bg: #5a1219;
+    /* Only as wide as its longest line, centred under the paragraph: a
+       five-line diff stretched across the measure reads as a code block rather
+       than as the small thing the sentence above it is pointing at. */
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+    padding-block: 0.75rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    overflow-x: auto;
+  }
+
+  :root[data-palette$="-light"] .prose :global(figure.hunk) {
+    --hunk-head: #8250df;
+    --hunk-head-bg: #f3eefd;
+    --hunk-add: #116329;
+    --hunk-add-bg: #e6ffec;
+    --hunk-del: #a40e26;
+    --hunk-del-bg: #ffebe9;
+  }
+
+  /* `width: max-content` with `min-width: 100%` so a line's fill runs the whole
+     width of the box whether it is shorter than the box or longer than it: the
+     short ones stretch to the visible width, and a long one keeps its colour
+     all the way out to the end of the scroll rather than stopping at the edge
+     of the frame. */
+  .prose :global(.hunk code) {
+    display: block;
+    width: max-content;
+    min-width: 100%;
+    padding: 0 0.75rem;
+    background: none;
+    line-height: 1.45;
+    white-space: pre;
+  }
+
+  .prose :global(.hunk .ln-h) {
+    color: var(--hunk-head);
+    background: var(--hunk-head-bg);
+    font-weight: 700;
+  }
+
+  .prose :global(.hunk .ln-a) {
+    color: var(--hunk-add);
+    background: var(--hunk-add-bg);
+  }
+
+  .prose :global(.hunk .ln-d) {
+    color: var(--hunk-del);
+    background: var(--hunk-del-bg);
+  }
+
+  .prose :global(.hunk .ln-c) {
+    color: var(--text-muted);
   }
 
   .prose :global(table) {
@@ -710,7 +840,6 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
     padding-top: 1.5rem;
     border-top: 1px solid var(--line);
     font-size: var(--fs-sm);
-    color: var(--text-muted);
   }
 
   .prose :global(.footnotes h2) {
@@ -726,6 +855,7 @@ const { backHref = null, backLabel = "← Back home" } = Astro.props;
 
   /* The little ↩ backlink after each definition. */
   .prose :global(.data-footnote-backref) {
+    color: var(--text);
     text-decoration: none;
     margin-left: 0.25rem;
   }

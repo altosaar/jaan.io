@@ -1,0 +1,781 @@
+<!doctype html>
+<!--
+  The page scripts/audio-trim.mjs serves. Local authoring tool only — never
+  part of the site build. wavesurfer.js and its plugins are served by that
+  script straight out of node_modules, at /vendor/.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Audio trim</title>
+    <style>
+      :root {
+        --bg: #111;
+        --panel: #1b1b1b;
+        --line: #2c2c2c;
+        --text: #e2e2e2;
+        --muted: #9a9a96;
+        --accent: #24cb71;
+        --cut: #eb4926;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.45 Inter,
+          system-ui,
+          sans-serif;
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        height: 100vh;
+      }
+      aside {
+        border-right: 1px solid var(--line);
+        overflow-y: auto;
+        padding: 12px 0;
+      }
+      aside h2,
+      main h2 {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0 16px 8px;
+      }
+      main h2 {
+        margin: 0 0 8px;
+      }
+      .file {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: 0;
+        color: var(--text);
+        font: inherit;
+        padding: 6px 16px;
+        cursor: pointer;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .file small {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .file:hover {
+        background: var(--panel);
+      }
+      .file[aria-current="true"] {
+        background: var(--panel);
+        box-shadow: inset 3px 0 0 var(--accent);
+      }
+      main {
+        overflow-y: auto;
+        padding: 20px 28px 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 16px;
+      }
+      header h1 {
+        font-size: 18px;
+        margin: 0;
+        overflow-wrap: anywhere;
+      }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        text-align: right;
+      }
+      #wave {
+        background: var(--panel);
+        border-radius: 4px;
+        min-height: 200px;
+      }
+      #wave:empty::before {
+        content: "Pick a file on the left.";
+        display: block;
+        padding: 88px 0;
+        text-align: center;
+        color: var(--muted);
+      }
+      .readout {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 28px;
+        font-variant-numeric: tabular-nums;
+      }
+      .readout span {
+        color: var(--muted);
+      }
+      .readout b {
+        font-weight: 500;
+      }
+      .speed {
+        display: flex;
+        margin-left: auto;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .speed button {
+        background: none;
+        border: 0;
+        border-left: 1px solid var(--line);
+        color: var(--muted);
+        font: inherit;
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+        padding: 2px 9px;
+        cursor: pointer;
+      }
+      .speed button:first-child {
+        border-left: 0;
+      }
+      .speed button[aria-pressed="true"] {
+        background: var(--accent);
+        color: #000;
+        font-weight: 600;
+      }
+      form {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      input[type="text"] {
+        flex: 1;
+        min-width: 240px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        color: var(--text);
+        font: inherit;
+        padding: 8px 10px;
+        border-radius: 4px;
+      }
+      input[type="text"]:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: -1px;
+      }
+      label {
+        color: var(--muted);
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        cursor: pointer;
+      }
+      button.primary {
+        background: var(--accent);
+        color: #000;
+        border: 0;
+        font: inherit;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button.primary:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .keys {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 4px 20px;
+        color: var(--muted);
+        font-size: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      kbd {
+        display: inline-block;
+        min-width: 22px;
+        text-align: center;
+        font:
+          11px/1.6 ui-monospace,
+          Menlo,
+          monospace;
+        color: var(--text);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 0 5px;
+        margin-right: 6px;
+      }
+      .swatch {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        margin-right: 4px;
+        vertical-align: -1px;
+      }
+      #status {
+        min-height: 20px;
+        color: var(--muted);
+      }
+      #status.error {
+        color: var(--cut);
+      }
+      .result {
+        background: var(--panel);
+        border-radius: 4px;
+        padding: 12px 14px;
+        display: grid;
+        gap: 8px;
+      }
+      .result .meta {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        align-items: center;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .result .meta strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .tag {
+        font-size: 11px;
+        padding: 1px 6px;
+        border-radius: 3px;
+        border: 1px solid currentColor;
+      }
+      .tag.lossless {
+        color: var(--accent);
+      }
+      .tag.encoded {
+        color: #f0b429;
+      }
+      .result code {
+        font:
+          12px/1.5 ui-monospace,
+          Menlo,
+          monospace;
+        background: var(--bg);
+        padding: 6px 8px;
+        border-radius: 3px;
+        overflow-x: auto;
+        white-space: nowrap;
+        display: block;
+        flex: 1;
+      }
+      .result .embed {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .result button {
+        background: none;
+        border: 1px solid var(--line);
+        color: var(--text);
+        font: inherit;
+        font-size: 12px;
+        padding: 5px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      .result audio {
+        width: 100%;
+        height: 32px;
+      }
+      /* Regions: the plugin draws them in its shadow DOM, so these reach in by part. */
+      #wave ::part(region) {
+        font-size: 11px;
+        padding: 2px 4px;
+        color: var(--text);
+      }
+      #wave ::part(region-handle) {
+        border-color: rgba(255, 255, 255, 0.6) !important;
+      }
+    </style>
+  </head>
+  <body>
+    <aside>
+      <h2>Files</h2>
+      <div id="files"></div>
+    </aside>
+    <main>
+      <header>
+        <h1 id="title">Audio trim</h1>
+        <p id="paths"></p>
+      </header>
+
+      <div id="wave"></div>
+
+      <div class="readout">
+        <div><span>Cursor</span> <b id="cursor">–</b></div>
+        <div><span>Selected</span> <b id="selection">–</b></div>
+        <div><span>Output</span> <b id="output">–</b></div>
+        <div class="speed" id="speed" role="group" aria-label="Playback speed"></div>
+      </div>
+
+      <form id="export">
+        <input
+          type="text"
+          id="name"
+          placeholder="snippet name → <name>.mp3"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <label
+          title="Decodes and re-encodes once, with a short fade on every edge so cuts cannot click"
+        >
+          <input type="checkbox" id="fade" /> Fade edges (re-encodes)
+        </label>
+        <button class="primary" id="go" type="submit" disabled>Export ⏎</button>
+      </form>
+      <div id="status" role="status"></div>
+
+      <section>
+        <h2>Keys</h2>
+        <ul class="keys">
+          <li>
+            <kbd>drag</kbd>mark a stretch to
+            <span class="swatch" style="background: var(--accent)"></span>keep
+          </li>
+          <li>
+            <kbd>drag</kbd>inside a keep: mark a
+            <span class="swatch" style="background: var(--cut)"></span>cut
+          </li>
+          <li><kbd>X</kbd>selected: keep ↔ cut</li>
+          <li><kbd>⌫</kbd>delete selected stretch</li>
+          <li><kbd>space</kbd>play selected stretch / pause</li>
+          <li><kbd>R</kbd>play the result, cuts skipped</li>
+          <li><kbd>P</kbd>play / pause from the cursor</li>
+          <li><kbd>scroll</kbd>zoom · <kbd>0</kbd>fit whole file</li>
+          <li><kbd>,</kbd><kbd>.</kbd>slower / faster (pitch kept)</li>
+          <li><kbd>⏎</kbd>export · <kbd>esc</kbd>stop, deselect</li>
+          <li><kbd>↑</kbd><kbd>↓</kbd>previous / next file</li>
+        </ul>
+      </section>
+
+      <section id="results" hidden>
+        <h2>Exported this session</h2>
+        <div id="result-list" style="display: grid; gap: 10px"></div>
+      </section>
+    </main>
+
+    <script type="module">
+      import WaveSurfer from "/vendor/wavesurfer.esm.js";
+      import RegionsPlugin from "/vendor/plugins/regions.esm.js";
+      import TimelinePlugin from "/vendor/plugins/timeline.esm.js";
+      import ZoomPlugin from "/vendor/plugins/zoom.esm.js";
+      import MinimapPlugin from "/vendor/plugins/minimap.esm.js";
+
+      const KEEP = "rgba(36, 203, 113, 0.22)";
+      const CUT = "rgba(235, 73, 38, 0.38)";
+      const $ = (id) => document.getElementById(id);
+
+      const fmt = (t) => {
+        if (!Number.isFinite(t)) return "–";
+        const m = Math.floor(t / 60);
+        const s = (t - m * 60).toFixed(2).padStart(5, "0");
+        return `${m}:${s}`;
+      };
+
+      // ── state ──────────────────────────────────────────────────────────────
+      let files = [];
+      let current = null; // file name
+      let selected = null; // Region
+      let playingResult = null; // spans being auditioned by R
+      // True from open() until the new file has decoded. Until then the waveform
+      // on screen, and the duration regions are measured against, are still the
+      // previous file's — so nothing can be drawn or exported.
+      let loading = false;
+      const kind = new Map(); // region id → "keep" | "cut"
+
+      // ── waveform ───────────────────────────────────────────────────────────
+      const regions = RegionsPlugin.create();
+      const ws = WaveSurfer.create({
+        container: "#wave",
+        height: 180,
+        waveColor: "#7b7b7b",
+        progressColor: "#b9b9b9",
+        cursorColor: "#24cb71",
+        cursorWidth: 2,
+        normalize: true,
+        dragToSeek: false,
+        plugins: [
+          regions,
+          TimelinePlugin.create({ style: { color: "#9a9a96", fontSize: "11px" } }),
+          ZoomPlugin.create({ scale: 0.25, maxZoom: 2000, exponentialZooming: true }),
+          MinimapPlugin.create({
+            height: 28,
+            waveColor: "#444",
+            progressColor: "#777",
+            insertPosition: "beforebegin",
+          }),
+        ],
+      });
+      // Not draggable as a whole: a drag that starts inside a region draws a
+      // new one (a cut inside a keep), rather than sliding the old one along.
+      // Edges still resize by their handles.
+      regions.enableDragSelection({ color: KEEP, drag: false });
+
+      // ── regions ────────────────────────────────────────────────────────────
+      const label = (r) => r.setContent(kind.get(r.id) === "cut" ? "cut" : "keep");
+
+      // Regions live in wavesurfer's shadow DOM, out of reach of this page's
+      // stylesheet, so the selection outline is set on the element itself.
+      const select = (r) => {
+        if (selected?.element) selected.element.style.outline = "";
+        selected = r;
+        if (r?.element) {
+          r.element.style.outline = "1px solid #e2e2e2";
+          r.element.style.outlineOffset = "-1px";
+        }
+        update();
+      };
+
+      // Let pointer events fall through a region's body to the waveform, so
+      // a drag over it starts a new region; only the edge handles catch them.
+      const passThrough = (r) => {
+        if (!r.element) return;
+        r.element.style.pointerEvents = "none";
+        for (const h of r.element.querySelectorAll('[part*="region-handle"]'))
+          h.style.pointerEvents = "all";
+      };
+
+      // A stretch drawn entirely inside a kept one is most likely meant to
+      // come out of it, so it starts as a cut. X flips it either way.
+      const inside = (r) =>
+        regions
+          .getRegions()
+          .some((o) => o !== r && kind.get(o.id) !== "cut" && o.start <= r.start && o.end >= r.end);
+
+      // A drag that begins while a file is loading is measured against the old
+      // duration, even if it ends after the load: drop it either way.
+      const stale = new WeakSet();
+      regions.on("region-initialized", (r) => loading && stale.add(r));
+      regions.on("region-created", (r) => {
+        if (loading || stale.has(r)) return r.remove();
+        passThrough(r);
+        if (!kind.has(r.id)) kind.set(r.id, inside(r) ? "cut" : "keep");
+        r.setOptions({ color: kind.get(r.id) === "cut" ? CUT : KEEP });
+        label(r);
+        select(r);
+      });
+      regions.on("region-updated", update);
+      regions.on("region-removed", (r) => {
+        kind.delete(r.id);
+        if (selected === r) selected = null;
+        update();
+      });
+
+      const setKind = (r, k) => {
+        kind.set(r.id, k);
+        r.setOptions({ color: k === "cut" ? CUT : KEEP });
+        label(r);
+        update();
+      };
+
+      /**
+       * What the export will contain: the kept stretches (or the whole file
+       * when none are marked), merged where they overlap, minus the cuts —
+       * in time order.
+       */
+      function spans() {
+        const dur = ws.getDuration();
+        if (!dur) return [];
+        const all = regions.getRegions();
+        const merge = (list) =>
+          list
+            .sort((a, b) => a[0] - b[0])
+            .reduce((acc, [s, e]) => {
+              const last = acc[acc.length - 1];
+              if (last && s <= last[1]) last[1] = Math.max(last[1], e);
+              else acc.push([s, e]);
+              return acc;
+            }, []);
+        let keep = merge(all.filter((r) => kind.get(r.id) !== "cut").map((r) => [r.start, r.end]));
+        if (!keep.length) keep = [[0, dur]];
+        const cuts = merge(
+          all.filter((r) => kind.get(r.id) === "cut").map((r) => [r.start, r.end]),
+        );
+        for (const [cs, ce] of cuts) {
+          keep = keep.flatMap(([s, e]) => {
+            if (ce <= s || cs >= e) return [[s, e]];
+            const out = [];
+            if (cs > s) out.push([s, cs]);
+            if (ce < e) out.push([ce, e]);
+            return out;
+          });
+        }
+        return keep.filter(([s, e]) => e - s > 0.01);
+      }
+
+      function update() {
+        const sp = spans();
+        const total = sp.reduce((n, [s, e]) => n + e - s, 0);
+        $("selection").textContent = selected
+          ? `${fmt(selected.start)} → ${fmt(selected.end)}  (${(selected.end - selected.start).toFixed(2)}s, ${kind.get(selected.id)})`
+          : "–";
+        $("output").textContent = loading
+          ? "loading…"
+          : current
+            ? `${fmt(total)} in ${sp.length} piece${sp.length === 1 ? "" : "s"}${regions.getRegions().length ? "" : " (whole file)"}`
+            : "–";
+        $("go").disabled = loading || !current || !sp.length;
+      }
+
+      ws.on("timeupdate", (t) => {
+        $("cursor").textContent = fmt(t);
+        // R: jump over the cuts, stop after the last kept stretch.
+        if (!playingResult) return;
+        const i = playingResult.findIndex(([, e]) => t < e - 0.02);
+        if (i === -1) {
+          ws.pause();
+          playingResult = null;
+        } else if (t < playingResult[i][0] - 0.05) {
+          ws.setTime(playingResult[i][0]);
+        }
+      });
+      ws.on("pause", () => {
+        if (playingResult && !ws.isPlaying()) playingResult = null;
+      });
+      ws.on("decode", () => {
+        loading = false;
+        ws.zoom(0);
+        update();
+      });
+      // A click on the waveform also fires after a click on a region, so only
+      // deselect when it landed outside the selected one.
+      // Regions let clicks through (see passThrough), so selection is done
+      // here: a click selects the smallest region under it — a cut inside a
+      // keep before the keep — and a click on bare waveform deselects.
+      ws.on("interaction", (t) => {
+        playingResult = null;
+        const hit = regions
+          .getRegions()
+          .filter((r) => r.start <= t && t <= r.end)
+          .sort((a, b) => a.end - a.start - (b.end - b.start))[0];
+        select(hit ?? null);
+      });
+
+      // ── speed ──────────────────────────────────────────────────────────────
+      // For listening a lot of clips through. Pitch is preserved, and the rate
+      // carries over to the next file, the export previews, and the next visit.
+      const SPEEDS = [1, 1.25, 1.5, 1.75, 2];
+      let speed = 1;
+      try {
+        const saved = Number(localStorage.getItem("audio-trim:speed"));
+        if (SPEEDS.includes(saved)) speed = saved;
+      } catch {}
+
+      function setSpeed(rate) {
+        speed = rate;
+        const media = ws.getMediaElement();
+        // defaultPlaybackRate too: a media element resets to it on every new
+        // src, which is what loading the next file does.
+        media.defaultPlaybackRate = rate;
+        ws.setPlaybackRate(rate, true);
+        for (const a of document.querySelectorAll(".result audio"))
+          a.defaultPlaybackRate = a.playbackRate = rate;
+        for (const b of $("speed").children)
+          b.setAttribute("aria-pressed", String(Number(b.dataset.rate) === rate));
+        try {
+          localStorage.setItem("audio-trim:speed", String(rate));
+        } catch {}
+      }
+
+      $("speed").replaceChildren(
+        ...SPEEDS.map((rate) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.dataset.rate = String(rate);
+          b.textContent = `${rate}×`;
+          b.onclick = () => setSpeed(rate);
+          return b;
+        }),
+      );
+      setSpeed(speed);
+      ws.on("ready", () => ws.setPlaybackRate(speed, true));
+
+      // ── files ──────────────────────────────────────────────────────────────
+      const stem = (n) => n.replace(/\.[^.]+$/, "");
+      const slug = (n) =>
+        n
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+
+      async function loadFiles() {
+        const r = await fetch("/api/files").then((r) => r.json());
+        files = r.files;
+        $("paths").textContent = `${r.source}  →  ${r.out}/`;
+        $("files").replaceChildren(
+          ...files.map((f) => {
+            const b = document.createElement("button");
+            b.className = "file";
+            b.dataset.name = f.name;
+            b.title = f.name;
+            b.innerHTML = `${f.name}<small>${(f.size / 1e6).toFixed(1)} MB · ${new Date(f.mtime).toLocaleString()}</small>`;
+            b.onclick = () => open(f.name);
+            return b;
+          }),
+        );
+      }
+
+      function open(name) {
+        current = name;
+        playingResult = null;
+        select(null);
+        regions.clearRegions();
+        kind.clear();
+        for (const b of document.querySelectorAll(".file"))
+          b.setAttribute("aria-current", String(b.dataset.name === name));
+        document.querySelector(`.file[aria-current="true"]`)?.scrollIntoView({ block: "nearest" });
+        $("title").textContent = name;
+        $("name").value = `${slug(stem(name))}-clip`;
+        $("status").textContent = "";
+        loading = true;
+        ws.load(`/audio/${encodeURIComponent(name)}`);
+        update();
+      }
+
+      // ── export ─────────────────────────────────────────────────────────────
+      async function doExport(overwrite = false) {
+        if (!current || loading) return;
+        const segments = spans();
+        const name = $("name").value.trim();
+        if (!name) {
+          $("name").focus();
+          return;
+        }
+        const status = $("status");
+        status.className = "";
+        status.textContent = "Exporting…";
+        const res = await fetch("/api/export", {
+          method: "POST",
+          body: JSON.stringify({
+            file: current,
+            segments,
+            name,
+            fade: $("fade").checked,
+            overwrite,
+          }),
+        });
+        const body = await res.json();
+        if (!res.ok) {
+          status.className = "error";
+          status.textContent = body.error;
+          return;
+        }
+        if (body.exists) {
+          if (confirm(`${body.path} already exists. Replace it?`)) return doExport(true);
+          status.textContent = "Not exported — pick another name.";
+          return;
+        }
+        let copied = false;
+        try {
+          await navigator.clipboard.writeText(body.embed);
+          copied = true;
+        } catch {}
+        status.textContent = `Wrote ${body.path}${copied ? " — embed line copied" : ""}.`;
+        showResult(body);
+      }
+
+      function showResult(r) {
+        const el = document.createElement("div");
+        el.className = "result";
+        el.innerHTML = `
+          <div class="meta">
+            <strong></strong>
+            <span>${fmt(r.duration)}</span>
+            <span class="tag ${r.lossless ? "lossless" : "encoded"}">${r.lossless ? "lossless — frames copied" : "re-encoded with fades"}</span>
+          </div>
+          <div class="embed"><code></code><button type="button">Copy</button></div>
+          <audio controls preload="none"></audio>`;
+        el.querySelector("strong").textContent = r.path;
+        el.querySelector("code").textContent = r.embed;
+        const preview = el.querySelector("audio");
+        preview.src = `/out/${r.url.split("/").pop()}?v=${Date.now()}`;
+        preview.defaultPlaybackRate = preview.playbackRate = speed;
+        const copy = el.querySelector("button");
+        copy.onclick = async () => {
+          await navigator.clipboard.writeText(r.embed);
+          copy.textContent = "Copied";
+          setTimeout(() => (copy.textContent = "Copy"), 1200);
+        };
+        $("results").hidden = false;
+        $("result-list").prepend(el);
+      }
+
+      $("export").addEventListener("submit", (e) => {
+        e.preventDefault();
+        doExport();
+      });
+
+      // ── keys ───────────────────────────────────────────────────────────────
+      document.addEventListener("keydown", (e) => {
+        const typing = e.target instanceof HTMLInputElement && e.target.type === "text";
+        if (e.key === "Escape") {
+          if (typing) e.target.blur();
+          ws.pause();
+          playingResult = null;
+          select(null);
+          return;
+        }
+        if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+
+        const k = e.key.toLowerCase();
+        if (k === " ") {
+          e.preventDefault();
+          playingResult = null;
+          if (ws.isPlaying()) ws.pause();
+          else if (selected) selected.play(true);
+          else ws.play();
+        } else if (k === "p") {
+          playingResult = null;
+          ws.playPause();
+        } else if (k === "r") {
+          const sp = spans();
+          if (!sp.length) return;
+          playingResult = sp;
+          ws.setTime(sp[0][0]);
+          ws.play();
+        } else if (k === "x" && selected) {
+          setKind(selected, kind.get(selected.id) === "cut" ? "keep" : "cut");
+        } else if ((k === "backspace" || k === "delete") && selected) {
+          e.preventDefault();
+          selected.remove();
+        } else if (k === "0") {
+          ws.zoom(0);
+        } else if (k === "," || k === "<" || k === "." || k === ">") {
+          const i = SPEEDS.indexOf(speed) + (k === "," || k === "<" ? -1 : 1);
+          setSpeed(SPEEDS[Math.max(0, Math.min(SPEEDS.length - 1, i))]);
+        } else if (k === "enter") {
+          e.preventDefault();
+          doExport();
+        } else if (k === "arrowdown" || k === "arrowup") {
+          e.preventDefault();
+          const i = files.findIndex((f) => f.name === current);
+          const next =
+            files[Math.max(0, Math.min(files.length - 1, i + (k === "arrowdown" ? 1 : -1)))];
+          if (next && next.name !== current) open(next.name);
+        }
+      });
+
+      await loadFiles();
+      if (files[0]) open(files[0].name);
+    </script>
+  </body>
+</html>

@@ -111,11 +111,13 @@
      * directive change that one, and this is where it would be tried if
      * anything ever managed to get text into the fence that should not be there.
      */
-    const directive = () =>
+    const directive = (ownFont = false) =>
       `%%{init: ${JSON.stringify({
         theme: "base",
         themeVariables: theme(),
-        fontFamily: token("--font-body") || "sans-serif",
+        // Left out when the diagram names its own font (see themed() below):
+        // a directive is read after the config block and would override it.
+        ...(ownFont ? {} : { fontFamily: token("--font-body") || "sans-serif" }),
         // Not --fs-body (24px): that is a measure for running text, and at 24px
         // a twelve-column timeline is about three metres wide. 16px is
         // mermaid's own default and the size the diagram was authored against.
@@ -138,6 +140,20 @@
     });
 
     /**
+     * The source with the directive in it. In front, unless the diagram opens
+     * with a `---` config block (`look: handDrawn`, say): mermaid only reads
+     * that block when it is the very first thing in the text, so the directive
+     * goes after it instead, where mermaid still reads it and merges the two.
+     * A block that sets `fontFamily` keeps it: the directive then leaves the
+     * site's body face out, rather than overriding the diagram's choice.
+     */
+    const themed = (source: string) => {
+      const config = source.match(/^---[ \t]*\r?\n[\s\S]*?\r?\n---[ \t]*\r?\n/)?.[0] ?? "";
+      const init = directive(/^\s*fontFamily:/m.test(config));
+      return config + init + source.slice(config.length);
+    };
+
+    /**
      * Draw, or draw again.
      *
      * Fonts first, every time. Mermaid measures each label with the font in
@@ -148,12 +164,11 @@
      */
     async function draw() {
       await document.fonts.ready;
-      const init = directive();
       for (const block of blocks) {
         // What mermaid needs to consider a block undrawn: the source back —
-        // with the palette of the moment in front of it — and its own "already
+        // with the palette of the moment in it — and its own "already
         // handled" flag gone.
-        block.textContent = init + (sources.get(block) ?? "");
+        block.textContent = themed(sources.get(block) ?? "");
         delete block.dataset.processed;
       }
       try {

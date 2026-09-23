@@ -1,0 +1,187 @@
+---
+// A copy button at the end of a quoted block, for a quote the reader is meant
+// to take away and use — the prompt in the lifelogging post, which is there to
+// be pasted into a model rather than only read.
+//
+// A POST WRAPS THE QUOTE AND WRITES NOTHING ELSE:
+//
+//   <div class="copyable" data-copy-label="Copy the prompt">
+//
+//   > As an expert in …
+//
+//   </div>
+//
+// The blank lines are load-bearing and are the same shape as the <figure>
+// blocks elsewhere in these posts: an HTML block ends at a blank line, so the
+// quote between them is still parsed as ordinary Markdown — it keeps its links,
+// its emphasis, and the curly quotes smartypants gives the rest of the page.
+// `data-copy-label` names the control ("Copy the prompt"); without one it is
+// "Copy quote", which is true but says less.
+//
+// THE BUTTON IS BUILT HERE, NOT WRITTEN IN THE MARKDOWN, because a button that
+// cannot copy is worse than no button. navigator.clipboard is absent on an old
+// browser and on any page not served over a secure origin, and in both cases
+// nothing is inserted and the quote is just a quote. This is the same bargain
+// the deferred frames next door make: the failure mode is the plain thing
+// rather than a dead control.
+//
+// WHAT IT COPIES is the quote's paragraphs as plain text, blank line between
+// them, read off the DOM before the button goes in — so a `>` marker, the
+// button itself, and any markup around the words are all left behind.
+//
+// WHY IT IS A COMPONENT AND NOT AN IMPORT IN Base.astro. Same as the runtimes
+// beside it: a cost that belongs to a kind of content, charged to the routes
+// that carry it. See the `hasCopyable` check in src/pages/[slug].astro.
+//
+// `is:inline` on the style, not a scoped block: everything it styles is created
+// by the script below, and Astro's scoping only reaches elements written in
+// this component's own template. Same reason AudioTickerRuntime inlines its.
+---
+
+<style is:inline>
+  /* Bare glyph, no chrome: it sits at the end of a line of quoted prose and a
+     bordered control there would read as a second object. Colour is inherited,
+     which in a blockquote is --text-muted, and comes up to full strength on
+     hover the way the muted links do.
+
+     1.05em rather than 1em for the same reason the inline play button carries
+     the same correction: an outlined mark reads smaller than the letters it
+     sits with. `middle` puts it on the text's own midpoint.
+
+     `font: inherit` IS WHAT MAKES THAT em MEAN ANYTHING. A <button> does not
+     inherit type: left alone it is the UA's 13.33px Arial, so the glyph came
+     out at 14px beside 24px prose — a mark half the height of the line it ends.
+     Inheriting is also what keeps it tracking the quote if the reading size
+     ever moves. */
+  .copy {
+    display: inline-grid;
+    place-items: center;
+    font: inherit;
+    width: 1.05em;
+    height: 1.05em;
+    margin-left: 0.1em;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+
+  .copy:hover {
+    color: var(--text);
+  }
+
+  /* Both glyphs in ONE grid cell, so the swap is a cross-fade in place rather
+     than a reflow of the line the button sits on. */
+  .copy__glyph {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+  }
+
+  /* The tick waits shrunk and invisible under the copy mark, and the two trade
+     places on .is-copied — the whole animation, and the one every copy button
+     anywhere does. --accent is what says it worked without a word. */
+  .copy__glyph--done {
+    opacity: 0;
+    transform: scale(0.6);
+    color: var(--accent);
+  }
+
+  .copy.is-copied .copy__glyph--copy {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  .copy.is-copied .copy__glyph--done {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* The state still changes, it just stops moving — the tick is the message. */
+  @media (prefers-reduced-motion: reduce) {
+    .copy__glyph {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // The two marks, drawn to the same rules as the resource icons in
+  // src/lib/resource-icons.ts: a 16px box, one path, fill:none, currentColor at
+  // 1.4, and no stroke-linecap or stroke-linejoin — the site's marks have flat
+  // ends and sharp corners.
+  const GLYPHS =
+    '<svg class="copy__glyph copy__glyph--copy" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
+    '<path d="M2.5 5.5h8v8h-8zM5.5 5.5V2.5h8v8h-3" fill="none" stroke="currentColor" stroke-width="1.4"/>' +
+    "</svg>" +
+    '<svg class="copy__glyph copy__glyph--done" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
+    '<path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.4"/>' +
+    "</svg>";
+
+  const DEFAULT_LABEL = "Copy quote";
+  /** How long the tick stays before the button offers itself again. */
+  const HELD = 2000;
+
+  // No clipboard — old browser, or any page not on a secure origin — and the
+  // quote keeps no button at all. See the note at the top of this file.
+  if (navigator.clipboard) {
+    for (const quote of document.querySelectorAll<HTMLElement>(".copyable blockquote")) {
+      // Read BEFORE the button is appended, or the button's own accessible name
+      // would be copied along with the words.
+      const text = Array.from(quote.querySelectorAll("p"))
+        .map((p) => (p.textContent ?? "").trim())
+        .filter(Boolean)
+        .join("\n\n");
+      if (!text) continue;
+
+      const label = quote.closest<HTMLElement>(".copyable")?.dataset.copyLabel || DEFAULT_LABEL;
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "copy";
+      // `title` as well as the name: a glyph on its own says nothing to someone
+      // who is looking at it rather than listening to it.
+      button.title = label;
+      button.innerHTML = GLYPHS;
+
+      // The name lives in a span rather than an aria-label so that changing it
+      // is a content change in a live region, which is announced; a changed
+      // aria-label on the button the reader just pressed is not, reliably.
+      const status = document.createElement("span");
+      status.className = "sr-only";
+      status.setAttribute("aria-live", "polite");
+      status.textContent = label;
+      button.append(status);
+
+      let revert = 0;
+      button.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          // Denied or unavailable at the moment of the click: say nothing and
+          // leave the button as it was, rather than claiming a copy that is not
+          // on the clipboard.
+          return;
+        }
+        button.classList.add("is-copied");
+        status.textContent = "Copied";
+        clearTimeout(revert);
+        revert = window.setTimeout(() => {
+          button.classList.remove("is-copied");
+          status.textContent = label;
+        }, HELD);
+      });
+
+      // Inside the last paragraph, so it ends the quote's last line rather than
+      // starting a block of its own. The non-breaking space both spaces it and
+      // keeps it from wrapping onto a line by itself.
+      const end = quote.querySelector("p:last-of-type") ?? quote;
+      end.append(" ", button);
+    }
+  }
+</script>
