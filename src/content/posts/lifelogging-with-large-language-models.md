@@ -137,7 +137,7 @@ To become a practitioner of lifelogging with large language models:
 
 </div>
 
-Given the model output, a voice AI is used to convert the text to speech, the audio is processed with reverb and compression, and mixed it with a background track of your choice. This is the final output you can hear snippets of above.
+Given the model output, a voice AI is used to convert the text to speech, the audio is processed with reverb and compression, and mixed with a background track of your choice. This is the final output you can hear snippets of above.
 
 **Open source models.** Wary about sharing all of this personal data with Anthropic or OpenAI? I am too! Thankfully, when David's partner became interested in lifelogging but didn't want to share their data, he whipped up a completely open source toolkit that spins up Amazon Web Services instances to ensure no private data ever gets shared with Anthropic or OpenAI. You can find his setup at the [Sublimation repository page](https://github.com/dlakata/sublimation). Sublimation is integrated with this workflow, and no I haven't heard of anything more romantic in terms of infrastructure as a love language.
 
