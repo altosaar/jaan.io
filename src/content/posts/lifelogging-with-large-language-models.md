@@ -231,7 +231,7 @@ P.P.S. One of the emergent joys of this practice has been noticing small moments
 
 Thank you to Toby for describing this practice as [lifelogging](https://en.wikipedia.org/wiki/Lifelog) and to Frankie for calling it "Claudio journaling"; to David, Sophie, Elana, Maggie for thought partnership, and to several more friends who tolerated my sending of AI slop and cursed visualizations over the course of these experiments.
 
-[^depression]: Writing this a few months later, and with the help of my psychiatrist, I can confirm it was the former and a normal situational grief response. I saw a therapist for many months after the breakup and continue to see a psychiatrist. If I’m ever experiencing acute mental health symptoms, I restart therapy and encourage everyone with access to do the same.
+[^depression]: Writing this a few months later, and with the help of my psychiatrist, I can confirm it was the former; a normal situational grief response. I saw a therapist for many months after the breakup and continue to see a psychiatrist. If I’m ever experiencing acute mental health symptoms, I restart therapy and encourage everyone with access to do the same.
 
 [^load]: Such affect labeling can be cathartic. For example, kids experience the “name it to tame it” trick of parenting: if they’re frustrated at not having eaten, but haven’t connected the dots between the emotion and their distress, simply being told “you’re frustrated right now” can becalm them.
 
