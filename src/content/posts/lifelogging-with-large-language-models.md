@@ -14,6 +14,8 @@ ogImageAlt: "David Bowie, grinning, with his hands turned upside down over his
 date: 2026-09-22
 ---
 
+> Each week I give an AI my journal, notes, sleep, and financial data and receive a 15-minute podcast. It's right often enough to move me, and wrong enough to keep me vigilant.
+
 The first time AI makes me tear up I'm biking down a sunny Brooklyn street. 
 
 "Grief is not a prodrome," the synthetic voice says. The authoritative phrase lands. I become aware of a permission to feel, with a bit more ease, the pain of a recent breakup—absent the worry that my tears might be an early warning sign, or prodrome, of depression.[^depression]
