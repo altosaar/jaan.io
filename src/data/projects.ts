@@ -107,6 +107,13 @@ import NotOnSpotifyIcon from "../assets/projects/notonspotify.svg";
 // so it goes through Astro's pipeline and reaches IndexMark as a `mask` URL.
 // Same route the /writing thumbs take; see the note there.
 import RaccoonMark from "../assets/projects/trash-club-raccoon.png";
+// The leaning figure by insdesign86 (Noun Project, CC BY 3.0), with a checkmark
+// added above the hand; the same mark as loiteringnyc.jaan.io's favicon.
+import LoiteringIcon from "../assets/projects/loitering.svg";
+// longformadaptations.jaan.io's icon (document filming by Aybige, Noun Project,
+// CC BY 3.0) in one colour: currentColor strokes, plus an unpainted page
+// silhouette as the hover target, as in notonspotify.svg.
+import LongformIcon from "../assets/projects/longform-adaptations.svg";
 
 export interface Project {
   /**
@@ -163,6 +170,19 @@ export interface Project {
 }
 
 export const PROJECTS: Project[] = [
+  {
+    href: "https://longformadaptations.jaan.io/",
+    title: "Longform Adaptations",
+    description:
+      "Films and TV series adapted from newspaper and magazine journalism, each linked to its source article.",
+    icon: LongformIcon,
+  },
+  {
+    href: "https://loiteringnyc.jaan.io/",
+    title: "Loitering",
+    description: "NYC events where you can linger and talk to strangers.",
+    icon: LoiteringIcon,
+  },
   {
     href: "/visualizations",
     title: "Visualizations",
